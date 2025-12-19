@@ -5,10 +5,8 @@
 //! rust-music-theory = { version = "0.3", features = ["midi"] }
 //! ```
 
+mod duration;
 mod types;
 
-// Duration will be added in Task 5
-// mod duration;
-// pub use duration::Duration;
-
+pub use duration::Duration;
 pub use types::{Channel, Velocity};
