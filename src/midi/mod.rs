@@ -8,8 +8,10 @@
 mod builder;
 mod duration;
 pub(crate) mod event;
+mod file;
 mod types;
 
 pub use builder::{MidiBuilder, DEFAULT_PPQ};
 pub use duration::Duration;
+pub use file::MidiFile;
 pub use types::{Channel, Velocity};
