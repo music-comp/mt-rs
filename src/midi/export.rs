@@ -60,16 +60,16 @@ impl MidiExport {
 
     /// Convert to MIDI bytes.
     pub fn to_bytes(self) -> Vec<u8> {
-        self.to_midi_file().to_bytes()
+        self.into_midi_file().to_bytes()
     }
 
     /// Save to a MIDI file.
     pub fn save<P: AsRef<Path>>(self, path: P) -> io::Result<()> {
-        self.to_midi_file().save(path)
+        self.into_midi_file().save(path)
     }
 
-    /// Convert to a MidiFile.
-    fn to_midi_file(self) -> MidiFile {
+    /// Convert into a MidiFile.
+    fn into_midi_file(self) -> MidiFile {
         // Create a simple wrapper that implements Notes
         struct NoteVec(Vec<Note>);
         impl Notes for NoteVec {

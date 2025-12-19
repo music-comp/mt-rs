@@ -85,26 +85,27 @@ impl MidiFile {
         let mut smf = Smf::new(header);
 
         // Track 0: Tempo and time signature
-        let mut tempo_track: Track = Vec::new();
-        tempo_track.push(TrackEvent {
-            delta: u28::new(0),
-            kind: TrackEventKind::Meta(MetaMessage::Tempo(
-                u24::new(MidiEvent::bpm_to_microseconds(self.default_tempo))
-            )),
-        });
-        tempo_track.push(TrackEvent {
-            delta: u28::new(0),
-            kind: TrackEventKind::Meta(MetaMessage::TimeSignature(
-                self.default_time_sig.0,
-                self.denominator_to_power(self.default_time_sig.1),
-                24, // MIDI clocks per metronome click
-                8,  // 32nd notes per quarter note
-            )),
-        });
-        tempo_track.push(TrackEvent {
-            delta: u28::new(0),
-            kind: TrackEventKind::Meta(MetaMessage::EndOfTrack),
-        });
+        let tempo_track: Track = vec![
+            TrackEvent {
+                delta: u28::new(0),
+                kind: TrackEventKind::Meta(MetaMessage::Tempo(
+                    u24::new(MidiEvent::bpm_to_microseconds(self.default_tempo))
+                )),
+            },
+            TrackEvent {
+                delta: u28::new(0),
+                kind: TrackEventKind::Meta(MetaMessage::TimeSignature(
+                    self.default_time_sig.0,
+                    self.denominator_to_power(self.default_time_sig.1),
+                    24, // MIDI clocks per metronome click
+                    8,  // 32nd notes per quarter note
+                )),
+            },
+            TrackEvent {
+                delta: u28::new(0),
+                kind: TrackEventKind::Meta(MetaMessage::EndOfTrack),
+            },
+        ];
         smf.tracks.push(tempo_track);
 
         // Add note tracks

@@ -7,7 +7,7 @@ pub struct Velocity(u8);
 impl Velocity {
     /// Create a new velocity value. Returns None if value > 127.
     pub fn new(v: u8) -> Option<Self> {
-        (v <= 127).then(|| Self(v))
+        (v <= 127).then_some(Self(v))
     }
 
     /// Maximum velocity (127).
@@ -28,7 +28,7 @@ pub struct Channel(u8);
 impl Channel {
     /// Create a new channel. Returns None if value > 15.
     pub fn new(c: u8) -> Option<Self> {
-        (c <= 15).then(|| Self(c))
+        (c <= 15).then_some(Self(c))
     }
 
     /// Drum channel (9, which is channel 10 in 1-indexed MIDI).
