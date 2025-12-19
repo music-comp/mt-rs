@@ -10,6 +10,10 @@ edition = "2018"
 exclude = ["/.travis.yml", ".gitignore"]
 keywords = ["music", "music-theory"]
 
+[features]
+default = []
+midi = ["dep:midly"]
+
 [lib]
 crate-type = ["cdylib", "rlib"]
 
@@ -22,6 +26,7 @@ lazy_static = "1.4.0"
 wasm-bindgen = "0.2"
 serde = { version = "1.0", features = ["derive"] }
 serde-wasm-bindgen = "0.4"
+midly = { version = "0.5", optional = true }
 
 [dependencies.web-sys]
 version = "0.3"
