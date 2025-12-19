@@ -48,3 +48,6 @@ pub mod scale;
 
 #[cfg(target_arch = "wasm32")]
 pub mod wasm;
+
+#[cfg(feature = "midi")]
+pub mod midi;
