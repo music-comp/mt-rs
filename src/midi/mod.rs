@@ -6,6 +6,7 @@
 //! ```
 
 mod duration;
+pub(crate) mod event;
 mod types;
 
 pub use duration::Duration;
