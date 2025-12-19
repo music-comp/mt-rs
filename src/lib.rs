@@ -39,6 +39,22 @@
 //!
 //! // returns a Vector of the Notes of the chord
 //! let chord_notes = chord.notes();
+//! ```
+//!
+//! ## MIDI Export (optional feature)
+//!
+//! With the `midi` feature enabled, you can export chords and scales to MIDI files:
+//!
+//! ```toml
+//! rust-music-theory = { version = "0.3", features = ["midi"] }
+//! ```
+//!
+//! ```ignore
+//! use rustmt::midi::{ToMidi, Duration, Velocity};
+//!
+//! chord.to_midi(Duration::Quarter, Velocity::new(100).unwrap())
+//!     .save("chord.mid")?;
+//! ```
 
 extern crate strum;
 pub mod chord;
