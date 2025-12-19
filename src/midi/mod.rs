@@ -5,9 +5,11 @@
 //! rust-music-theory = { version = "0.3", features = ["midi"] }
 //! ```
 
+mod builder;
 mod duration;
 pub(crate) mod event;
 mod types;
 
+pub use builder::{MidiBuilder, DEFAULT_PPQ};
 pub use duration::Duration;
 pub use types::{Channel, Velocity};
