@@ -62,8 +62,14 @@ mod export;
 mod file;
 mod types;
 
+#[cfg(feature = "midi-playback")]
+pub mod playback;
+
 pub use builder::{MidiBuilder, DEFAULT_PPQ};
 pub use duration::Duration;
 pub use export::{MidiExport, ToMidi};
 pub use file::MidiFile;
 pub use types::{Channel, Velocity};
+
+#[cfg(feature = "midi-playback")]
+pub use playback::PlaybackError;
