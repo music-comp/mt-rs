@@ -10,12 +10,15 @@ use crate::midi::{Channel, Duration, Velocity};
 use crate::note::Notes;
 use super::PlaybackError;
 use super::timing::duration_to_ms;
+use super::scheduler::Scheduler;
 
 /// Real-time MIDI player.
 pub struct MidiPlayer {
     connection: Arc<Mutex<MidiOutputConnection>>,
+    scheduler: Scheduler,
     tempo: u16,
     channel: Channel,
+    cursor_ms: u64,
 }
 
 impl MidiPlayer {
@@ -36,10 +39,15 @@ impl MidiPlayer {
             .connect(port, "output")
             .map_err(|e| PlaybackError::ConnectionFailed(e.to_string()))?;
 
+        let connection = Arc::new(Mutex::new(connection));
+        let scheduler = Scheduler::new(connection.clone());
+
         Ok(Self {
-            connection: Arc::new(Mutex::new(connection)),
+            connection,
+            scheduler,
             tempo: 120,
             channel: Channel::new(0).unwrap(),
+            cursor_ms: 0,
         })
     }
 
@@ -57,10 +65,15 @@ impl MidiPlayer {
             .connect(port, "output")
             .map_err(|e| PlaybackError::ConnectionFailed(e.to_string()))?;
 
+        let connection = Arc::new(Mutex::new(connection));
+        let scheduler = Scheduler::new(connection.clone());
+
         Ok(Self {
-            connection: Arc::new(Mutex::new(connection)),
+            connection,
+            scheduler,
             tempo: 120,
             channel: Channel::new(0).unwrap(),
+            cursor_ms: 0,
         })
     }
 
@@ -137,6 +150,60 @@ impl MidiPlayer {
         if let Ok(mut conn) = self.connection.lock() {
             let _ = conn.send(&message);
         }
+    }
+
+    /// Schedule notes to play asynchronously.
+    pub fn play_async<N: Notes>(&mut self, notes: &N, duration: Duration, velocity: Velocity) {
+        let pitches: Vec<u8> = notes.notes().iter().map(|n| n.midi_pitch()).collect();
+        let duration_ms = duration_to_ms(&duration, self.tempo);
+        let channel = self.channel.value();
+
+        // Schedule Note On for all pitches
+        for &pitch in &pitches {
+            let message = vec![0x90 | (channel & 0x0F), pitch & 0x7F, velocity.value() & 0x7F];
+            self.scheduler.schedule(self.cursor_ms, message);
+        }
+
+        // Schedule Note Off for all pitches
+        let note_off_time = self.cursor_ms + duration_ms;
+        for &pitch in &pitches {
+            let message = vec![0x80 | (channel & 0x0F), pitch & 0x7F, 0];
+            self.scheduler.schedule(note_off_time, message);
+        }
+
+        // Advance cursor
+        self.cursor_ms = note_off_time;
+    }
+
+    /// Schedule a single note to play asynchronously.
+    pub fn play_note_async(&mut self, pitch: u8, duration: Duration, velocity: Velocity) {
+        let duration_ms = duration_to_ms(&duration, self.tempo);
+        let channel = self.channel.value();
+
+        let note_on = vec![0x90 | (channel & 0x0F), pitch & 0x7F, velocity.value() & 0x7F];
+        self.scheduler.schedule(self.cursor_ms, note_on);
+
+        let note_off_time = self.cursor_ms + duration_ms;
+        let note_off = vec![0x80 | (channel & 0x0F), pitch & 0x7F, 0];
+        self.scheduler.schedule(note_off_time, note_off);
+
+        self.cursor_ms = note_off_time;
+    }
+
+    /// Schedule a rest (advances cursor without playing).
+    pub fn rest_async(&mut self, duration: Duration) {
+        let duration_ms = duration_to_ms(&duration, self.tempo);
+        self.cursor_ms += duration_ms;
+    }
+
+    /// Wait for all scheduled notes to finish playing.
+    pub fn wait(&self) {
+        self.scheduler.wait();
+    }
+
+    /// Stop all playing notes immediately.
+    pub fn stop(&self) {
+        self.scheduler.stop();
     }
 }
 
