@@ -54,6 +54,23 @@
 //!     .track(melody, Channel::new(1).unwrap())
 //!     .save("song.mid")?;
 //! ```
+//!
+//! # Real-Time Playback (optional feature)
+//!
+//! With the `midi-playback` feature, you can play notes on connected MIDI devices:
+//!
+//! ```toml
+//! rust-music-theory = { version = "0.3", features = ["midi-playback"] }
+//! ```
+//!
+//! ```ignore
+//! use rust_music_theory::midi::{MidiPorts, MidiPlayer, Duration, Velocity};
+//!
+//! let ports = MidiPorts::list()?;
+//! let mut player = MidiPlayer::connect_index(0)?;
+//! player.set_tempo(120);
+//! player.play(&chord, Duration::Quarter, Velocity::new(100).unwrap());
+//! ```
 
 mod builder;
 mod duration;

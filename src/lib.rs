@@ -55,6 +55,22 @@
 //! chord.to_midi(Duration::Quarter, Velocity::new(100).unwrap())
 //!     .save("chord.mid")?;
 //! ```
+//!
+//! ## Real-Time Playback (optional feature)
+//!
+//! With the `midi-playback` feature, play to connected MIDI instruments:
+//!
+//! ```toml
+//! rust-music-theory = { version = "0.3", features = ["midi-playback"] }
+//! ```
+//!
+//! ```ignore
+//! use rustmt::midi::{MidiPorts, MidiPlayer};
+//!
+//! let ports = MidiPorts::list()?;
+//! let mut player = MidiPlayer::connect_index(0)?;
+//! player.play(&chord, Duration::Quarter, Velocity::new(100).unwrap());
+//! ```
 
 extern crate strum;
 pub mod chord;
