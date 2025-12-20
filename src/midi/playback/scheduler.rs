@@ -38,6 +38,7 @@ impl Ord for ScheduledEvent {
 }
 
 /// Messages sent to the scheduler thread.
+#[allow(dead_code)]
 pub enum SchedulerCommand {
     /// Schedule a MIDI message at a future time (ms from start)
     Schedule { time_ms: u64, message: Vec<u8> },
@@ -53,6 +54,7 @@ pub enum SchedulerCommand {
 pub struct Scheduler {
     sender: Sender<SchedulerCommand>,
     thread: Option<JoinHandle<()>>,
+    #[allow(dead_code)]
     current_time_ms: Arc<Mutex<u64>>,
     idle_signal: Arc<(Mutex<bool>, Condvar)>,
 }
@@ -103,6 +105,7 @@ impl Scheduler {
     }
 
     /// Get the current playback time in ms.
+    #[allow(dead_code)]
     pub fn current_time_ms(&self) -> u64 {
         *self.current_time_ms.lock().unwrap()
     }
