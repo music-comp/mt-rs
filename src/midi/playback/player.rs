@@ -1,10 +1,15 @@
 //! MIDI player for real-time playback.
 
 use std::sync::{Arc, Mutex};
+use std::thread;
+use std::time::Duration as StdDuration;
+
 use midir::{MidiOutput, MidiOutputConnection};
 
-use crate::midi::Channel;
+use crate::midi::{Channel, Duration, Velocity};
+use crate::note::Notes;
 use super::PlaybackError;
+use super::timing::duration_to_ms;
 
 /// Real-time MIDI player.
 pub struct MidiPlayer {
@@ -77,6 +82,61 @@ impl MidiPlayer {
     /// Get the current channel.
     pub fn channel(&self) -> Channel {
         self.channel
+    }
+
+    /// Play notes and block until complete.
+    pub fn play<N: Notes>(&self, notes: &N, duration: Duration, velocity: Velocity) {
+        let pitches: Vec<u8> = notes.notes().iter().map(|n| n.midi_pitch()).collect();
+
+        // Send Note On for all pitches
+        for &pitch in &pitches {
+            self.send_note_on(pitch, velocity.value());
+        }
+
+        // Wait for duration
+        let ms = duration_to_ms(&duration, self.tempo);
+        thread::sleep(StdDuration::from_millis(ms));
+
+        // Send Note Off for all pitches
+        for &pitch in &pitches {
+            self.send_note_off(pitch);
+        }
+    }
+
+    /// Play a single MIDI pitch.
+    pub fn play_note(&self, pitch: u8, duration: Duration, velocity: Velocity) {
+        self.send_note_on(pitch, velocity.value());
+
+        let ms = duration_to_ms(&duration, self.tempo);
+        thread::sleep(StdDuration::from_millis(ms));
+
+        self.send_note_off(pitch);
+    }
+
+    /// Rest (silent pause) for a duration.
+    pub fn rest(&self, duration: Duration) {
+        let ms = duration_to_ms(&duration, self.tempo);
+        thread::sleep(StdDuration::from_millis(ms));
+    }
+
+    /// Send a Note On message.
+    fn send_note_on(&self, pitch: u8, velocity: u8) {
+        let status = 0x90 | (self.channel.value() & 0x0F);
+        let message = [status, pitch & 0x7F, velocity & 0x7F];
+
+        if let Ok(mut conn) = self.connection.lock() {
+            let _ = conn.send(&message);
+        }
+    }
+
+    /// Send a Note Off message.
+    fn send_note_off(&self, pitch: u8) {
+        let status = 0x80 | (self.channel.value() & 0x0F);
+        let message = [status, pitch & 0x7F, 0];
+
+        if let Ok(mut conn) = self.connection.lock() {
+            let _ = conn.send(&message);
+        }
     }
 }
 
