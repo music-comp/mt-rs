@@ -72,4 +72,4 @@ pub use file::MidiFile;
 pub use types::{Channel, Velocity};
 
 #[cfg(feature = "midi-playback")]
-pub use playback::{PlaybackError, MidiPorts};
+pub use playback::{PlaybackError, MidiPorts, MidiPlayer};
