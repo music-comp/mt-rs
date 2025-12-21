@@ -8,7 +8,8 @@
 //! ```ignore
 //! use rust_music_theory::chord::{Chord, Quality, Number};
 //! use rust_music_theory::note::{Pitch, PitchSymbol::*};
-//! use rust_music_theory::midi::{MidiPorts, MidiPlayer, Duration, Velocity};
+//! use rust_music_theory::midi::playback::{MidiPorts, MidiPlayer};
+//! use rust_music_theory::midi::{Duration, Velocity};
 //!
 //! // List available MIDI ports
 //! let ports = MidiPorts::list()?;
