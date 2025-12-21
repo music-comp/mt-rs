@@ -169,6 +169,53 @@ impl MidiPlayer {
         self.scheduler.schedule(self.cursor_ms, message);
     }
 
+    /// Send a Program Change message immediately.
+    pub fn program_change(&self, program: u8) {
+        let status = 0xC0 | (self.channel.value() & 0x0F);
+        let message = [status, program & 0x7F];
+
+        if let Ok(mut conn) = self.connection.lock() {
+            let _ = conn.send(&message);
+        }
+    }
+
+    /// Send a Program Change with Bank Select immediately.
+    pub fn program_change_with_bank(&self, program: u8, bank_msb: u8, bank_lsb: u8) {
+        let channel = self.channel.value() & 0x0F;
+        let cc_status = 0xB0 | channel;
+        let pc_status = 0xC0 | channel;
+
+        if let Ok(mut conn) = self.connection.lock() {
+            // Bank Select MSB (CC 0)
+            let _ = conn.send(&[cc_status, 0, bank_msb & 0x7F]);
+            // Bank Select LSB (CC 32)
+            let _ = conn.send(&[cc_status, 32, bank_lsb & 0x7F]);
+            // Program Change
+            let _ = conn.send(&[pc_status, program & 0x7F]);
+        }
+    }
+
+    /// Schedule a Program Change asynchronously.
+    pub fn program_change_async(&mut self, program: u8) {
+        let status = 0xC0 | (self.channel.value() & 0x0F);
+        let message = vec![status, program & 0x7F];
+        self.scheduler.schedule(self.cursor_ms, message);
+    }
+
+    /// Schedule a Program Change with Bank Select asynchronously.
+    pub fn program_change_with_bank_async(&mut self, program: u8, bank_msb: u8, bank_lsb: u8) {
+        let channel = self.channel.value() & 0x0F;
+        let cc_status = 0xB0 | channel;
+        let pc_status = 0xC0 | channel;
+
+        // Bank Select MSB (CC 0)
+        self.scheduler.schedule(self.cursor_ms, vec![cc_status, 0, bank_msb & 0x7F]);
+        // Bank Select LSB (CC 32)
+        self.scheduler.schedule(self.cursor_ms, vec![cc_status, 32, bank_lsb & 0x7F]);
+        // Program Change
+        self.scheduler.schedule(self.cursor_ms, vec![pc_status, program & 0x7F]);
+    }
+
     /// Schedule notes to play asynchronously.
     pub fn play_async<N: Notes>(&mut self, notes: &N, duration: Duration, velocity: Velocity) {
         let pitches: Vec<u8> = notes.notes().iter().map(|n| n.midi_pitch()).collect();
@@ -280,5 +327,33 @@ mod tests {
         let channel = 5u8;
         let status = 0xB0 | (channel & 0x0F);
         assert_eq!(status, 0xB5);
+    }
+
+    #[test]
+    fn program_change_message_bytes() {
+        // Program Change: [0xC0 | channel, program]
+        let channel = 0u8;
+        let program = 5u8;
+
+        let status = 0xC0 | (channel & 0x0F);
+        let message = [status, program & 0x7F];
+
+        assert_eq!(message, [0xC0, 5]);
+    }
+
+    #[test]
+    fn bank_select_message_bytes() {
+        // Bank Select MSB: [0xB0 | channel, 0, msb]
+        // Bank Select LSB: [0xB0 | channel, 32, lsb]
+        let channel = 0u8;
+        let msb = 1u8;
+        let lsb = 2u8;
+
+        let status = 0xB0 | (channel & 0x0F);
+        let msg_msb = [status, 0, msb & 0x7F];
+        let msg_lsb = [status, 32, lsb & 0x7F];
+
+        assert_eq!(msg_msb, [0xB0, 0, 1]);
+        assert_eq!(msg_lsb, [0xB0, 32, 2]);
     }
 }
