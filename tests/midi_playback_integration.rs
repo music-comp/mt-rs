@@ -101,3 +101,53 @@ fn change_channel() {
 
     player.wait();
 }
+
+#[test]
+#[ignore]
+fn control_change_modulation() {
+    let ports = MidiPorts::list().unwrap();
+    if ports.is_empty() { return; }
+
+    let player = MidiPlayer::connect_index(0).unwrap();
+    player.control_change(1, 64);  // Modulation at 50%
+    player.control_change(1, 127); // Modulation at 100%
+    player.control_change(1, 0);   // Modulation off
+}
+
+#[test]
+#[ignore]
+fn program_change_switches_instrument() {
+    let ports = MidiPorts::list().unwrap();
+    if ports.is_empty() { return; }
+
+    let player = MidiPlayer::connect_index(0).unwrap();
+    player.program_change(0);  // Piano
+    player.program_change(25); // Acoustic Guitar
+    player.program_change(40); // Violin
+}
+
+#[test]
+#[ignore]
+fn program_change_with_bank_select() {
+    let ports = MidiPorts::list().unwrap();
+    if ports.is_empty() { return; }
+
+    let player = MidiPlayer::connect_index(0).unwrap();
+    player.program_change_with_bank(5, 0, 1);
+}
+
+#[test]
+#[ignore]
+fn midi_clock_sends_to_daw() {
+    use std::thread;
+    use std::time::Duration;
+
+    let ports = MidiPorts::list().unwrap();
+    if ports.is_empty() { return; }
+
+    let mut player = MidiPlayer::connect_index(0).unwrap();
+    player.set_tempo(120);
+    player.start_clock();
+    thread::sleep(Duration::from_secs(2));
+    player.stop_clock();
+}
