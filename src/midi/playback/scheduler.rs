@@ -42,12 +42,16 @@ impl Ord for ScheduledEvent {
 pub enum SchedulerCommand {
     /// Schedule a MIDI message at a future time (ms from start)
     Schedule { time_ms: u64, message: Vec<u8> },
-    /// Update tempo (used to recalculate future events)
+    /// Update tempo (used for clock timing)
     SetTempo(u16),
     /// Stop all notes immediately
     Stop,
     /// Shutdown the scheduler
     Shutdown,
+    /// Start MIDI clock
+    StartClock,
+    /// Stop MIDI clock
+    StopClock,
 }
 
 /// The scheduler manages a background thread for timed MIDI events.
@@ -62,6 +66,11 @@ pub struct Scheduler {
 impl Scheduler {
     /// Create a new scheduler with the given MIDI connection.
     pub fn new(connection: Arc<Mutex<MidiOutputConnection>>) -> Self {
+        Self::with_tempo(connection, 120)
+    }
+
+    /// Create a new scheduler with the given MIDI connection and initial tempo.
+    pub fn with_tempo(connection: Arc<Mutex<MidiOutputConnection>>, initial_tempo: u16) -> Self {
         let (sender, receiver) = mpsc::channel();
         let current_time_ms = Arc::new(Mutex::new(0u64));
         let idle_signal = Arc::new((Mutex::new(true), Condvar::new()));
@@ -70,7 +79,7 @@ impl Scheduler {
         let idle_clone = idle_signal.clone();
 
         let thread = thread::spawn(move || {
-            Self::run(receiver, connection, time_clone, idle_clone);
+            Self::run(receiver, connection, time_clone, idle_clone, initial_tempo);
         });
 
         Self {
@@ -110,15 +119,34 @@ impl Scheduler {
         *self.current_time_ms.lock().unwrap()
     }
 
+    /// Start the MIDI clock.
+    pub fn start_clock(&self) {
+        let _ = self.sender.send(SchedulerCommand::StartClock);
+    }
+
+    /// Stop the MIDI clock.
+    pub fn stop_clock(&self) {
+        let _ = self.sender.send(SchedulerCommand::StopClock);
+    }
+
+    /// Update the tempo (affects clock speed).
+    pub fn set_tempo(&self, bpm: u16) {
+        let _ = self.sender.send(SchedulerCommand::SetTempo(bpm));
+    }
+
     /// Scheduler thread main loop.
     fn run(
         receiver: Receiver<SchedulerCommand>,
         connection: Arc<Mutex<MidiOutputConnection>>,
         current_time_ms: Arc<Mutex<u64>>,
         idle_signal: Arc<(Mutex<bool>, Condvar)>,
+        initial_tempo: u16,
     ) {
         let mut queue: BinaryHeap<ScheduledEvent> = BinaryHeap::new();
         let start = Instant::now();
+        let mut clock_running = false;
+        let mut tempo = initial_tempo;
+        let mut last_clock_tick = Instant::now();
 
         loop {
             // Update current time
@@ -135,19 +163,53 @@ impl Scheduler {
                     }
                     SchedulerCommand::Stop => {
                         queue.clear();
+                        clock_running = false;
                         // Send all notes off on all channels
                         if let Ok(mut conn) = connection.lock() {
                             for ch in 0..16u8 {
-                                let _ = conn.send(&[0xB0 | ch, 123, 0]); // All Notes Off
+                                let _ = conn.send(&[0xB0 | ch, 123, 0]);
                             }
+                            // Send MIDI Stop
+                            let _ = conn.send(&[0xFC]);
                         }
                     }
-                    SchedulerCommand::SetTempo(_) => {
-                        // Tempo changes don't affect already-scheduled events
+                    SchedulerCommand::SetTempo(bpm) => {
+                        tempo = bpm;
                     }
                     SchedulerCommand::Shutdown => {
+                        if clock_running {
+                            if let Ok(mut conn) = connection.lock() {
+                                let _ = conn.send(&[0xFC]); // Stop
+                            }
+                        }
                         return;
                     }
+                    SchedulerCommand::StartClock => {
+                        clock_running = true;
+                        last_clock_tick = Instant::now();
+                        if let Ok(mut conn) = connection.lock() {
+                            let _ = conn.send(&[0xFA]); // MIDI Start
+                        }
+                    }
+                    SchedulerCommand::StopClock => {
+                        clock_running = false;
+                        if let Ok(mut conn) = connection.lock() {
+                            let _ = conn.send(&[0xFC]); // MIDI Stop
+                        }
+                    }
+                }
+            }
+
+            // Send MIDI clock ticks if running
+            if clock_running {
+                let tick_interval_us = (60_000_000u64 / tempo as u64) / 24;
+                let elapsed = last_clock_tick.elapsed().as_micros() as u64;
+
+                if elapsed >= tick_interval_us {
+                    if let Ok(mut conn) = connection.lock() {
+                        let _ = conn.send(&[0xF8]); // Clock tick
+                    }
+                    last_clock_tick = Instant::now();
                 }
             }
 
@@ -163,8 +225,8 @@ impl Scheduler {
                 }
             }
 
-            // Update idle status
-            if queue.is_empty() {
+            // Update idle status (clock running counts as not idle)
+            if queue.is_empty() && !clock_running {
                 let (lock, cvar) = &*idle_signal;
                 if let Ok(mut idle) = lock.lock() {
                     *idle = true;
@@ -199,5 +261,28 @@ mod tests {
 
         // In a max-heap with reversed ordering, early > late
         assert!(early > late);
+    }
+
+    #[test]
+    fn clock_tick_interval_at_120_bpm() {
+        // 24 ticks per quarter note
+        // At 120 BPM: quarter note = 500ms
+        // Tick interval = 500ms / 24 = 20.833...ms
+        let bpm = 120u16;
+        let quarter_note_ms = 60_000u64 / bpm as u64;
+        let tick_interval_us = (quarter_note_ms * 1000) / 24;
+
+        assert_eq!(quarter_note_ms, 500);
+        assert_eq!(tick_interval_us, 20833);
+    }
+
+    #[test]
+    fn clock_tick_interval_at_140_bpm() {
+        let bpm = 140u16;
+        let quarter_note_ms = 60_000u64 / bpm as u64;
+        let tick_interval_us = (quarter_note_ms * 1000) / 24;
+
+        assert_eq!(quarter_note_ms, 428); // 60000/140 = 428.57
+        assert_eq!(tick_interval_us, 17833); // 428000/24 = 17833.33
     }
 }
