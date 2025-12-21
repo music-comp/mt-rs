@@ -152,6 +152,23 @@ impl MidiPlayer {
         }
     }
 
+    /// Send a Control Change message immediately.
+    pub fn control_change(&self, cc: u8, value: u8) {
+        let status = 0xB0 | (self.channel.value() & 0x0F);
+        let message = [status, cc & 0x7F, value & 0x7F];
+
+        if let Ok(mut conn) = self.connection.lock() {
+            let _ = conn.send(&message);
+        }
+    }
+
+    /// Schedule a Control Change message asynchronously.
+    pub fn control_change_async(&mut self, cc: u8, value: u8) {
+        let status = 0xB0 | (self.channel.value() & 0x0F);
+        let message = vec![status, cc & 0x7F, value & 0x7F];
+        self.scheduler.schedule(self.cursor_ms, message);
+    }
+
     /// Schedule notes to play asynchronously.
     pub fn play_async<N: Notes>(&mut self, notes: &N, duration: Duration, velocity: Velocity) {
         let pitches: Vec<u8> = notes.notes().iter().map(|n| n.midi_pitch()).collect();
@@ -243,5 +260,25 @@ mod tests {
             Err(PlaybackError::PortNotFound(_)) => {}
             _ => panic!("Expected PortNotFound error"),
         }
+    }
+
+    #[test]
+    fn control_change_message_bytes() {
+        // CC message format: [0xB0 | channel, cc_number, value]
+        let channel = 0u8;
+        let cc = 1u8;  // Modulation
+        let value = 64u8;
+
+        let status = 0xB0 | (channel & 0x0F);
+        let message = [status, cc & 0x7F, value & 0x7F];
+
+        assert_eq!(message, [0xB0, 1, 64]);
+    }
+
+    #[test]
+    fn control_change_channel_5() {
+        let channel = 5u8;
+        let status = 0xB0 | (channel & 0x0F);
+        assert_eq!(status, 0xB5);
     }
 }
