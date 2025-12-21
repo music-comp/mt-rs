@@ -80,6 +80,7 @@ impl MidiPlayer {
     /// Set the tempo in BPM.
     pub fn set_tempo(&mut self, bpm: u16) {
         self.tempo = bpm;
+        self.scheduler.set_tempo(bpm);
     }
 
     /// Get the current tempo.
@@ -268,6 +269,16 @@ impl MidiPlayer {
     /// Stop all playing notes immediately.
     pub fn stop(&self) {
         self.scheduler.stop();
+    }
+
+    /// Start the MIDI clock (sends 24 pulses per quarter note).
+    pub fn start_clock(&self) {
+        self.scheduler.start_clock();
+    }
+
+    /// Stop the MIDI clock.
+    pub fn stop_clock(&self) {
+        self.scheduler.stop_clock();
     }
 }
 
