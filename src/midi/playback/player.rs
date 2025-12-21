@@ -261,6 +261,21 @@ impl MidiPlayer {
         self.cursor_ms += duration_ms;
     }
 
+    /// Reset the cursor to the beginning.
+    pub fn reset_cursor(&mut self) {
+        self.cursor_ms = 0;
+    }
+
+    /// Seek to a specific time position in milliseconds.
+    pub fn seek(&mut self, time_ms: u64) {
+        self.cursor_ms = time_ms;
+    }
+
+    /// Get the current cursor position in milliseconds.
+    pub fn cursor(&self) -> u64 {
+        self.cursor_ms
+    }
+
     /// Wait for all scheduled notes to finish playing.
     pub fn wait(&self) {
         self.scheduler.wait();
