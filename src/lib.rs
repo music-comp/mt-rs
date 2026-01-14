@@ -39,6 +39,38 @@
 //!
 //! // returns a Vector of the Notes of the chord
 //! let chord_notes = chord.notes();
+//! ```
+//!
+//! ## MIDI Export (optional feature)
+//!
+//! With the `midi` feature enabled, you can export chords and scales to MIDI files:
+//!
+//! ```toml
+//! rust-music-theory = { version = "0.3", features = ["midi"] }
+//! ```
+//!
+//! ```ignore
+//! use rustmt::midi::{ToMidi, Duration, Velocity};
+//!
+//! chord.to_midi(Duration::Quarter, Velocity::new(100).unwrap())
+//!     .save("chord.mid")?;
+//! ```
+//!
+//! ## Real-Time Playback (optional feature)
+//!
+//! With the `midi-playback` feature, play to connected MIDI instruments:
+//!
+//! ```toml
+//! rust-music-theory = { version = "0.3", features = ["midi-playback"] }
+//! ```
+//!
+//! ```ignore
+//! use rustmt::midi::{MidiPorts, MidiPlayer};
+//!
+//! let ports = MidiPorts::list()?;
+//! let mut player = MidiPlayer::connect_index(0)?;
+//! player.play(&chord, Duration::Quarter, Velocity::new(100).unwrap());
+//! ```
 
 extern crate strum;
 pub mod chord;
@@ -48,3 +80,6 @@ pub mod scale;
 
 #[cfg(target_arch = "wasm32")]
 pub mod wasm;
+
+#[cfg(feature = "midi")]
+pub mod midi;
