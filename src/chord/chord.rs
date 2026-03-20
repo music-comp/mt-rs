@@ -97,6 +97,58 @@ impl Chord {
         Ok(Self::new(root, quality, number))
     }
 
+    /// Identify possible chords from a set of pitches.
+    /// Tries each pitch as the potential root and determines inversion
+    /// from which chord tone is in the bass (first input pitch).
+    pub fn identify(pitches: &[Pitch]) -> Vec<Chord> {
+        if pitches.len() < 2 {
+            return vec![];
+        }
+
+        let pcs: Vec<u8> = pitches.iter().map(|p| p.as_u8()).collect();
+        let n = pcs.len();
+        let mut results = Vec::new();
+
+        for root_idx in 0..n {
+            let root = pitches[root_idx];
+            let root_pc = pcs[root_idx];
+
+            // Compute intervals from this root to all other pitches
+            let mut above_root: Vec<u8> = pcs.iter()
+                .enumerate()
+                .filter(|(i, _)| *i != root_idx)
+                .map(|(_, &pc)| (pc + 12 - root_pc) % 12)
+                .collect();
+            above_root.sort();
+
+            // Convert to adjacent step intervals (what from_interval expects)
+            let mut steps = Vec::new();
+            let mut prev = 0u8;
+            for &interval in &above_root {
+                steps.push(interval - prev);
+                prev = interval;
+            }
+
+            if let Ok(chord) = Self::from_interval(root, &steps) {
+                // Determine inversion: which chord tone is the bass (first input pitch)?
+                let bass_pc = pcs[0];
+                let root_chord = Self::new(root, chord.quality, chord.number);
+                let chord_pcs: Vec<u8> = root_chord.notes().iter()
+                    .map(|n| n.pitch.as_u8())
+                    .collect();
+                let inversion = chord_pcs.iter()
+                    .position(|&pc| pc == bass_pc)
+                    .unwrap_or(0);
+
+                let mut chord = chord;
+                chord.inversion = inversion as u8;
+                results.push(chord);
+            }
+        }
+
+        results
+    }
+
     pub fn chord_intervals(quality: Quality, number: Number) -> Vec<Interval> {
         use Number::*;
         use Quality::*;
