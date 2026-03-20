@@ -24,6 +24,8 @@ mod note {
     mod test_enharmonic;
 }
 
+mod analysis;
+
 mod harmony;
 
 mod interval {

@@ -35,6 +35,7 @@
 //! let chord_notes = chord.notes();
 //! ```
 
+pub mod analysis;
 pub mod chord;
 pub mod harmony;
 pub mod interval;
