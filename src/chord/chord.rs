@@ -85,6 +85,8 @@ impl Chord {
             [3, 3, 4] => (HalfDiminished, Seventh),
             [3, 4, 4] => (Minor, MajorSeventh),
             [4, 3, 3] => (Dominant, Seventh),
+            [2, 5, 3] => (Suspended2, Seventh),
+            [5, 2, 3] => (Suspended4, Seventh),
             [4, 3, 3, 4] => (Dominant, Ninth),
             [4, 3, 4, 3] => (Major, Ninth),
             [4, 3, 3, 4, 3] => (Dominant, Eleventh),
@@ -155,17 +157,14 @@ impl Chord {
         use Quality::*;
         match (&quality, &number) {
             // Triads
-            (Major, Triad) => Interval::from_semitones(&[4, 3]),
+            (Major, Triad) | (Dominant, Triad) => Interval::from_semitones(&[4, 3]),
             (Minor, Triad) => Interval::from_semitones(&[3, 4]),
             (Suspended2, Triad) => Interval::from_semitones(&[2, 5]),
             (Suspended4, Triad) => Interval::from_semitones(&[5, 2]),
             (Augmented, Triad) => Interval::from_semitones(&[4, 4]),
-            (Diminished, Triad) => Interval::from_semitones(&[3, 3]),
-            (HalfDiminished, Triad) => Interval::from_semitones(&[3, 3]),
-            (Dominant, Triad) => Interval::from_semitones(&[4, 3]),
+            (Diminished, Triad) | (HalfDiminished, Triad) => Interval::from_semitones(&[3, 3]),
             // Sevenths
-            (Major, Seventh) => Interval::from_semitones(&[4, 3, 4]),
-            (Major, MajorSeventh) => Interval::from_semitones(&[4, 3, 4]),
+            (Major, Seventh) | (Major, MajorSeventh) => Interval::from_semitones(&[4, 3, 4]),
             (Minor, Seventh) => Interval::from_semitones(&[3, 4, 3]),
             (Augmented, Seventh) => Interval::from_semitones(&[4, 4, 2]),
             (Augmented, MajorSeventh) => Interval::from_semitones(&[4, 4, 3]),
@@ -173,9 +172,11 @@ impl Chord {
             (HalfDiminished, Seventh) => Interval::from_semitones(&[3, 3, 4]),
             (Minor, MajorSeventh) => Interval::from_semitones(&[3, 4, 4]),
             (Dominant, Seventh) => Interval::from_semitones(&[4, 3, 3]),
+            // Dominant MajorSeventh is musically the same as Major Seventh
             (Dominant, MajorSeventh) => Interval::from_semitones(&[4, 3, 4]),
-            (Diminished, MajorSeventh) => Interval::from_semitones(&[3, 3, 5]),
-            (HalfDiminished, MajorSeventh) => Interval::from_semitones(&[3, 3, 5]),
+            (Diminished, MajorSeventh) | (HalfDiminished, MajorSeventh) => {
+                Interval::from_semitones(&[3, 3, 5])
+            }
             // Ninths
             (Dominant, Ninth) => Interval::from_semitones(&[4, 3, 3, 4]),
             (Major, Ninth) => Interval::from_semitones(&[4, 3, 4, 3]),
@@ -197,7 +198,10 @@ impl Chord {
             (Augmented, Thirteenth) => Interval::from_semitones(&[4, 4, 2, 4, 3, 4]),
             (Diminished, Thirteenth) => Interval::from_semitones(&[3, 3, 3, 5, 3, 4]),
             (HalfDiminished, Thirteenth) => Interval::from_semitones(&[3, 3, 4, 4, 3, 4]),
-            // Suspended extensions default to their base triad
+            // Suspended sevenths
+            (Suspended2, Seventh) => Interval::from_semitones(&[2, 5, 3]),
+            (Suspended4, Seventh) => Interval::from_semitones(&[5, 2, 3]),
+            // Suspended extensions beyond 7th default to their base triad
             (Suspended2, _) => Interval::from_semitones(&[2, 5]),
             (Suspended4, _) => Interval::from_semitones(&[5, 2]),
         }

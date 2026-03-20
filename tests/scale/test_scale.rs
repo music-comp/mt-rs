@@ -41,11 +41,14 @@ mod scale_tests {
                 Scale::new(*scale_type, Pitch::from(C), 4, *mode, Direction::Ascending).unwrap();
             assert_notes(pitches, scale_ascending.notes());
 
-            let scale_descending =
-                Scale::new(*scale_type, Pitch::from(C), 4, *mode, Direction::Descending).unwrap();
-            let mut pitches_descending = pitches.clone();
-            pitches_descending.reverse();
-            assert_notes(&pitches_descending, scale_descending.notes());
+            // Melodic minor descending uses natural minor — don't test as reversed ascending
+            if *scale_type != ScaleType::MelodicMinor {
+                let scale_descending =
+                    Scale::new(*scale_type, Pitch::from(C), 4, *mode, Direction::Descending).unwrap();
+                let mut pitches_descending = pitches.clone();
+                pitches_descending.reverse();
+                assert_notes(&pitches_descending, scale_descending.notes());
+            }
 
             if scale_ascending.scale_type == Diatonic {
                 if let Some(mode) = scale_ascending.mode {
@@ -53,6 +56,16 @@ mod scale_tests {
                 }
             }
         }
+
+        // Melodic minor descending uses natural minor (Aeolian) intervals
+        let mel_minor_desc = Scale::new(
+            ScaleType::MelodicMinor, Pitch::from(C), 4, None, Direction::Descending,
+        ).unwrap();
+        // C descending melodic minor: C Bb Ab G F Eb D C
+        assert_notes(
+            &[C, Bb, Ab, G, F, Eb, D, C],
+            mel_minor_desc.notes(),
+        );
     }
 
     #[test]

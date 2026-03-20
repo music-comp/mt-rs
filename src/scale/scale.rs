@@ -43,6 +43,10 @@ impl Scale {
         let mut intervals = match scale_type {
             ScaleType::Diatonic => Interval::from_semitones(&[2, 2, 1, 2, 2, 2, 1]),
             ScaleType::HarmonicMinor => Interval::from_semitones(&[2, 1, 2, 2, 1, 3, 1]),
+            // Descending melodic minor uses natural minor (Aeolian) intervals
+            ScaleType::MelodicMinor if direction == Direction::Descending => {
+                Interval::from_semitones(&[2, 1, 2, 2, 1, 2, 2])
+            }
             ScaleType::MelodicMinor => Interval::from_semitones(&[2, 1, 2, 2, 2, 2, 1]),
             ScaleType::PentatonicMajor => Interval::from_semitones(&[2, 2, 3, 2, 3]),
             ScaleType::PentatonicMinor => Interval::from_semitones(&[3, 2, 2, 3, 2]),
