@@ -58,8 +58,8 @@ impl Scale {
                     Phrygian => intervals.rotate_left(2),
                     Lydian => intervals.rotate_left(3),
                     Mixolydian => intervals.rotate_left(4),
-                    Aeolian => intervals.rotate_right(2),
-                    Locrian => intervals.rotate_right(1),
+                    Aeolian => intervals.rotate_left(5),
+                    Locrian => intervals.rotate_left(6),
                     // New scale types don't have modal variations
                     Mode::PentatonicMajor | Mode::PentatonicMinor | Mode::Blues | 
                     Mode::Chromatic | Mode::WholeTone => {}
@@ -116,16 +116,25 @@ impl Notes for Scale {
 
         let intervals_clone = self.intervals.clone();
         
-        // Create a key signature for proper enharmonic spelling
-        let key_signature = KeySignature::new_with_mode(self.tonic, self.mode);
+        // Create a key signature for proper enharmonic spelling.
+        // When mode is None, infer it from scale_type for correct spelling context.
+        let effective_mode = self.mode.or(match self.scale_type {
+            ScaleType::HarmonicMinor => Some(Mode::HarmonicMinor),
+            ScaleType::MelodicMinor => Some(Mode::MelodicMinor),
+            ScaleType::Blues => Some(Mode::Blues),
+            ScaleType::PentatonicMinor => Some(Mode::PentatonicMinor),
+            _ => None,
+        });
+        let key_signature = KeySignature::new_with_mode(self.tonic, effective_mode);
 
         let mut notes = match &self.direction {
             Ascending => Interval::to_notes(root_note, intervals_clone),
             Descending => Interval::to_notes_reverse(root_note, intervals_clone),
         };
         
-        // Apply proper enharmonic spelling based on key signature
-        for note in &mut notes {
+        // Apply proper enharmonic spelling based on key signature.
+        // The tonic (index 0) is preserved as-is — it was specified by the user.
+        for note in &mut notes[1..] {
             let preferred_spelling = key_signature.get_preferred_spelling(note.pitch);
             note.pitch = crate::note::Pitch::from(preferred_spelling);
         }

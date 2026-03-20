@@ -1,0 +1,11 @@
+# Documentation directory (workspace-specific)
+docs_directory = "./docs/design/"
+
+# Development documents directory (workspace-specific)
+dev_directory = "./docs/dev/"
+
+# Preserve state directory structure in dustbin
+preserve_dustbin_structure = true
+
+# Automatically stage changes with git
+auto_stage_git = true

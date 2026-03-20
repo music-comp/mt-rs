@@ -27,11 +27,11 @@ mod scale_tests {
             ((Diatonic, Some(Locrian)), vec![C, Db, Eb, F, Gb, Ab, Bb, C]),  // Uses Db major key signature (5 flats)
             (
                 (ScaleType::HarmonicMinor, None),
-                vec![C, D, Ds, F, G, Gs, B, C],  // Uses C major sharp preference
+                vec![C, D, Eb, F, G, Ab, B, C],  // Uses C minor key sig (Eb major = 3 flats)
             ),
             (
                 (ScaleType::MelodicMinor, None),
-                vec![C, D, Ds, F, G, A, B, C],  // Uses C major sharp preference
+                vec![C, D, Eb, F, G, A, B, C],  // Uses C minor key sig (Eb major = 3 flats)
             )
         ];
 

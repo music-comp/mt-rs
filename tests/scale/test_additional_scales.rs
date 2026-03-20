@@ -95,7 +95,7 @@ mod additional_scale_tests {
 
     #[test]
     fn test_blues_scales() {
-        // C Blues: C D# F F# G A# (using sharps for now)
+        // C Blues: C Eb F Gb G Bb (flat spelling — blues convention)
         let scale = Scale::new(
             ScaleType::Blues,
             Pitch::from(C),
@@ -104,11 +104,9 @@ mod additional_scale_tests {
             Direction::Ascending,
         )
         .unwrap();
-        
-        // C Blues uses sharp notation in current implementation
-        assert_scale_notes(&[C, Ds, F, Fs, G, As, C], scale);
+        assert_scale_notes(&[C, Eb, F, Gb, G, Bb, C], scale);
 
-        // A Blues: A C D D# E G
+        // A Blues: A C D Eb E G (A minor context — C major rel. = sharp chromatic)
         let scale = Scale::new(
             ScaleType::Blues,
             Pitch::from(A),
@@ -119,7 +117,7 @@ mod additional_scale_tests {
         .unwrap();
         assert_scale_notes(&[A, C, D, Ds, E, G, A], scale);
 
-        // E Blues: E G A A# B D
+        // E Blues: E G A A# B D (E minor context — G major rel., sharp preference)
         let scale = Scale::new(
             ScaleType::Blues,
             Pitch::from(E),

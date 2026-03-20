@@ -86,7 +86,7 @@ impl Chord {
             [4, 3, 3] => (Dominant, Seventh),
             [4, 3, 3, 4] => (Dominant, Ninth),
             [4, 3, 4, 3] => (Major, Ninth),
-            [4, 3, 3, 4, 4] => (Dominant, Eleventh),
+            [4, 3, 3, 4, 3] => (Dominant, Eleventh),
             [4, 3, 4, 3, 3] => (Major, Eleventh),
             [3, 4, 3, 4, 3] => (Minor, Eleventh),
             [4, 3, 3, 4, 3, 4] => (Dominant, Thirteenth),
@@ -131,7 +131,7 @@ impl Chord {
             (Diminished, Ninth) => Interval::from_semitones(&[3, 3, 3, 5]),
             (HalfDiminished, Ninth) => Interval::from_semitones(&[3, 3, 4, 4]),
             // Elevenths
-            (Dominant, Eleventh) => Interval::from_semitones(&[4, 3, 3, 4, 4]),
+            (Dominant, Eleventh) => Interval::from_semitones(&[4, 3, 3, 4, 3]),
             (Major, Eleventh) => Interval::from_semitones(&[4, 3, 4, 3, 3]),
             (Minor, Eleventh) => Interval::from_semitones(&[3, 4, 3, 4, 3]),
             (Augmented, Eleventh) => Interval::from_semitones(&[4, 4, 2, 4, 3]),
@@ -217,9 +217,11 @@ impl Notes for Chord {
         };
         let mut notes = Interval::to_notes(root_note, self.intervals.clone());
         
-        // Apply proper enharmonic spelling based on chord root key signature
-        let key_signature = KeySignature::new(self.root);
-        for note in &mut notes {
+        // Apply proper enharmonic spelling based on chord quality.
+        // Minor chords use the minor key signature (relative major context).
+        // The root note (index 0) is preserved as-is — it was specified by the user.
+        let key_signature = KeySignature::for_chord(self.root, self.quality);
+        for note in &mut notes[1..] {
             let preferred_spelling = key_signature.get_preferred_spelling(note.pitch);
             note.pitch = crate::note::Pitch::from(preferred_spelling);
         }

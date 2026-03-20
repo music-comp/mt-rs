@@ -63,22 +63,36 @@ mod chord_enharmonic_tests {
     #[test]
     fn test_minor_triads_enharmonic_spelling() {
         let test_cases = vec![
-            // Flat key minors (use root note's major key signature)
-            (Pitch::new(NoteLetter::F, 0), vec![F, Ab, C]),          // F minor (F major key sig)
-            (Pitch::new(NoteLetter::B, -1), vec![Bb, Cs, F]),        // Bb minor (Bb major key sig)
-            (Pitch::new(NoteLetter::E, -1), vec![Eb, Fs, Bb]),       // Eb minor (Eb major key sig)
-            (Pitch::new(NoteLetter::A, -1), vec![Ab, B, Eb]),        // Ab minor (Ab major key sig)
-            (Pitch::new(NoteLetter::D, -1), vec![Db, E, Ab]),        // Db minor (Db major key sig)
-            (Pitch::new(NoteLetter::G, -1), vec![Gb, A, Db]),        // Gb minor (Gb major key sig)
-            
-            // Sharp key minors
-            (Pitch::new(NoteLetter::G, 0), vec![G, As, D]),          // G minor (G major key sig)
-            (Pitch::new(NoteLetter::D, 0), vec![D, F, A]),           // D minor (D major key sig)
-            (Pitch::new(NoteLetter::A, 0), vec![A, C, E]),           // A minor (A major key sig)
-            (Pitch::new(NoteLetter::E, 0), vec![E, G, B]),           // E minor (E major key sig)
-            (Pitch::new(NoteLetter::B, 0), vec![B, D, Fs]),          // B minor (B major key sig)
-            (Pitch::new(NoteLetter::F, 1), vec![Fs, A, Cs]),         // F# minor (F# major key sig)
-            (Pitch::new(NoteLetter::C, 1), vec![Cs, E, Gs]),         // C# minor (C# major key sig)
+            // Minor chords use the minor key signature (relative major context)
+            // F minor: relative major = Ab (4 flats)
+            (Pitch::new(NoteLetter::F, 0), vec![F, Ab, C]),
+            // Bb minor: relative major = Db (5 flats)
+            (Pitch::new(NoteLetter::B, -1), vec![Bb, Db, F]),
+            // Eb minor: relative major = Gb (6 flats)
+            (Pitch::new(NoteLetter::E, -1), vec![Eb, Gb, Bb]),
+            // Ab minor: relative major resolves to B (enharmonic of Cb, 7 flats).
+            // Cb major not in key table, so B major spellings are used for non-root tones.
+            (Pitch::new(NoteLetter::A, -1), vec![Ab, B, Ds]),
+            // Db minor: relative major = E (4 sharps). Ab→G# in E major context.
+            (Pitch::new(NoteLetter::D, -1), vec![Db, E, Gs]),
+            // Gb minor: relative major = A (3 sharps). Db→C# in A major context.
+            (Pitch::new(NoteLetter::G, -1), vec![Gb, A, Cs]),
+
+            // Sharp/natural key minors
+            // G minor: relative major = Bb (2 flats)
+            (Pitch::new(NoteLetter::G, 0), vec![G, Bb, D]),
+            // D minor: relative major = F (1 flat)
+            (Pitch::new(NoteLetter::D, 0), vec![D, F, A]),
+            // A minor: relative major = C (no sharps/flats, prefer sharps)
+            (Pitch::new(NoteLetter::A, 0), vec![A, C, E]),
+            // E minor: relative major = G (1 sharp)
+            (Pitch::new(NoteLetter::E, 0), vec![E, G, B]),
+            // B minor: relative major = D (2 sharps)
+            (Pitch::new(NoteLetter::B, 0), vec![B, D, Fs]),
+            // F# minor: relative major = A (3 sharps)
+            (Pitch::new(NoteLetter::F, 1), vec![Fs, A, Cs]),
+            // C# minor: relative major = E (4 sharps)
+            (Pitch::new(NoteLetter::C, 1), vec![Cs, E, Gs]),
         ];
 
         for (root, expected) in test_cases {

@@ -45,114 +45,131 @@ impl KeySignature {
         KeySignature { tonic, mode }
     }
 
-    /// Get the relative major key for a given semitone value
+    /// Create a key signature appropriate for a chord of the given quality.
+    /// Minor/diminished chords use the minor (Aeolian) key signature of their root.
+    pub fn for_chord(root: Pitch, quality: crate::chord::Quality) -> Self {
+        use crate::chord::Quality;
+        let mode = match quality {
+            Quality::Minor | Quality::Diminished | Quality::HalfDiminished => {
+                Some(Mode::Aeolian)
+            },
+            _ => None,  // Major, Dominant, Augmented, Suspended use major key sig
+        };
+        KeySignature { tonic: root, mode }
+    }
+
+    /// Get the relative major key for a given semitone value.
+    /// For ambiguous semitones (1=Db/C#, 6=Gb/F#), uses the tonic's
+    /// accidental context to pick the appropriate enharmonic spelling.
     fn get_relative_major_key(&self, semitones: u8) -> (NoteLetter, i8) {
         use NoteLetter::*;
+        let prefer_sharps = self.tonic.accidental > 0
+            || (self.tonic.accidental >= 0 && matches!(
+                self.tonic.letter,
+                NoteLetter::G | NoteLetter::D | NoteLetter::A | NoteLetter::E | NoteLetter::B
+            ));
+
         match semitones {
-            0 => (C, 0),   // C major
-            1 => (D, -1),  // Db major
-            2 => (D, 0),   // D major
-            3 => (E, -1),  // Eb major
-            4 => (E, 0),   // E major
-            5 => (F, 0),   // F major
-            6 => (F, 1),   // F# major
-            7 => (G, 0),   // G major
-            8 => (A, -1),  // Ab major
-            9 => (A, 0),   // A major
-            10 => (B, -1), // Bb major
-            11 => (B, 0),  // B major
+            0 => (C, 0),
+            1 => if prefer_sharps { (C, 1) } else { (D, -1) },
+            2 => (D, 0),
+            3 => (E, -1),  // Eb major (D# major is theoretical)
+            4 => (E, 0),
+            5 => (F, 0),
+            6 => if prefer_sharps { (F, 1) } else { (G, -1) },
+            7 => (G, 0),
+            8 => (A, -1),  // Ab major (G# major is theoretical)
+            9 => (A, 0),
+            10 => (B, -1), // Bb major (A# major is theoretical)
+            11 => (B, 0),
             _ => unreachable!(),
         }
     }
 
-    pub fn get_preferred_spelling(&self, pitch: Pitch) -> PitchSymbol {
-        use PitchSymbol::*;
-        
-        // Determine the key to use for spelling based on mode
-        let (key_tonic_letter, key_accidental) = match self.mode {
-            Some(Mode::Aeolian) => {
-                // Aeolian (minor) is the 6th degree, 9 semitones above its relative major
-                let relative_major_semitones = (self.tonic.as_u8() + 12 - 9) % 12;
+    /// Compute the relative major key letter and accidental for the current tonic and mode.
+    fn resolve_key(&self) -> (NoteLetter, i8) {
+        match self.mode {
+            Some(Mode::Aeolian) | Some(Mode::HarmonicMinor) | Some(Mode::MelodicMinor) => {
+                // All minor-family modes share the same key signature as natural minor (Aeolian).
+                // Aeolian is the 6th degree: relative major is 3 semitones up.
+                let relative_major_semitones = (self.tonic.as_u8() + 3) % 12;
                 self.get_relative_major_key(relative_major_semitones)
             },
             Some(Mode::Dorian) => {
-                // Dorian is the 2nd degree, 2 semitones above its relative major  
                 let relative_major_semitones = (self.tonic.as_u8() + 12 - 2) % 12;
                 self.get_relative_major_key(relative_major_semitones)
             },
             Some(Mode::Phrygian) => {
-                // Phrygian is the 3rd degree, 4 semitones above its relative major
                 let relative_major_semitones = (self.tonic.as_u8() + 12 - 4) % 12;
                 self.get_relative_major_key(relative_major_semitones)
             },
             Some(Mode::Lydian) => {
-                // Lydian is the 4th degree, 5 semitones above its relative major
                 let relative_major_semitones = (self.tonic.as_u8() + 12 - 5) % 12;
                 self.get_relative_major_key(relative_major_semitones)
             },
             Some(Mode::Mixolydian) => {
-                // Mixolydian is the 5th degree, 7 semitones above its relative major
                 let relative_major_semitones = (self.tonic.as_u8() + 12 - 7) % 12;
                 self.get_relative_major_key(relative_major_semitones)
             },
             Some(Mode::Locrian) => {
-                // Locrian is the 7th degree, 11 semitones above its relative major
                 let relative_major_semitones = (self.tonic.as_u8() + 12 - 11) % 12;
                 self.get_relative_major_key(relative_major_semitones)
             },
+            Some(Mode::Blues) | Some(Mode::PentatonicMinor) => {
+                // Blues and minor pentatonic use the same key signature as Aeolian
+                let relative_major_semitones = (self.tonic.as_u8() + 3) % 12;
+                self.get_relative_major_key(relative_major_semitones)
+            },
             _ => {
-                // For major (Ionian) or no mode, use the tonic as is
+                // Ionian, PentatonicMajor, Chromatic, WholeTone, or no mode: use tonic as major
                 (self.tonic.letter, self.tonic.accidental)
             }
-        };
-        
-        // Get the key signature accidentals for the determined key
-        if let Some(key_accidentals) = KEY_SIGNATURE_SPELLINGS.get(&(key_tonic_letter, key_accidental)) {
-            // Check if this pitch has a preferred spelling in this key
-            for &accidental in key_accidentals {
-                if Pitch::from(accidental).as_u8() == pitch.as_u8() {
-                    return accidental;
+        }
+    }
+
+    /// Determine if a key (identified by its relative major) prefers sharps or flats
+    /// for chromatic notes not in the key signature.
+    fn is_sharp_context(key_letter: NoteLetter, key_accidental: i8) -> bool {
+        // C major (no sharps/flats) and sharp keys prefer sharps for chromatic notes
+        matches!(
+            (key_letter, key_accidental),
+            (NoteLetter::C, 0) | (NoteLetter::G, 0) | (NoteLetter::D, 0) |
+            (NoteLetter::A, 0) | (NoteLetter::E, 0) | (NoteLetter::B, 0) |
+            (NoteLetter::F, 1) | (NoteLetter::C, 1)
+        )
+    }
+
+    pub fn get_preferred_spelling(&self, pitch: Pitch) -> PitchSymbol {
+        use PitchSymbol::*;
+
+        let (key_letter, key_accidental) = self.resolve_key();
+
+        // First, check if this pitch appears in the key signature's diatonic spellings
+        if let Some(key_spellings) = KEY_SIGNATURE_SPELLINGS.get(&(key_letter, key_accidental)) {
+            for &spelling in key_spellings {
+                if Pitch::from(spelling).as_u8() == pitch.as_u8() {
+                    return spelling;
                 }
             }
         }
 
-        // For C major and its modes, we prefer sharp spellings
-        if self.tonic.letter == NoteLetter::C && self.tonic.accidental == 0 {
-            match pitch.as_u8() {
-                0 => C,
-                1 => Cs,  // C♯
-                2 => D,
-                3 => Ds,  // D♯
-                4 => E,
-                5 => F,
-                6 => Fs,  // F♯
-                7 => G,
-                8 => Gs,  // G♯
-                9 => A,
-                10 => As, // A♯
-                11 => B,
-                _ => unreachable!(),
-            }
-        } else {
-            // For other keys, follow traditional rules
-            let is_sharp_key = matches!(self.tonic.letter, NoteLetter::G | NoteLetter::D | NoteLetter::A | NoteLetter::E | NoteLetter::B);
+        // For chromatic notes not in the key, use sharp/flat preference based on key context
+        let is_sharp = Self::is_sharp_context(key_letter, key_accidental);
 
-            // Use sharps for sharp keys and leading tones, flats for flat keys
-            match pitch.as_u8() {
-                0 => C,
-                1 => if is_sharp_key { Cs } else { Db },  // C♯/D♭
-                2 => D,
-                3 => if is_sharp_key { Ds } else { Eb },  // D♯/E♭
-                4 => E,
-                5 => F,
-                6 => if is_sharp_key { Fs } else { Gb },  // F♯/G♭
-                7 => G,
-                8 => if is_sharp_key { Gs } else { Ab },  // G♯/A♭
-                9 => A,
-                10 => if is_sharp_key { As } else { Bb }, // A♯/B♭
-                11 => B,
-                _ => unreachable!(),
-            }
+        match pitch.as_u8() {
+            0 => C,
+            1 => if is_sharp { Cs } else { Db },
+            2 => D,
+            3 => if is_sharp { Ds } else { Eb },
+            4 => E,
+            5 => F,
+            6 => if is_sharp { Fs } else { Gb },
+            7 => G,
+            8 => if is_sharp { Gs } else { Ab },
+            9 => A,
+            10 => if is_sharp { As } else { Bb },
+            11 => B,
+            _ => unreachable!(),
         }
     }
 }

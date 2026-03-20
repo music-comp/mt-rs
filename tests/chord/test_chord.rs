@@ -16,18 +16,18 @@ mod chord_tests {
     fn test_all_chords_in_c() {
         let chord_tuples = [
             ((C, Major, Triad), vec![C, E, G]),
-            ((C, Minor, Triad), vec![C, Ds, G]),
+            ((C, Minor, Triad), vec![C, Eb, G]),
             ((C, Augmented, Triad), vec![C, E, Gs]),
-            ((C, Diminished, Triad), vec![C, Ds, Fs]),
+            ((C, Diminished, Triad), vec![C, Eb, Gb]),
             ((C, Suspended2, Triad), vec![C, D, G]),
             ((C, Suspended4, Triad), vec![C, F, G]),
             ((C, Major, Seventh), vec![C, E, G, B]),
-            ((C, Minor, Seventh), vec![C, Ds, G, As]),
+            ((C, Minor, Seventh), vec![C, Eb, G, Bb]),
             ((C, Augmented, Seventh), vec![C, E, Gs, As]),
             ((C, Augmented, MajorSeventh), vec![C, E, Gs, B]),
-            ((C, Diminished, Seventh), vec![C, Ds, Fs, A]),
-            ((C, HalfDiminished, Seventh), vec![C, Ds, Fs, As]),
-            ((C, Minor, MajorSeventh), vec![C, Ds, G, B]),
+            ((C, Diminished, Seventh), vec![C, Eb, Gb, A]),
+            ((C, HalfDiminished, Seventh), vec![C, Eb, Gb, Bb]),
+            ((C, Minor, MajorSeventh), vec![C, Eb, G, B]),
             ((C, Dominant, Seventh), vec![C, E, G, As]),
         ];
 
