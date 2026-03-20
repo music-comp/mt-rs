@@ -113,9 +113,10 @@ mod test_interval {
 
     #[test]
     fn test_from_semitone_error() {
-        // Test that values > 12 return an error
-        assert!(Interval::from_semitone(13).is_err());
-        assert!(Interval::from_semitone(14).is_err());
+        // 13-24 are now valid (compound intervals); only > 24 errors
+        assert!(Interval::from_semitone(13).is_ok());
+        assert!(Interval::from_semitone(24).is_ok());
+        assert!(Interval::from_semitone(25).is_err());
         assert!(Interval::from_semitone(100).is_err());
         assert!(Interval::from_semitone(255).is_err());
     }
@@ -136,9 +137,13 @@ mod test_interval {
         let empty: Vec<u8> = vec![];
         assert!(Interval::from_semitones(&empty).is_err());
 
-        // Invalid semitone (> 12) should return error
-        let invalid_semitones = vec![0, 2, 4, 13];
+        // Invalid semitone (> 24) should return error
+        let invalid_semitones = vec![0, 2, 4, 25];
         assert!(Interval::from_semitones(&invalid_semitones).is_err());
+
+        // Compound semitones (13-24) should now be valid
+        let compound_semitones = vec![12, 14, 17];
+        assert!(Interval::from_semitones(&compound_semitones).is_ok());
     }
 
     #[test]

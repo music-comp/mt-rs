@@ -31,4 +31,5 @@ mod harmony;
 mod interval {
     mod test_interval;
     mod test_between;
+    mod test_compound;
 }

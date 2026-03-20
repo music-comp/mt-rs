@@ -41,6 +41,13 @@ pub enum Number {
     Sixth,
     Seventh,
     Octave,
+    Ninth,
+    Tenth,
+    Eleventh,
+    Twelfth,
+    Thirteenth,
+    Fourteenth,
+    Fifteenth,
 }
 
 impl Display for Number {
@@ -54,6 +61,13 @@ impl Display for Number {
             Number::Sixth => "6",
             Number::Seventh => "7",
             Number::Octave => "8",
+            Number::Ninth => "9",
+            Number::Tenth => "10",
+            Number::Eleventh => "11",
+            Number::Twelfth => "12",
+            Number::Thirteenth => "13",
+            Number::Fourteenth => "14",
+            Number::Fifteenth => "15",
         };
         write!(f, "{}", string)
     }
@@ -181,6 +195,22 @@ impl Interval {
                 number = Number::Octave;
                 quality = Quality::Perfect;
             }
+            13..=24 => {
+                // Compound intervals = simple interval + octave
+                let simple = Self::from_semitone(sc - 12)?;
+                number = match simple.number {
+                    Number::Unison => Number::Octave,
+                    Number::Second => Number::Ninth,
+                    Number::Third => Number::Tenth,
+                    Number::Fourth => Number::Eleventh,
+                    Number::Fifth => Number::Twelfth,
+                    Number::Sixth => Number::Thirteenth,
+                    Number::Seventh => Number::Fourteenth,
+                    Number::Octave => Number::Fifteenth,
+                    _ => return Err(IntervalError::InvalidInterval),
+                };
+                quality = simple.quality;
+            }
             _ => {
                 return Err(IntervalError::InvalidInterval);
             }
@@ -192,6 +222,20 @@ impl Interval {
             quality,
             step,
         })
+    }
+
+    /// Returns true if this interval spans more than one octave.
+    pub fn is_compound(&self) -> bool {
+        self.semitone_count > 12
+    }
+
+    /// Returns the simple (within-octave) equivalent of a compound interval.
+    pub fn simple(&self) -> Interval {
+        if self.semitone_count <= 12 {
+            *self
+        } else {
+            Interval::from_semitone(self.semitone_count - 12).unwrap_or(*self)
+        }
     }
 
     /// Calculate the interval between two pitches using letter names to
@@ -226,6 +270,8 @@ impl Interval {
             Number::Sixth => 9,
             Number::Seventh => 11,
             Number::Octave => 12,
+            // between() only produces simple intervals (letter_dist 0-6)
+            _ => return Err(IntervalError::InvalidInterval),
         };
 
         let is_perfect_kind = matches!(
