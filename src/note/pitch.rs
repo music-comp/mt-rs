@@ -31,6 +31,20 @@ impl NoteLetter {
         let to = other as u8;
         (to + 7 - from) % 7
     }
+
+    /// Convert a 0-6 index back to a NoteLetter (0=C, 1=D, ..., 6=B).
+    pub fn from_index(index: u8) -> NoteLetter {
+        match index % 7 {
+            0 => NoteLetter::C,
+            1 => NoteLetter::D,
+            2 => NoteLetter::E,
+            3 => NoteLetter::F,
+            4 => NoteLetter::G,
+            5 => NoteLetter::A,
+            6 => NoteLetter::B,
+            _ => unreachable!(),
+        }
+    }
 }
 
 impl fmt::Display for NoteLetter {

@@ -23,12 +23,12 @@ mod chord_tests {
             ((C, Suspended4, Triad), vec![C, F, G]),
             ((C, Major, Seventh), vec![C, E, G, B]),
             ((C, Minor, Seventh), vec![C, Eb, G, Bb]),
-            ((C, Augmented, Seventh), vec![C, E, Gs, As]),
+            ((C, Augmented, Seventh), vec![C, E, Gs, Bb]),
             ((C, Augmented, MajorSeventh), vec![C, E, Gs, B]),
             ((C, Diminished, Seventh), vec![C, Eb, Gb, A]),
             ((C, HalfDiminished, Seventh), vec![C, Eb, Gb, Bb]),
             ((C, Minor, MajorSeventh), vec![C, Eb, G, B]),
-            ((C, Dominant, Seventh), vec![C, E, G, As]),
+            ((C, Dominant, Seventh), vec![C, E, G, Bb]),
         ];
 
         for (chord, pitches) in chord_tuples.iter() {

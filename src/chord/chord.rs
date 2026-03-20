@@ -262,21 +262,45 @@ impl Chord {
 
 impl Notes for Chord {
     fn notes(&self) -> Vec<Note> {
-        use crate::note::KeySignature;
-        
         let root_note = Note {
             pitch: self.root,
             octave: self.octave,
         };
         let mut notes = Interval::to_notes(root_note, self.intervals.clone());
-        
-        // Apply proper enharmonic spelling based on chord quality.
-        // Minor chords use the minor key signature (relative major context).
-        // The root note (index 0) is preserved as-is — it was specified by the user.
-        let key_signature = KeySignature::for_chord(self.root, self.quality);
-        for note in &mut notes[1..] {
-            let preferred_spelling = key_signature.get_preferred_spelling(note.pitch);
-            note.pitch = crate::note::Pitch::from(preferred_spelling);
+
+        // Apply letter-based chord spelling. Each chord tone gets the letter
+        // name determined by its position in the chord's third-stack.
+        // Suspended chords have different letter patterns since their 2nd tone
+        // is a 2nd or 4th, not a 3rd.
+        //
+        // Standard (thirds): root, 3rd, 5th, 7th, 9th, 11th, 13th
+        // Letter offsets:     0,    2,   4,   6,   1,   3,    5
+        // Sus2:               root, 2nd, 5th, ...
+        // Sus4:               root, 4th, 5th, ...
+        let letter_offsets: &[u8] = match self.quality {
+            Quality::Suspended2 => &[0, 1, 4, 6, 1, 3, 5],
+            Quality::Suspended4 => &[0, 3, 4, 6, 1, 3, 5],
+            _ => &[0, 2, 4, 6, 1, 3, 5],
+        };
+
+        // Root (index 0) is preserved as-is.
+        for (i, note) in notes.iter_mut().enumerate().skip(1) {
+            let offset = letter_offsets.get(i).copied().unwrap_or((i as u8 * 2) % 7);
+            let target_letter = NoteLetter::from_index(
+                (self.root.letter as u8 + offset) % 7,
+            );
+            let natural_semitone = Pitch::new(target_letter, 0).as_u8() as i8;
+            let tone_semitone = note.pitch.as_u8() as i8;
+            let mut diff = tone_semitone - natural_semitone;
+            if diff > 6 { diff -= 12; }
+            if diff < -6 { diff += 12; }
+
+            if diff.abs() <= 1 {
+                note.pitch = Pitch::new(target_letter, diff);
+            } else {
+                // Double accidental — use enharmonic simplification
+                note.pitch = Pitch::from_u8(note.pitch.as_u8());
+            }
         }
         
         notes.rotate_left(self.inversion as usize);

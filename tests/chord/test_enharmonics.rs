@@ -70,13 +70,12 @@ mod chord_enharmonic_tests {
             (Pitch::new(NoteLetter::B, -1), vec![Bb, Db, F]),
             // Eb minor: relative major = Gb (6 flats)
             (Pitch::new(NoteLetter::E, -1), vec![Eb, Gb, Bb]),
-            // Ab minor: relative major resolves to B (enharmonic of Cb, 7 flats).
-            // Cb major not in key table, so B major spellings are used for non-root tones.
-            (Pitch::new(NoteLetter::A, -1), vec![Ab, B, Ds]),
-            // Db minor: relative major = E (4 sharps). Ab→G# in E major context.
-            (Pitch::new(NoteLetter::D, -1), vec![Db, E, Gs]),
-            // Gb minor: relative major = A (3 sharps). Db→C# in A major context.
-            (Pitch::new(NoteLetter::G, -1), vec![Gb, A, Cs]),
+            // Ab minor: letter-based spelling gives Cb and Eb (correct thirds)
+            (Pitch::new(NoteLetter::A, -1), vec![Ab, Cb, Eb]),
+            // Db minor: letter-based gives Fb and Ab (correct thirds)
+            (Pitch::new(NoteLetter::D, -1), vec![Db, Fb, Ab]),
+            // Gb minor: Bbb (double flat) falls back to A; Db is single flat
+            (Pitch::new(NoteLetter::G, -1), vec![Gb, A, Db]),
 
             // Sharp/natural key minors
             // G minor: relative major = Bb (2 flats)
@@ -115,13 +114,13 @@ mod chord_enharmonic_tests {
             (Pitch::new(NoteLetter::B, 0), vec![B, Ds, Fs, As]),     // B maj7
             
             // Dominant 7th chords
-            (Pitch::new(NoteLetter::G, -1), vec![Gb, Bb, Db, E]),    // Gb7 (E is enharmonic to Fb)
+            (Pitch::new(NoteLetter::G, -1), vec![Gb, Bb, Db, Fb]),   // Gb7 (Fb is the correct b7)
             (Pitch::new(NoteLetter::F, 1), vec![Fs, As, Cs, E]),     // F#7
         ];
 
         for (root, expected) in test_cases {
             let chord_maj7 = Chord::new(root, Major, MajorSeventh);
-            if expected == vec![Gb, Bb, Db, E] || expected == vec![Fs, As, Cs, E] {
+            if expected == vec![Gb, Bb, Db, Fb] || expected == vec![Fs, As, Cs, E] {
                 // These are dominant 7ths, not major 7ths
                 let chord_dom7 = Chord::new(root, Dominant, Seventh);
                 assert_chord_notes(&expected, chord_dom7);
@@ -137,7 +136,7 @@ mod chord_enharmonic_tests {
             // Diminished triads
             (Pitch::new(NoteLetter::G, -1), Diminished, vec![Gb, A, C]),      // Gb dim (A=Bbb, C=Dbb enharmonic)
             (Pitch::new(NoteLetter::F, 1), Diminished, vec![Fs, A, C]),       // F# dim
-            (Pitch::new(NoteLetter::A, -1), Diminished, vec![Ab, B, D]),      // Ab dim (uses Ab major key sig)
+            (Pitch::new(NoteLetter::A, -1), Diminished, vec![Ab, Cb, D]),     // Ab dim (Cb is correct 3rd; Ebb→D enharmonic for 5th)
             
             // Augmented triads  
             (Pitch::new(NoteLetter::G, -1), Augmented, vec![Gb, Bb, D]),      // Gb aug
