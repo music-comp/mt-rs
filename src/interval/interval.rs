@@ -190,6 +190,80 @@ impl Interval {
         })
     }
 
+    /// Calculate the interval between two pitches using letter names to
+    /// determine the interval number and semitone distance for quality.
+    ///
+    /// This distinguishes augmented 4th (F to B) from diminished 5th (F to Cb)
+    /// even though both span 6 semitones. Only handles standard qualities
+    /// (Perfect, Major, Minor, Augmented, Diminished); returns Err for
+    /// doubly-augmented/diminished intervals.
+    pub fn between(from: &Pitch, to: &Pitch) -> Result<Self, IntervalError> {
+        let letter_dist = from.letter.distance_to(to.letter);
+        let semitone_dist = (to.as_u8() + 12 - from.as_u8()) % 12;
+
+        let number = match letter_dist {
+            0 => Number::Unison,
+            1 => Number::Second,
+            2 => Number::Third,
+            3 => Number::Fourth,
+            4 => Number::Fifth,
+            5 => Number::Sixth,
+            6 => Number::Seventh,
+            _ => return Err(IntervalError::InvalidInterval),
+        };
+
+        // Expected semitone count for the "natural" version of each interval
+        let natural_semitones: u8 = match number {
+            Number::Unison => 0,
+            Number::Second => 2,
+            Number::Third => 4,
+            Number::Fourth => 5,
+            Number::Fifth => 7,
+            Number::Sixth => 9,
+            Number::Seventh => 11,
+            Number::Octave => 12,
+        };
+
+        let is_perfect_kind = matches!(
+            number,
+            Number::Unison | Number::Fourth | Number::Fifth | Number::Octave
+        );
+
+        // diff: how many semitones above (+) or below (-) the natural interval
+        let diff = semitone_dist as i8 - natural_semitones as i8;
+
+        let quality = if is_perfect_kind {
+            match diff {
+                0 => Quality::Perfect,
+                1 | -11 => Quality::Augmented,
+                -1 | 11 => Quality::Diminished,
+                _ => return Err(IntervalError::InvalidInterval),
+            }
+        } else {
+            match diff {
+                0 => Quality::Major,
+                -1 | 11 => Quality::Minor,
+                1 | -11 => Quality::Augmented,
+                -2 | 10 => Quality::Diminished,
+                _ => return Err(IntervalError::InvalidInterval),
+            }
+        };
+
+        let step = match semitone_dist {
+            1 => Some(Step::Half),
+            2 => Some(Step::Whole),
+            6 => Some(Step::Tritone),
+            _ => None,
+        };
+
+        Ok(Interval {
+            semitone_count: semitone_dist,
+            quality,
+            number,
+            step,
+        })
+    }
+
     /// Creates an interval by inverting the given interval
     /// e.g. Perfect fifth (C to G) becomes a perfect fourth (G to C)
     pub fn invert(self) -> Result<Self, IntervalError> {
