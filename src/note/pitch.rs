@@ -11,14 +11,25 @@ static REGEX_PITCH: LazyLock<Regex> = LazyLock::new(|| Regex::new("^[ABCDEFGabcd
 
 /// A note letter without an accidental.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, EnumIter, Hash)]
+#[repr(u8)]
 pub enum NoteLetter {
-    C,
-    D,
-    E,
-    F,
-    G,
-    A,
-    B,
+    C = 0,
+    D = 1,
+    E = 2,
+    F = 3,
+    G = 4,
+    A = 5,
+    B = 6,
+}
+
+impl NoteLetter {
+    /// Number of letter steps from self to other (ascending, 0-6).
+    /// C.distance_to(E) = 2, B.distance_to(D) = 2 (wrapping).
+    pub fn distance_to(self, other: NoteLetter) -> u8 {
+        let from = self as u8;
+        let to = other as u8;
+        (to + 7 - from) % 7
+    }
 }
 
 impl fmt::Display for NoteLetter {
@@ -46,6 +57,11 @@ impl Pitch {
     /// Create a pitch with a given note letter and accidental
     pub fn new(letter: NoteLetter, accidental: i8) -> Self {
         Self { letter, accidental }
+    }
+
+    /// Returns true if two pitches sound the same (same semitone value).
+    pub fn is_enharmonic_to(&self, other: &Pitch) -> bool {
+        self.as_u8() == other.as_u8()
     }
 
     /// Create a pitch from an integer, where 0 is C and everything climbs up from there,

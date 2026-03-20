@@ -19,6 +19,7 @@ mod note {
     mod test_note;
     mod test_pitch_symbol;
     mod test_notes_trait;
+    mod test_enharmonic;
 }
 
 mod interval {
