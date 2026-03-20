@@ -66,6 +66,18 @@ impl Pitch {
         self.as_u8() == other.as_u8()
     }
 
+    /// Transpose this pitch up by the given interval.
+    /// Returns a new pitch using natural note spelling (via from_u8).
+    pub fn transpose_up(&self, interval: &crate::interval::Interval) -> Pitch {
+        Pitch::from_u8((self.as_u8() + interval.semitone_count) % 12)
+    }
+
+    /// Transpose this pitch down by the given interval.
+    /// Returns a new pitch using natural note spelling (via from_u8).
+    pub fn transpose_down(&self, interval: &crate::interval::Interval) -> Pitch {
+        Pitch::from_u8((self.as_u8() + 12 - interval.semitone_count) % 12)
+    }
+
     /// Create a pitch from an integer, where 0 is C and everything climbs up from there,
     /// looping back around once it reaches 12.
     pub fn from_u8(val: u8) -> Self {
