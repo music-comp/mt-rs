@@ -7,7 +7,7 @@ readme = "README.md"
 repository = "https://github.com/ozankasikci/rust-music-theory"
 authors = ["Ozan Kaşıkçı <ozan@kasikci.io>"]
 edition = "2018"
-exclude = ["/.travis.yml", ".gitignore"]
+exclude = [".gitignore"]
 keywords = ["music", "music-theory"]
 
 [features]
@@ -16,7 +16,7 @@ midi = ["dep:midly"]
 midi-playback = ["midi", "dep:midir"]
 
 [lib]
-crate-type = ["cdylib", "rlib"]
+crate-type = ["rlib"]
 
 [dependencies]
 strum = "0.17.1"
@@ -24,14 +24,5 @@ strum_macros = "0.17.1"
 regex = "1"
 clap = "2.31"
 lazy_static = "1.4.0"
-wasm-bindgen = "0.2"
-serde = { version = "1.0", features = ["derive"] }
-serde-wasm-bindgen = "0.4"
 midly = { version = "0.5", optional = true }
 midir = { version = "0.9", optional = true }
-
-[dependencies.web-sys]
-version = "0.3"
-features = [
-  "console",
-]
