@@ -24,6 +24,7 @@ static KEY_SIGNATURE_SPELLINGS: LazyLock<HashMap<(NoteLetter, i8), Vec<PitchSymb
 
 /// A key signature.
 #[derive(Debug, Clone, PartialEq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct KeySignature {
     /// The tonic of the key signature.
     pub tonic: Pitch,

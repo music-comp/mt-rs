@@ -217,4 +217,23 @@ mod test_note {
         let f_quintuple_sharp = Pitch::new(NoteLetter::F, 5);
         assert_eq!(f_quintuple_sharp.as_u8(), 10); // F##### = Bb
     }
+
+    #[test]
+    #[cfg(feature = "serde")]
+    fn test_pitch_serde_round_trip() {
+        let pitch = Pitch::new(NoteLetter::C, 1);
+        let json = serde_json::to_string(&pitch).unwrap();
+        let deserialized: Pitch = serde_json::from_str(&json).unwrap();
+        assert_eq!(pitch, deserialized);
+
+        let chord = theory::chord::Chord::new(
+            Pitch::from(theory::note::PitchSymbol::G),
+            theory::chord::Quality::Dominant,
+            theory::chord::Number::Seventh,
+        );
+        let json = serde_json::to_string(&chord).unwrap();
+        let deserialized: theory::chord::Chord = serde_json::from_str(&json).unwrap();
+        assert_eq!(chord.root, deserialized.root);
+        assert_eq!(chord.quality, deserialized.quality);
+    }
 }

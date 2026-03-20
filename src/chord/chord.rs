@@ -6,6 +6,7 @@ use crate::note::{Note, NoteError, Notes, Pitch, NoteLetter};
 
 /// A chord.
 #[derive(Debug, Clone, PartialEq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Chord {
     /// The root note of the chord.
     pub root: Pitch,

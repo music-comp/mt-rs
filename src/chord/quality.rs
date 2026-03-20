@@ -35,6 +35,7 @@ static QUALITY_REGEXES: LazyLock<Vec<(Regex, Quality)>> = LazyLock::new(|| {
 
 /// The quality of a chord.
 #[derive(Display, Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum Quality {
     Major,
     Minor,

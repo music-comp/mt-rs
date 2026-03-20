@@ -17,6 +17,7 @@ static NUMBER_REGEXES: LazyLock<Vec<(Regex, Number)>> = LazyLock::new(|| {
 
 /// The superscript number after a chord.
 #[derive(Display, Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum Number {
     Triad,
     Seventh,

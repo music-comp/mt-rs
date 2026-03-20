@@ -11,6 +11,7 @@ static REGEX_PITCH: LazyLock<Regex> = LazyLock::new(|| Regex::new("^[ABCDEFGabcd
 
 /// A note letter without an accidental.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, EnumIter, Hash)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[repr(u8)]
 pub enum NoteLetter {
     C = 0,
@@ -48,6 +49,7 @@ impl fmt::Display for NoteLetter {
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Pitch {
     pub letter: NoteLetter,
     pub accidental: i8,

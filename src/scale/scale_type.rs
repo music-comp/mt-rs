@@ -3,6 +3,7 @@ use strum_macros::{Display, EnumIter};
 
 /// The type of a scale.
 #[derive(Display, Debug, Clone, Copy, EnumIter, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum ScaleType {
     Diatonic,
     MelodicMinor,

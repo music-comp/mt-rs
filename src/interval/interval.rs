@@ -6,6 +6,7 @@ use strum_macros::Display;
 
 /// The quality of an interval; major, minor, etc.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum Quality {
     /// A perfect interval; unisons, fourths, fifths, and octaves.
     Perfect,
@@ -30,6 +31,7 @@ impl Display for Quality {
 
 /// The number of an interval.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum Number {
     Unison,
     Second,
@@ -59,6 +61,7 @@ impl Display for Number {
 
 /// A step between notes.
 #[derive(Display, Debug, Copy, Clone, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum Step {
     /// A semitone step.
     Half,
@@ -70,6 +73,7 @@ pub enum Step {
 
 /// An interval between two notes.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Interval {
     /// The number of semitones between the notes.
     pub semitone_count: u8,

@@ -51,6 +51,7 @@ static MODE_REGEXES: LazyLock<Vec<(Regex, Mode)>> = LazyLock::new(|| vec![
 
 /// The mode of a scale.
 #[derive(Display, Debug, Clone, Copy, EnumIter, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum Mode {
     /// Also known as a major scale.
     Ionian,

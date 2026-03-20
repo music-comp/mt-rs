@@ -4,6 +4,7 @@ use std::fmt::Formatter;
 
 /// A note.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Note {
     /// The pitch of the note (A, B, C#, etc).
     pub pitch: Pitch,

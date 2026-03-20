@@ -7,6 +7,7 @@ use strum_macros::Display;
 
 /// The direction of the scale; up or down.
 #[derive(Display, Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum Direction {
     Ascending,
     Descending,
@@ -14,6 +15,7 @@ pub enum Direction {
 
 /// A scale.
 #[derive(Debug, Clone, PartialEq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Scale {
     /// The root note of the scale.
     pub tonic: Pitch,

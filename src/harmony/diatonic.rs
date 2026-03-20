@@ -4,6 +4,7 @@ use crate::scale::{Direction, Mode, Scale, ScaleType};
 
 /// A chord built on a scale degree with its diatonic context.
 #[derive(Debug, Clone, PartialEq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct DiatonicChord {
     /// Scale degree (1-7).
     pub degree: u8,
