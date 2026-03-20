@@ -93,6 +93,44 @@ impl Scale {
         Self::from_regex_in_direction(string, Direction::Ascending)
     }
 
+    /// Find all scales whose pitch-class set contains the given pitches.
+    /// Returns (tonic, mode) pairs sorted by closeness of fit (smallest
+    /// matching scale first).
+    pub fn identify(pitches: &[Pitch]) -> Vec<(Pitch, Mode)> {
+        use std::collections::HashSet;
+        use strum::IntoEnumIterator;
+
+        if pitches.is_empty() {
+            return vec![];
+        }
+
+        let input_pcs: HashSet<u8> = pitches.iter().map(|p| p.as_u8()).collect();
+        let mut matches: Vec<(Pitch, Mode, usize)> = Vec::new();
+
+        for semitone in 0..12u8 {
+            let tonic = Pitch::from_u8(semitone);
+            for mode in Mode::iter() {
+                let scale_type = ScaleType::from_mode(mode);
+                if let Ok(scale) = Scale::new(
+                    scale_type, tonic, 4, Some(mode), Direction::Ascending,
+                ) {
+                    let scale_pcs: HashSet<u8> = scale.notes()
+                        .iter()
+                        .map(|n| n.pitch.as_u8())
+                        .collect();
+
+                    if input_pcs.is_subset(&scale_pcs) {
+                        matches.push((tonic, mode, scale_pcs.len()));
+                    }
+                }
+            }
+        }
+
+        // Exact/smallest matches first
+        matches.sort_by_key(|(_, _, size)| *size);
+        matches.into_iter().map(|(p, m, _)| (p, m)).collect()
+    }
+
     pub fn absolute_intervals(&self) -> Vec<Interval> {
         let mut qualities = Vec::new();
         let mut sum = 0;

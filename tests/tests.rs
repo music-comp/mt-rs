@@ -11,6 +11,7 @@ mod scale {
     mod test_scale;
     mod test_exotic_scales;
     mod test_additional_scales;
+    mod test_identify;
 }
 
 mod note {
