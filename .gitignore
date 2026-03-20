@@ -1,7 +1,40 @@
-/target
+# Workbench and local tools
+/workbench
+/.claude
+/bin
+/assets/ai/ai-rust
+/assets/ai/DENDRYFORM-YAML-SCHEMA.md
+/docs/superpowers
+
+# Rust
+/target/
 **/*.rs.bk
 Cargo.lock
-.idea
-.DS_Store
 
-.specstory/
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Python
+.venv/
+
+# Environment
+.env
+.env.local
+
+# Data
+*.db
+*.db-shm
+*.db-wal
+/artifacts/
+
+# Coverage
+target/llvm-cov/
+*.profraw
+*.profdata
+
+# OS
+.DS_Store
+Thumbs.db
