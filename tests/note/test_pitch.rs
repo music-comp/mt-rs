@@ -39,7 +39,7 @@ mod test_note {
         ];
 
         for (string, pitch) in table {
-            let p = Pitch::from_str(string).unwrap();
+            let p = Pitch::try_parse(string).unwrap();
             assert_eq!(p, pitch);
             assert_eq!(string.parse::<Pitch>().unwrap(), pitch);
         }
@@ -48,7 +48,7 @@ mod test_note {
     #[test]
     fn test_pitch_from_str_err() {
         for string in vec!["Ca", "Q", "Cb#", "B♯b#"] {
-            assert!(Pitch::from_str(string).is_none());
+            assert!(Pitch::try_parse(string).is_none());
         }
     }
 
@@ -70,7 +70,7 @@ mod test_note {
         ];
 
         for (pitch, number) in table {
-            let n = pitch.into_u8();
+            let n = pitch.as_u8();
             assert_eq!(n, number);
         }
     }
@@ -152,26 +152,26 @@ mod test_note {
     fn test_enharmonic_edge_cases() {
         // Test that B♯ and C are enharmonic
         assert_eq!(
-            Pitch::new(NoteLetter::B, 1).into_u8() % 12,
-            Pitch::new(NoteLetter::C, 0).into_u8()
+            Pitch::new(NoteLetter::B, 1).as_u8() % 12,
+            Pitch::new(NoteLetter::C, 0).as_u8()
         );
 
         // Test that C♭ and B are enharmonic
         assert_eq!(
-            Pitch::new(NoteLetter::C, -1).into_u8() % 12,
-            Pitch::new(NoteLetter::B, 0).into_u8()
+            Pitch::new(NoteLetter::C, -1).as_u8() % 12,
+            Pitch::new(NoteLetter::B, 0).as_u8()
         );
 
         // Test that E♯ and F are enharmonic
         assert_eq!(
-            Pitch::new(NoteLetter::E, 1).into_u8() % 12,
-            Pitch::new(NoteLetter::F, 0).into_u8()
+            Pitch::new(NoteLetter::E, 1).as_u8() % 12,
+            Pitch::new(NoteLetter::F, 0).as_u8()
         );
 
         // Test that F♭ and E are enharmonic
         assert_eq!(
-            Pitch::new(NoteLetter::F, -1).into_u8() % 12,
-            Pitch::new(NoteLetter::E, 0).into_u8()
+            Pitch::new(NoteLetter::F, -1).as_u8() % 12,
+            Pitch::new(NoteLetter::E, 0).as_u8()
         );
     }
 
@@ -179,10 +179,10 @@ mod test_note {
     fn test_pitch_double_accidentals() {
         // Test that double sharps and double flats work correctly
         let c_double_sharp = Pitch::new(NoteLetter::C, 2);
-        assert_eq!(c_double_sharp.into_u8(), 2); // C## = D
+        assert_eq!(c_double_sharp.as_u8(), 2); // C## = D
 
         let d_double_flat = Pitch::new(NoteLetter::D, -2);
-        assert_eq!(d_double_flat.into_u8(), 0); // Dbb = C
+        assert_eq!(d_double_flat.as_u8(), 0); // Dbb = C
 
         // Display formatting
         assert_eq!(format!("{}", c_double_sharp), "C##");
@@ -208,13 +208,13 @@ mod test_note {
     fn test_multiple_accidentals() {
         // Test triple and quadruple accidentals
         let c_triple_sharp = Pitch::new(NoteLetter::C, 3);
-        assert_eq!(c_triple_sharp.into_u8(), 3); // C### = Eb
+        assert_eq!(c_triple_sharp.as_u8(), 3); // C### = Eb
 
         let g_triple_flat = Pitch::new(NoteLetter::G, -3);
-        assert_eq!(g_triple_flat.into_u8(), 4); // Gbbb = E
+        assert_eq!(g_triple_flat.as_u8(), 4); // Gbbb = E
 
         // Test extreme accidentals
         let f_quintuple_sharp = Pitch::new(NoteLetter::F, 5);
-        assert_eq!(f_quintuple_sharp.into_u8(), 10); // F##### = Bb
+        assert_eq!(f_quintuple_sharp.as_u8(), 10); // F##### = Bb
     }
 }

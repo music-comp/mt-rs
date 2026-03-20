@@ -6,14 +6,14 @@ use crate::scale::{Mode, ScaleType};
 use strum_macros::Display;
 
 /// The direction of the scale; up or down.
-#[derive(Display, Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Display, Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Direction {
     Ascending,
     Descending,
 }
 
 /// A scale.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Scale {
     /// The root note of the scale.
     pub tonic: Pitch,
@@ -80,7 +80,7 @@ impl Scale {
 
     /// Parse a scale from a regex.
     pub fn from_regex_in_direction(string: &str, direction: Direction) -> Result<Self, ScaleError> {
-        let (tonic, tonic_match) = Pitch::from_regex(&string.trim())?;
+        let (tonic, tonic_match) = Pitch::from_regex(string.trim())?;
         let mode_string = &string[tonic_match.end()..].trim();
         let (mode, _) = Mode::from_regex(mode_string)?;
         let scale_type = ScaleType::from_mode(mode);
@@ -136,13 +136,12 @@ impl Notes for Scale {
 
 impl Default for Scale {
     fn default() -> Self {
-        Scale {
-            tonic: Pitch { letter: NoteLetter::C, accidental: 0 },
-            octave: 0,
-            scale_type: ScaleType::Diatonic,
-            mode: Some(Ionian),
-            intervals: vec![],
-            direction: Direction::Ascending,
-        }
+        Scale::new(
+            ScaleType::Diatonic,
+            Pitch { letter: NoteLetter::C, accidental: 0 },
+            4,
+            Some(Mode::Ionian),
+            Direction::Ascending,
+        ).unwrap()
     }
 }

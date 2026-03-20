@@ -63,22 +63,22 @@ mod test_pitch_symbol {
         // B# and C are enharmonically equivalent
         let bs_pitch = Pitch::from(PitchSymbol::Bs);
         let c_pitch = Pitch::from(PitchSymbol::C);
-        assert_eq!(bs_pitch.into_u8() % 12, c_pitch.into_u8());
+        assert_eq!(bs_pitch.as_u8() % 12, c_pitch.as_u8());
 
         // C# and Db are enharmonically equivalent
         let cs_pitch = Pitch::from(PitchSymbol::Cs);
         let db_pitch = Pitch::from(PitchSymbol::Db);
-        assert_eq!(cs_pitch.into_u8(), db_pitch.into_u8());
+        assert_eq!(cs_pitch.as_u8(), db_pitch.as_u8());
 
         // E# and F are enharmonically equivalent
         let es_pitch = Pitch::from(PitchSymbol::Es);
         let f_pitch = Pitch::from(PitchSymbol::F);
-        assert_eq!(es_pitch.into_u8(), f_pitch.into_u8());
+        assert_eq!(es_pitch.as_u8(), f_pitch.as_u8());
 
         // Cb and B are enharmonically equivalent
         let cb_pitch = Pitch::from(PitchSymbol::Cb);
         let b_pitch = Pitch::from(PitchSymbol::B);
-        assert_eq!(cb_pitch.into_u8() % 12, b_pitch.into_u8());
+        assert_eq!(cb_pitch.as_u8() % 12, b_pitch.as_u8());
     }
 
     #[test]

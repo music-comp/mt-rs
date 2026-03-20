@@ -145,8 +145,8 @@ mod scale_tests {
             ).unwrap();
 
             // Verify that the semitone values are the same
-            let notes1: Vec<u8> = scale1.notes().iter().map(|n| n.pitch.into_u8()).collect();
-            let notes2: Vec<u8> = scale2.notes().iter().map(|n| n.pitch.into_u8()).collect();
+            let notes1: Vec<u8> = scale1.notes().iter().map(|n| n.pitch.as_u8()).collect();
+            let notes2: Vec<u8> = scale2.notes().iter().map(|n| n.pitch.as_u8()).collect();
             assert_eq!(notes1, notes2, "{} should be enharmonically equivalent", description);
 
             // Verify intervals are consistent
@@ -184,7 +184,7 @@ mod scale_tests {
     fn test_scale_default() {
         let default_scale = Scale::default();
         assert_eq!(default_scale.tonic, Pitch::new(NoteLetter::C, 0));
-        assert_eq!(default_scale.octave, 0);
+        assert_eq!(default_scale.octave, 4);
         assert_eq!(default_scale.scale_type, ScaleType::Diatonic);
         assert_eq!(default_scale.mode, Some(Mode::Ionian));
         assert_eq!(default_scale.direction, Direction::Ascending);

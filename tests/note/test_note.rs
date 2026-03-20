@@ -56,7 +56,7 @@ mod test_note {
         let note_db = Note::new(Pitch::new(NoteLetter::D, -1), 4);
 
         // Both notes should have the same pitch class (same semitone value)
-        assert_eq!(note_cs.pitch.into_u8(), note_db.pitch.into_u8());
+        assert_eq!(note_cs.pitch.as_u8(), note_db.pitch.as_u8());
         assert_eq!(note_cs.octave, note_db.octave);
 
         // But different pitch representations

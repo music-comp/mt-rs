@@ -92,7 +92,7 @@ mod chord_tests {
 
     #[test]
     fn test_chord_from_string() {
-        let c = Pitch::from_str("C").unwrap();
+        let c = Pitch::try_parse("C").unwrap();
         let chord_tuples = [
             ((c, Major, Triad), "C E G"),
             ((c, Minor, Triad), "C Ds G"),
@@ -197,14 +197,14 @@ mod chord_tests {
         let notes = minor_triad.notes();
         assert_eq!(notes.len(), 3);
         assert_eq!(notes[0].pitch, root);
-        assert_eq!(notes[1].pitch.into_u8(), 3); // Eb
+        assert_eq!(notes[1].pitch.as_u8(), 3); // Eb
         assert_eq!(notes[2].pitch, Pitch::new(NoteLetter::G, 0));
 
         // Dominant seventh: [4, 3, 3]
         let dom7 = Chord::from_interval(root, &[4, 3, 3]).unwrap();
         let notes = dom7.notes();
         assert_eq!(notes.len(), 4);
-        assert_eq!(notes[3].pitch.into_u8(), 10); // Bb
+        assert_eq!(notes[3].pitch.as_u8(), 10); // Bb
     }
 
     #[test]

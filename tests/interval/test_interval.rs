@@ -71,7 +71,7 @@ mod test_interval {
     #[test]
     fn test_invert_unison() {
         let unison = Interval::from_semitone(0).unwrap();
-        let inverted = Interval::invert(&unison);
+        let inverted = unison.invert();
         assert!(inverted.is_ok());
         assert_eq!(inverted.unwrap().semitone_count, unison.semitone_count);
     }
@@ -82,7 +82,7 @@ mod test_interval {
 
         for i in 0..list.len() {
             let interval = Interval::from_semitone(list[i]).unwrap();
-            let inverted = Interval::invert(&interval);
+            let inverted = interval.invert();
             assert!(inverted.is_ok());
             assert_eq!(inverted.unwrap().semitone_count, list[list.len() - i - 1]);
         }

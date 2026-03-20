@@ -174,8 +174,8 @@ mod chord_enharmonic_tests {
         let gb_notes = gb_major.notes();
         
         // Same semitone content
-        let fs_semitones: Vec<u8> = fs_notes.iter().map(|n| n.pitch.into_u8()).collect();
-        let gb_semitones: Vec<u8> = gb_notes.iter().map(|n| n.pitch.into_u8()).collect();
+        let fs_semitones: Vec<u8> = fs_notes.iter().map(|n| n.pitch.as_u8()).collect();
+        let gb_semitones: Vec<u8> = gb_notes.iter().map(|n| n.pitch.as_u8()).collect();
         assert_eq!(fs_semitones, gb_semitones);
         
         // Different spelling

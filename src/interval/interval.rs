@@ -5,7 +5,7 @@ use std::fmt::Display;
 use strum_macros::Display;
 
 /// The quality of an interval; major, minor, etc.
-#[derive(Debug, Copy, Clone, PartialEq)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum Quality {
     /// A perfect interval; unisons, fourths, fifths, and octaves.
     Perfect,
@@ -29,7 +29,7 @@ impl Display for Quality {
 }
 
 /// The number of an interval.
-#[derive(Debug, Copy, Clone, PartialEq)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum Number {
     Unison,
     Second,
@@ -58,7 +58,7 @@ impl Display for Number {
 }
 
 /// A step between notes.
-#[derive(Display, Debug, Copy, Clone, PartialEq)]
+#[derive(Display, Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum Step {
     /// A semitone step.
     Half,
@@ -69,7 +69,7 @@ pub enum Step {
 }
 
 /// An interval between two notes.
-#[derive(Debug, Copy, Clone, PartialEq)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct Interval {
     /// The number of semitones between the notes.
     pub semitone_count: u8,
@@ -192,11 +192,11 @@ impl Interval {
 
     /// Creates an interval by inverting the given interval
     /// e.g. Perfect fifth (C to G) becomes a perfect fourth (G to C)
-    pub fn invert(interval: &Self) -> Result<Self, IntervalError> {
-        if interval.semitone_count == 12 {
+    pub fn invert(self) -> Result<Self, IntervalError> {
+        if self.semitone_count == 12 {
             Self::from_semitone(12)
         } else {
-            let adjusted = (12 + (12i16 - interval.semitone_count as i16)) % 12;
+            let adjusted = (12 + (12i16 - self.semitone_count as i16)) % 12;
             Self::from_semitone(adjusted as u8)
         }
     }
@@ -205,7 +205,7 @@ impl Interval {
     pub fn second_note_from(self, first_note: Note) -> Note {
         let pitch = Pitch::from_interval(first_note.pitch, self);
         let octave = first_note.octave;
-        let excess_octave = (first_note.pitch.into_u8() + self.semitone_count) / 12;
+        let excess_octave = (first_note.pitch.as_u8() + self.semitone_count) / 12;
 
         Note {
             octave: octave + excess_octave,
@@ -217,7 +217,7 @@ impl Interval {
     pub fn second_note_down_from(self, first_note: Note) -> Note {
         let pitch = Pitch::from_interval_down(first_note.pitch, self);
         let octave = first_note.octave;
-        let raw_diff = first_note.pitch.into_u8() as i16 - self.semitone_count as i16;
+        let raw_diff = first_note.pitch.as_u8() as i16 - self.semitone_count as i16;
         let excess_octave = (raw_diff / -12) + if raw_diff < 0 { 1 } else { 0 };
 
         Note {
@@ -267,7 +267,7 @@ impl Default for Interval {
     fn default() -> Self {
         Interval {
             semitone_count: 0,
-            quality: Quality::Major,
+            quality: Quality::Perfect,
             number: Number::Unison,
             step: None,
         }
