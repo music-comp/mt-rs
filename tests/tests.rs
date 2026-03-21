@@ -15,6 +15,8 @@ mod scale {
     mod test_identify;
 }
 
+mod voice_leading;
+
 mod note {
     mod test_pitch;
     mod test_key_signature;
