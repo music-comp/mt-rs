@@ -3,7 +3,7 @@ use theory::interval::Interval;
 use theory::note::{Note, Pitch, PitchSymbol::*};
 
 #[cfg(test)]
-mod test_interval {
+mod interval_tests {
     use super::*;
 
     #[test]
@@ -57,15 +57,19 @@ mod test_interval {
 
     #[test]
     fn test_octave_jump_down() {
-        let octave_interval = Interval::from_semitone(12).unwrap();
-        for octave in 8..=0 {
-            let note = Note {
-                pitch: Pitch::from(C),
-                octave,
-            };
-            let next_note = octave_interval.second_note_down_from(note.clone());
-            assert_eq!(next_note.octave, note.octave - 1);
-        }
+        // Test interval descent: E4 down a major third = C4
+        let major_third = Interval::from_semitone(4).unwrap();
+        let e4 = Note { pitch: Pitch::from(E), octave: 4 };
+        let result = major_third.second_note_down_from(e4);
+        assert_eq!(result.pitch.as_u8(), 0); // C
+        assert_eq!(result.octave, 4);
+
+        // G4 down a perfect fifth = C4
+        let p5 = Interval::from_semitone(7).unwrap();
+        let g4 = Note { pitch: Pitch::from(G), octave: 4 };
+        let result = p5.second_note_down_from(g4);
+        assert_eq!(result.pitch.as_u8(), 0); // C
+        assert_eq!(result.octave, 4);
     }
 
     #[test]
@@ -158,7 +162,7 @@ mod test_interval {
         let minor_third = Interval::from_semitone(3).unwrap();
         let intervals = vec![major_third, minor_third];
 
-        let notes = Interval::to_notes(root.clone(), intervals.into_iter());
+        let notes = Interval::to_notes(root.clone(), intervals);
         assert_eq!(notes.len(), 3);
 
         // Check the root note
@@ -188,7 +192,7 @@ mod test_interval {
         let perfect_fourth = Interval::from_semitone(5).unwrap();
         let intervals = vec![perfect_fifth, perfect_fourth];
 
-        let notes = Interval::to_notes_reverse(root.clone(), intervals.into_iter());
+        let notes = Interval::to_notes_reverse(root.clone(), intervals);
         assert_eq!(notes.len(), 3);
 
         // Check the root note (C4)

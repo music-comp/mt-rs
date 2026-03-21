@@ -4,7 +4,7 @@ use theory::note::{NoteLetter, Notes, Pitch};
 use theory::scale::Scale;
 
 #[cfg(test)]
-mod test_notes_trait {
+mod notes_trait_tests {
     use super::*;
 
     #[test]
@@ -99,8 +99,8 @@ mod test_notes_trait {
         assert_eq!(notes[0].octave, 4);
 
         // Notes should stay in the same octave until the tonic repeats
-        for i in 1..7 {
-            assert_eq!(notes[i].octave, 4);
+        for note in &notes[1..7] {
+            assert_eq!(note.octave, 4);
         }
 
         // The octave should increment for notes that wrap around

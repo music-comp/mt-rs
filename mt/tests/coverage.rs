@@ -575,23 +575,26 @@ fn test_print_notes_calls_format() {
 // ============================================================
 
 #[test]
+#[allow(clippy::invalid_regex)]
 fn test_note_error_from_regex_error() {
-    // Manually create a regex error and convert
-    let regex_err = regex::Regex::new("[invalid").unwrap_err();
+    // Intentionally invalid regex to test From<regex::Error> conversion
+    let regex_err = regex::Regex::new("(unclosed").unwrap_err();
     let note_err: theory::note::NoteError = regex_err.into();
     assert_eq!(note_err, theory::note::NoteError::InvalidPitch);
 }
 
 #[test]
+#[allow(clippy::invalid_regex)]
 fn test_chord_error_from_regex_error() {
-    let regex_err = regex::Regex::new("[invalid").unwrap_err();
+    let regex_err = regex::Regex::new("(unclosed").unwrap_err();
     let chord_err: theory::chord::ChordError = regex_err.into();
     assert_eq!(chord_err, theory::chord::ChordError::InvalidRegex);
 }
 
 #[test]
+#[allow(clippy::invalid_regex)]
 fn test_scale_error_from_regex_error() {
-    let regex_err = regex::Regex::new("[invalid").unwrap_err();
+    let regex_err = regex::Regex::new("(unclosed").unwrap_err();
     let scale_err: theory::scale::ScaleError = regex_err.into();
     assert_eq!(scale_err, theory::scale::ScaleError::ModeFromRegex);
 }

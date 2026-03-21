@@ -10,6 +10,7 @@ authors = [
     "Ozan Kaşıkçı <ozan@kasikci.io>",
 ]
 edition = "2021"
+rust-version = "1.80"
 keywords = ["music", "music-theory", "music-composition"]
 categories = ["multimedia::audio", "science"]
 

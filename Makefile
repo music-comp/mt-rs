@@ -191,7 +191,7 @@ test:
 lint:
 	@echo "$(BLUE)Running linter checks...$(RESET)"
 	@echo "$(CYAN)• Running clippy...$(RESET)"
-	@cargo clippy --all-features --workspace -- -D warnings
+	@cargo clippy --workspace --all-targets --all-features -- -D warnings
 	@echo "$(GREEN)✓ Clippy passed$(RESET)"
 	@echo "$(CYAN)• Checking code formatting...$(RESET)"
 	@cargo fmt --all -- --check

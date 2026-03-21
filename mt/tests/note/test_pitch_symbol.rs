@@ -2,7 +2,7 @@ extern crate music_comp_mt as theory;
 use theory::note::{NoteLetter, Pitch, PitchSymbol};
 
 #[cfg(test)]
-mod test_pitch_symbol {
+mod pitch_symbol_tests {
     use super::*;
 
     #[test]

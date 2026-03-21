@@ -9,7 +9,7 @@ fn assert_chord_notes(expected: &[theory::note::PitchSymbol], chord: Chord) {
         notes.len(),
         expected.len(),
         "Chord {} should have {} notes, got {}",
-        format!("{:?}", chord),
+        format_args!("{:?}", chord),
         expected.len(),
         notes.len()
     );
@@ -161,7 +161,7 @@ mod chord_enharmonic_tests {
 
         // Root position: Gb Bb Db
         let root_pos = Chord::with_inversion(root, Major, Triad, 0);
-        assert_chord_notes(&vec![Gb, Bb, Db], root_pos);
+        assert_chord_notes(&[Gb, Bb, Db], root_pos);
 
         // First inversion: Bb Db Gb
         let first_inv = Chord::with_inversion(root, Major, Triad, 1);
@@ -196,8 +196,8 @@ mod chord_enharmonic_tests {
         assert_eq!(fs_semitones, gb_semitones);
 
         // Different spelling
-        assert_chord_notes(&vec![Fs, As, Cs], fs_major);
-        assert_chord_notes(&vec![Gb, Bb, Db], gb_major);
+        assert_chord_notes(&[Fs, As, Cs], fs_major);
+        assert_chord_notes(&[Gb, Bb, Db], gb_major);
     }
 
     #[test]

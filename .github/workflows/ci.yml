@@ -39,13 +39,13 @@ jobs:
         run: cargo fmt --all -- --check
 
       - name: Clippy (default features)
-        run: cargo clippy --all-targets -- -D warnings -A clippy::module_inception
+        run: cargo clippy --workspace --all-targets -- -D warnings
 
       - name: Clippy (all features)
-        run: cargo clippy --all-targets --all-features -- -D warnings -A clippy::module_inception
+        run: cargo clippy --workspace --all-targets --all-features -- -D warnings
 
       - name: Build docs
-        run: cargo doc --no-deps --all-features
+        run: cargo doc --workspace --no-deps --all-features
         env:
           RUSTDOCFLAGS: -D warnings
 
