@@ -1,0 +1,21 @@
+[package]
+name = "music-comp-mt-cli"
+description = "A music theory command-line tool"
+license = "MIT"
+version = "0.4.0"
+readme = "../README.md"
+repository = "https://github.com/music-comp/mt-rs"
+authors = [
+    "Duncan McGreggor <oubiwann@gmail.com>",
+    "Ozan Kaşıkçı <ozan@kasikci.io>",
+]
+edition = "2021"
+keywords = ["music", "music-theory", "cli"]
+
+[[bin]]
+name = "mt"
+path = "src/main.rs"
+
+[dependencies]
+music-comp-mt = { path = "../mt" }
+clap = { version = "4", features = ["derive"] }

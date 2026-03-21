@@ -1,0 +1,28 @@
+[package]
+name = "music-comp-mt"
+description = "A music theory library providing Note, Chord, Scale, Interval, and advanced analysis"
+license = "MIT"
+version = "0.4.0"
+readme = "../README.md"
+repository = "https://github.com/music-comp/mt-rs"
+authors = [
+    "Duncan McGreggor <oubiwann@gmail.com>",
+    "Ozan Kaşıkçı <ozan@kasikci.io>",
+]
+edition = "2021"
+keywords = ["music", "music-theory", "music-composition"]
+categories = ["multimedia::audio", "science"]
+
+[features]
+default = []
+midi = []
+serde = ["dep:serde"]
+
+[dependencies]
+strum = "0.28"
+strum_macros = "0.28"
+regex = "1"
+serde = { version = "1", features = ["derive"], optional = true }
+
+[dev-dependencies]
+serde_json = "1"
