@@ -17,8 +17,8 @@ pub struct RomanNumeral {
     pub number: Number,
 }
 
-const ROMAN_UPPER: [&str; 7] = ["I", "II", "III", "IV", "V", "VI", "VII"];
-const ROMAN_LOWER: [&str; 7] = ["i", "ii", "iii", "iv", "v", "vi", "vii"];
+pub(crate) const ROMAN_UPPER: [&str; 7] = ["I", "II", "III", "IV", "V", "VI", "VII"];
+pub(crate) const ROMAN_LOWER: [&str; 7] = ["i", "ii", "iii", "iv", "v", "vi", "vii"];
 
 /// Analyze a chord in the context of a key, returning its Roman numeral.
 /// Returns None if the chord root is not a diatonic scale degree.
