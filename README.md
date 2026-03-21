@@ -12,7 +12,7 @@
 
 This library covers music-theoretic fundamentals through graduate-level theory: notes, intervals, chords, scales, harmony analysis, voice leading, neo-Riemannian transformations, pitch-class set theory, counterpoint, and figured bass.
 
-Every music theory fact in the library has been verified against 4,315 concept cards from 29 authoritative textbooks.
+Every music theory fact in the library has been verified against 4,315 concept cards from 14 authoritative textbooks.
 
 Note that this project started as a fork of Ozan Kaşıkçı's [excellent library](https://github.com/ozankasikci/rust-music-theory).
 
