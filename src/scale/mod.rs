@@ -1,9 +1,17 @@
+//! Scales.
+
+mod errors;
+mod mode;
+mod scale_type;
+
+pub use errors::ScaleError;
+pub use mode::Mode;
+pub use scale_type::ScaleType;
+
 use crate::interval::Interval;
 use crate::note::{Note, NoteLetter, Notes, Pitch};
-use crate::scale::errors::ScaleError;
-use crate::scale::Mode::{Aeolian, Dorian, Ionian, Locrian, Lydian, Mixolydian, Phrygian};
-use crate::scale::{Mode, ScaleType};
 use strum_macros::Display;
+use Mode::{Aeolian, Dorian, Ionian, Locrian, Lydian, Mixolydian, Phrygian};
 
 /// The direction of the scale; up or down.
 #[derive(Display, Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -67,8 +75,11 @@ impl Scale {
                     Aeolian => intervals.rotate_left(5),
                     Locrian => intervals.rotate_left(6),
                     // New scale types don't have modal variations
-                    Mode::PentatonicMajor | Mode::PentatonicMinor | Mode::Blues | 
-                    Mode::Chromatic | Mode::WholeTone => {}
+                    Mode::PentatonicMajor
+                    | Mode::PentatonicMinor
+                    | Mode::Blues
+                    | Mode::Chromatic
+                    | Mode::WholeTone => {}
                     _ => {}
                 };
             }
@@ -117,13 +128,11 @@ impl Scale {
             let tonic = Pitch::from_u8(semitone);
             for mode in Mode::iter() {
                 let scale_type = ScaleType::from_mode(mode);
-                if let Ok(scale) = Scale::new(
-                    scale_type, tonic, 4, Some(mode), Direction::Ascending,
-                ) {
-                    let scale_pcs: HashSet<u8> = scale.notes()
-                        .iter()
-                        .map(|n| n.pitch.as_u8())
-                        .collect();
+                if let Ok(scale) =
+                    Scale::new(scale_type, tonic, 4, Some(mode), Direction::Ascending)
+                {
+                    let scale_pcs: HashSet<u8> =
+                        scale.notes().iter().map(|n| n.pitch.as_u8()).collect();
 
                     if input_pcs.is_subset(&scale_pcs) {
                         matches.push((tonic, mode, scale_pcs.len()));
@@ -150,16 +159,16 @@ impl Scale {
 
 impl Notes for Scale {
     fn notes(&self) -> Vec<Note> {
-        use Direction::*;
         use crate::note::KeySignature;
-        
+        use Direction::*;
+
         let root_note = Note {
             octave: self.octave,
             pitch: self.tonic,
         };
 
         let intervals_clone = self.intervals.clone();
-        
+
         // Create a key signature for proper enharmonic spelling.
         // When mode is None, infer it from scale_type for correct spelling context.
         let effective_mode = self.mode.or(match self.scale_type {
@@ -175,14 +184,14 @@ impl Notes for Scale {
             Ascending => Interval::to_notes(root_note, intervals_clone),
             Descending => Interval::to_notes_reverse(root_note, intervals_clone),
         };
-        
+
         // Apply proper enharmonic spelling based on key signature.
         // The tonic (index 0) is preserved as-is — it was specified by the user.
         for note in &mut notes[1..] {
             let preferred_spelling = key_signature.get_preferred_spelling(note.pitch);
             note.pitch = crate::note::Pitch::from(preferred_spelling);
         }
-        
+
         notes
     }
 }
@@ -191,10 +200,14 @@ impl Default for Scale {
     fn default() -> Self {
         Scale::new(
             ScaleType::Diatonic,
-            Pitch { letter: NoteLetter::C, accidental: 0 },
+            Pitch {
+                letter: NoteLetter::C,
+                accidental: 0,
+            },
             4,
             Some(Mode::Ionian),
             Direction::Ascending,
-        ).unwrap()
+        )
+        .unwrap()
     }
 }

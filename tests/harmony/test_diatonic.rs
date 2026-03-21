@@ -1,5 +1,5 @@
 extern crate mt_rs as theory;
-use theory::chord::{Quality, Number};
+use theory::chord::{Number, Quality};
 use theory::harmony;
 use theory::note::{NoteLetter, Pitch, PitchSymbol::*};
 use theory::scale::Mode;

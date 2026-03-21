@@ -206,7 +206,7 @@ mod test_interval {
 
     #[test]
     fn test_interval_quality_and_number() {
-        use theory::interval::{Quality, Number};
+        use theory::interval::{Number, Quality};
 
         // Test perfect intervals
         let unison = Interval::from_semitone(0).unwrap();

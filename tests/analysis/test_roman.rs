@@ -1,6 +1,6 @@
 extern crate mt_rs as theory;
 use theory::analysis::roman_numeral;
-use theory::chord::{Chord, Quality, Number};
+use theory::chord::{Chord, Number, Quality};
 use theory::note::{NoteLetter, Pitch, PitchSymbol::*};
 use theory::scale::Mode;
 

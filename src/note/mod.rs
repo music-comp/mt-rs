@@ -1,4 +1,15 @@
-use crate::note::Pitch;
+//! Individual notes.
+
+mod errors;
+mod key_signature;
+mod pitch;
+mod pitch_symbol;
+
+pub use errors::NoteError;
+pub use key_signature::KeySignature;
+pub use pitch::{NoteLetter, Pitch};
+pub use pitch_symbol::PitchSymbol;
+
 use std::fmt;
 use std::fmt::Formatter;
 
@@ -15,10 +26,7 @@ pub struct Note {
 impl Note {
     /// Create a new note.
     pub fn new(pitch: Pitch, octave: u8) -> Self {
-        Note {
-            pitch,
-            octave,
-        }
+        Note { pitch, octave }
     }
 
     /// Convert to MIDI pitch number (0-127).

@@ -51,7 +51,10 @@ fn is_perfect_consonance(ic: u8) -> bool {
 pub fn check_first_species(cantus_firmus: &[Note], counterpoint: &[Note]) -> CounterpointResult {
     let n = cantus_firmus.len().min(counterpoint.len());
     if n == 0 {
-        return CounterpointResult { valid: true, violations: vec![] };
+        return CounterpointResult {
+            valid: true,
+            violations: vec![],
+        };
     }
 
     let mut violations = Vec::new();
@@ -90,7 +93,10 @@ pub fn check_first_species(cantus_firmus: &[Note], counterpoint: &[Note]) -> Cou
         violations.push(Violation {
             position: 0,
             rule: "opening".into(),
-            description: format!("Opening interval (ic {}) must be a perfect consonance", first_ic),
+            description: format!(
+                "Opening interval (ic {}) must be a perfect consonance",
+                first_ic
+            ),
         });
     }
 
@@ -101,7 +107,10 @@ pub fn check_first_species(cantus_firmus: &[Note], counterpoint: &[Note]) -> Cou
             violations.push(Violation {
                 position: n - 1,
                 rule: "closing".into(),
-                description: format!("Closing interval (ic {}) must be a perfect consonance", last_ic),
+                description: format!(
+                    "Closing interval (ic {}) must be a perfect consonance",
+                    last_ic
+                ),
             });
         }
     }
@@ -117,7 +126,9 @@ pub fn check_first_species(cantus_firmus: &[Note], counterpoint: &[Note]) -> Cou
                 rule: "parallel_perfect".into(),
                 description: format!(
                     "Parallel perfect consonance (ic {}) at positions {}-{}",
-                    curr_ic, i - 1, i
+                    curr_ic,
+                    i - 1,
+                    i
                 ),
             });
         }

@@ -1,7 +1,7 @@
 extern crate mt_rs as theory;
-use theory::note::{Pitch, NoteLetter, Note};
-use theory::scale::Direction;
 use theory::interval::Interval;
+use theory::note::{Note, NoteLetter, Pitch};
+use theory::scale::Direction;
 use NoteLetter::*;
 
 #[cfg(test)]
@@ -77,26 +77,26 @@ mod test_note {
 
     #[test]
     fn test_pitch_format() {
-        assert_eq!(format!("{}", Pitch::new(C,2)), "C##");
-        assert_eq!(format!("{}", Pitch::new(C,-2)), "Cbb");
-        assert_eq!(format!("{}", Pitch::new(C,0)), "C");
+        assert_eq!(format!("{}", Pitch::new(C, 2)), "C##");
+        assert_eq!(format!("{}", Pitch::new(C, -2)), "Cbb");
+        assert_eq!(format!("{}", Pitch::new(C, 0)), "C");
     }
 
     #[test]
     fn test_enharmonic_ascending() {
         let table = vec![
-            (0, NoteLetter::C),    // C
-            (1, NoteLetter::C),    // C♯
-            (2, NoteLetter::D),    // D
-            (3, NoteLetter::D),    // D♯
-            (4, NoteLetter::E),    // E
-            (5, NoteLetter::F),    // F
-            (6, NoteLetter::F),    // F♯
-            (7, NoteLetter::G),    // G
-            (8, NoteLetter::G),    // G♯
-            (9, NoteLetter::A),    // A
-            (10, NoteLetter::A),   // A♯
-            (11, NoteLetter::B),   // B
+            (0, NoteLetter::C),  // C
+            (1, NoteLetter::C),  // C♯
+            (2, NoteLetter::D),  // D
+            (3, NoteLetter::D),  // D♯
+            (4, NoteLetter::E),  // E
+            (5, NoteLetter::F),  // F
+            (6, NoteLetter::F),  // F♯
+            (7, NoteLetter::G),  // G
+            (8, NoteLetter::G),  // G♯
+            (9, NoteLetter::A),  // A
+            (10, NoteLetter::A), // A♯
+            (11, NoteLetter::B), // B
         ];
 
         for (val, expected) in table {
@@ -109,27 +109,29 @@ mod test_note {
                 10 => Pitch::new(expected, 1), // Sharp
                 _ => Pitch::new(expected, 0),  // Natural
             };
-            assert_eq!(pitch, expected_pitch,
+            assert_eq!(
+                pitch, expected_pitch,
                 "Expected {} but got {} for value {}",
-                expected_pitch, pitch, val);
+                expected_pitch, pitch, val
+            );
         }
     }
 
     #[test]
     fn test_enharmonic_descending() {
         let table = vec![
-            (0, NoteLetter::C),    // C
-            (1, NoteLetter::D),    // D♭
-            (2, NoteLetter::D),    // D
-            (3, NoteLetter::E),    // E♭
-            (4, NoteLetter::E),    // E
-            (5, NoteLetter::F),    // F
-            (6, NoteLetter::G),    // G♭
-            (7, NoteLetter::G),    // G
-            (8, NoteLetter::A),    // A♭
-            (9, NoteLetter::A),    // A
-            (10, NoteLetter::B),   // B♭
-            (11, NoteLetter::B),   // B
+            (0, NoteLetter::C),  // C
+            (1, NoteLetter::D),  // D♭
+            (2, NoteLetter::D),  // D
+            (3, NoteLetter::E),  // E♭
+            (4, NoteLetter::E),  // E
+            (5, NoteLetter::F),  // F
+            (6, NoteLetter::G),  // G♭
+            (7, NoteLetter::G),  // G
+            (8, NoteLetter::A),  // A♭
+            (9, NoteLetter::A),  // A
+            (10, NoteLetter::B), // B♭
+            (11, NoteLetter::B), // B
         ];
 
         for (val, expected) in table {
@@ -142,9 +144,11 @@ mod test_note {
                 10 => Pitch::new(expected, -1), // Flat
                 _ => Pitch::new(expected, 0),   // Natural
             };
-            assert_eq!(pitch, expected_pitch,
+            assert_eq!(
+                pitch, expected_pitch,
                 "Expected {} but got {} for value {}",
-                expected_pitch, pitch, val);
+                expected_pitch, pitch, val
+            );
         }
     }
 

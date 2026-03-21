@@ -5,49 +5,47 @@ use regex::{Match, Regex};
 use std::sync::LazyLock;
 use strum_macros::{Display, EnumIter};
 
-static MODE_REGEXES: LazyLock<Vec<(Regex, Mode)>> = LazyLock::new(|| vec![
-    (
-        Regex::new(r"^(M\s+|M$|(?i)maj|major|ionian)").unwrap(),
-        Ionian
-    ),
-    (
-        Regex::new(r"(?i)(har minor|harmonicminor|harmonic\s+minor)").unwrap(),
-        HarmonicMinor
-    ),
-    (
-        Regex::new(r"(?i)(mel minor|melodicminor|melodic\s+minor)").unwrap(),
-        MelodicMinor
-    ),
-    (
-        Regex::new(r"(?i)(pentatonic\s+major|pentatonic\s+maj|pent\s+maj|pent\s+major)").unwrap(),
-        PentatonicMajor
-    ),
-    (
-        Regex::new(r"(?i)(pentatonic\s+minor|pentatonic\s+min|pent\s+min|pent\s+minor)").unwrap(),
-        PentatonicMinor
-    ),
-    (
-        Regex::new(r"(?i)(blues)").unwrap(),
-        Blues
-    ),
-    (
-        Regex::new(r"(?i)(chromatic)").unwrap(),
-        Chromatic
-    ),
-    (
-        Regex::new(r"(?i)(whole\s+tone|wholetone)").unwrap(),
-        WholeTone
-    ),
-    (
-        Regex::new(r"^(m\s+|m$|(?i)min|minor|aeolian)").unwrap(),
-        Aeolian
-    ),
-    (Regex::new(r"(?i)^(dorian)").unwrap(), Dorian),
-    (Regex::new(r"(?i)^(locrian)").unwrap(), Locrian),
-    (Regex::new(r"(?i)^(mixolydian)").unwrap(), Mixolydian),
-    (Regex::new(r"(?i)^(phrygian)").unwrap(), Phrygian),
-    (Regex::new(r"(?i)^(lydian)").unwrap(), Lydian),
-]);
+static MODE_REGEXES: LazyLock<Vec<(Regex, Mode)>> = LazyLock::new(|| {
+    vec![
+        (
+            Regex::new(r"^(M\s+|M$|(?i)maj|major|ionian)").unwrap(),
+            Ionian,
+        ),
+        (
+            Regex::new(r"(?i)(har minor|harmonicminor|harmonic\s+minor)").unwrap(),
+            HarmonicMinor,
+        ),
+        (
+            Regex::new(r"(?i)(mel minor|melodicminor|melodic\s+minor)").unwrap(),
+            MelodicMinor,
+        ),
+        (
+            Regex::new(r"(?i)(pentatonic\s+major|pentatonic\s+maj|pent\s+maj|pent\s+major)")
+                .unwrap(),
+            PentatonicMajor,
+        ),
+        (
+            Regex::new(r"(?i)(pentatonic\s+minor|pentatonic\s+min|pent\s+min|pent\s+minor)")
+                .unwrap(),
+            PentatonicMinor,
+        ),
+        (Regex::new(r"(?i)(blues)").unwrap(), Blues),
+        (Regex::new(r"(?i)(chromatic)").unwrap(), Chromatic),
+        (
+            Regex::new(r"(?i)(whole\s+tone|wholetone)").unwrap(),
+            WholeTone,
+        ),
+        (
+            Regex::new(r"^(m\s+|m$|(?i)min|minor|aeolian)").unwrap(),
+            Aeolian,
+        ),
+        (Regex::new(r"(?i)^(dorian)").unwrap(), Dorian),
+        (Regex::new(r"(?i)^(locrian)").unwrap(), Locrian),
+        (Regex::new(r"(?i)^(mixolydian)").unwrap(), Mixolydian),
+        (Regex::new(r"(?i)^(phrygian)").unwrap(), Phrygian),
+        (Regex::new(r"(?i)^(lydian)").unwrap(), Lydian),
+    ]
+});
 
 /// The mode of a scale.
 #[derive(Display, Debug, Clone, Copy, EnumIter, PartialEq, Eq, Hash)]
@@ -87,8 +85,15 @@ impl Mode {
 
     /// Get whether the mode is diatonic (not harmonic or melodic minor).
     pub fn is_diatonic(self) -> bool {
-        !matches!(self, Self::HarmonicMinor | Self::MelodicMinor | 
-                      Self::PentatonicMajor | Self::PentatonicMinor | 
-                      Self::Blues | Self::Chromatic | Self::WholeTone)
+        !matches!(
+            self,
+            Self::HarmonicMinor
+                | Self::MelodicMinor
+                | Self::PentatonicMajor
+                | Self::PentatonicMinor
+                | Self::Blues
+                | Self::Chromatic
+                | Self::WholeTone
+        )
     }
 }

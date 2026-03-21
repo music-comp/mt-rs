@@ -91,14 +91,8 @@ mod voice_leading_tests {
         // Optimal: C→C5(12)? No... let's do from [E4, C4] to [C4, E4]
         // Naive: E→C(-4), C→E(4) = 8
         // Optimal: E→E(0), C→C(0) = 0
-        let from = vec![
-            note(NoteLetter::E, 0, 4),
-            note(NoteLetter::C, 0, 4),
-        ];
-        let to = vec![
-            note(NoteLetter::C, 0, 4),
-            note(NoteLetter::E, 0, 4),
-        ];
+        let from = vec![note(NoteLetter::E, 0, 4), note(NoteLetter::C, 0, 4)];
+        let to = vec![note(NoteLetter::C, 0, 4), note(NoteLetter::E, 0, 4)];
         let vl = voice_leading::minimal_movement(&from, &to);
         assert_eq!(vl.total_distance, 0); // optimal swaps the pairing
     }

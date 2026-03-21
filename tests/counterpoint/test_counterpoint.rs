@@ -38,7 +38,10 @@ mod counterpoint_tests {
         let cp = vec![n(NoteLetter::G, 0, 4), n(NoteLetter::A, 0, 4)];
         let result = check_first_species(&cf, &cp);
         assert!(!result.valid);
-        assert!(result.violations.iter().any(|v| v.rule == "parallel_perfect"));
+        assert!(result
+            .violations
+            .iter()
+            .any(|v| v.rule == "parallel_perfect"));
     }
 
     #[test]
@@ -47,7 +50,10 @@ mod counterpoint_tests {
         let cp = vec![n(NoteLetter::C, 0, 5), n(NoteLetter::D, 0, 5)];
         let result = check_first_species(&cf, &cp);
         assert!(!result.valid);
-        assert!(result.violations.iter().any(|v| v.rule == "parallel_perfect"));
+        assert!(result
+            .violations
+            .iter()
+            .any(|v| v.rule == "parallel_perfect"));
     }
 
     #[test]

@@ -1,4 +1,4 @@
-use crate::chord::{Chord, Quality, Number};
+use crate::chord::{Chord, Number, Quality};
 use crate::note::Pitch;
 
 /// A neo-Riemannian operation on a triad.
@@ -29,9 +29,7 @@ impl std::fmt::Display for NRError {
 /// - **R** (Relative): C major → A minor, A minor → C major
 /// - **L** (Leading-tone): C major → E minor, E minor → C major
 pub fn transform(chord: &Chord, op: NROperation) -> Result<Chord, NRError> {
-    if chord.number != Number::Triad
-        || !matches!(chord.quality, Quality::Major | Quality::Minor)
-    {
+    if chord.number != Number::Triad || !matches!(chord.quality, Quality::Major | Quality::Minor) {
         return Err(NRError(
             "Neo-Riemannian operations only apply to major/minor triads".into(),
         ));
@@ -56,7 +54,11 @@ pub fn transform(chord: &Chord, op: NROperation) -> Result<Chord, NRError> {
         _ => unreachable!(),
     };
 
-    Ok(Chord::new(Pitch::from_u8(new_root_pc), new_quality, Number::Triad))
+    Ok(Chord::new(
+        Pitch::from_u8(new_root_pc),
+        new_quality,
+        Number::Triad,
+    ))
 }
 
 /// Apply a chain of neo-Riemannian transformations.

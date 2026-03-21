@@ -1,5 +1,5 @@
 use clap::Parser;
-use mt_rs::cli::{Cli, run};
+use mt_rs::cli::{run, Cli};
 
 fn main() {
     let cli = Cli::parse();

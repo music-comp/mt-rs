@@ -1,4 +1,4 @@
-use crate::chord::{Chord, Quality, Number};
+use crate::chord::{Chord, Number, Quality};
 use crate::note::{Notes, Pitch};
 use crate::scale::{Direction, Mode, Scale, ScaleType};
 
@@ -44,7 +44,8 @@ fn build_diatonic_chords(tonic: Pitch, mode: Mode, sevenths: bool) -> Vec<Diaton
     let scale_notes = scale.notes();
     // scale_notes includes octave duplicate at end; use only degrees 0..6
     let degree_count = scale_notes.len() - 1;
-    let pitch_classes: Vec<u8> = scale_notes.iter()
+    let pitch_classes: Vec<u8> = scale_notes
+        .iter()
         .take(degree_count)
         .map(|n| n.pitch.as_u8())
         .collect();
@@ -66,7 +67,10 @@ fn build_diatonic_chords(tonic: Pitch, mode: Mode, sevenths: bool) -> Vec<Diaton
             let seventh_interval = (seventh_pc + 12 - root.as_u8()) % 12;
             classify_seventh(third_interval, fifth_interval, seventh_interval)
         } else {
-            (classify_triad(third_interval, fifth_interval), Number::Triad)
+            (
+                classify_triad(third_interval, fifth_interval),
+                Number::Triad,
+            )
         };
 
         let chord = Chord::new(root, quality, number);
@@ -98,7 +102,7 @@ fn classify_seventh(third: u8, fifth: u8, seventh: u8) -> (Quality, Number) {
         (3, 7, 10) => (Quality::Minor, Number::Seventh),
         (4, 7, 10) => (Quality::Dominant, Number::Seventh),
         (3, 6, 10) => (Quality::HalfDiminished, Number::Seventh),
-        (3, 6, 9)  => (Quality::Diminished, Number::Seventh),
+        (3, 6, 9) => (Quality::Diminished, Number::Seventh),
         (4, 8, 11) => (Quality::Augmented, Number::MajorSeventh),
         (3, 7, 11) => (Quality::Minor, Number::MajorSeventh),
         _ => (Quality::Major, Number::Seventh), // fallback

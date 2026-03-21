@@ -14,9 +14,9 @@ mod identify_tests {
             .map(Pitch::from)
             .collect();
         let matches = Scale::identify(&notes);
-        assert!(matches.iter().any(|(p, m)|
-            p.letter == NoteLetter::C && p.accidental == 0 && *m == Mode::Ionian
-        ));
+        assert!(matches
+            .iter()
+            .any(|(p, m)| p.letter == NoteLetter::C && p.accidental == 0 && *m == Mode::Ionian));
     }
 
     #[test]
@@ -27,26 +27,23 @@ mod identify_tests {
             .collect();
         let matches = Scale::identify(&notes);
         // D Dorian should be found
-        assert!(matches.iter().any(|(p, m)|
-            p.letter == NoteLetter::D && p.accidental == 0 && *m == Mode::Dorian
-        ));
+        assert!(matches
+            .iter()
+            .any(|(p, m)| p.letter == NoteLetter::D && p.accidental == 0 && *m == Mode::Dorian));
         // C Ionian has the same notes — should also match
-        assert!(matches.iter().any(|(p, m)|
-            p.letter == NoteLetter::C && p.accidental == 0 && *m == Mode::Ionian
-        ));
+        assert!(matches
+            .iter()
+            .any(|(p, m)| p.letter == NoteLetter::C && p.accidental == 0 && *m == Mode::Ionian));
     }
 
     #[test]
     fn test_identify_pentatonic_from_subset() {
-        let notes: Vec<Pitch> = vec![G, A, B, D, E]
-            .into_iter()
-            .map(Pitch::from)
-            .collect();
+        let notes: Vec<Pitch> = vec![G, A, B, D, E].into_iter().map(Pitch::from).collect();
         let matches = Scale::identify(&notes);
         // G major pentatonic = G A B D E (exact match)
-        assert!(matches.iter().any(|(p, m)|
-            p.letter == NoteLetter::G && *m == Mode::PentatonicMajor
-        ));
+        assert!(matches
+            .iter()
+            .any(|(p, m)| p.letter == NoteLetter::G && *m == Mode::PentatonicMajor));
     }
 
     #[test]
@@ -56,9 +53,9 @@ mod identify_tests {
             .map(Pitch::from)
             .collect();
         let matches = Scale::identify(&notes);
-        assert!(matches.iter().any(|(p, m)|
-            p.letter == NoteLetter::A && *m == Mode::Aeolian
-        ));
+        assert!(matches
+            .iter()
+            .any(|(p, m)| p.letter == NoteLetter::A && *m == Mode::Aeolian));
     }
 
     #[test]
@@ -70,16 +67,15 @@ mod identify_tests {
     #[test]
     fn test_identify_results_sorted_by_size() {
         // G A B D E matches both G pentatonic major (5 notes) and G major (7 notes)
-        let notes: Vec<Pitch> = vec![G, A, B, D, E]
-            .into_iter()
-            .map(Pitch::from)
-            .collect();
+        let notes: Vec<Pitch> = vec![G, A, B, D, E].into_iter().map(Pitch::from).collect();
         let matches = Scale::identify(&notes);
         // Pentatonic (smaller) should come before diatonic (larger)
-        let pent_pos = matches.iter().position(|(_, m)| *m == Mode::PentatonicMajor);
-        let ionian_pos = matches.iter().position(|(p, m)|
-            p.letter == NoteLetter::G && *m == Mode::Ionian
-        );
+        let pent_pos = matches
+            .iter()
+            .position(|(_, m)| *m == Mode::PentatonicMajor);
+        let ionian_pos = matches
+            .iter()
+            .position(|(p, m)| p.letter == NoteLetter::G && *m == Mode::Ionian);
         if let (Some(pp), Some(ip)) = (pent_pos, ionian_pos) {
             assert!(pp < ip, "Pentatonic should sort before diatonic");
         }

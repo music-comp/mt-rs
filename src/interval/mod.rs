@@ -1,4 +1,9 @@
-use crate::interval::errors::IntervalError;
+//! Intervals between notes.
+
+mod errors;
+
+pub use errors::IntervalError;
+
 use crate::note::{Note, Pitch};
 use std::fmt;
 use std::fmt::Display;

@@ -1,5 +1,5 @@
 use crate::analysis::roman::{ROMAN_LOWER, ROMAN_UPPER};
-use crate::chord::{Chord, Quality, Number};
+use crate::chord::{Chord, Number, Quality};
 use crate::harmony::{diatonic_triads, DiatonicChord};
 use crate::note::Pitch;
 use crate::scale::Mode;

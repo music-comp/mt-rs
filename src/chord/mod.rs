@@ -1,8 +1,16 @@
-use crate::chord::errors::ChordError;
-use crate::chord::number::Number::Triad;
-use crate::chord::{Number, Quality};
+//! Chords.
+
+mod errors;
+mod number;
+mod quality;
+
+pub use errors::ChordError;
+pub use number::Number;
+pub use quality::Quality;
+
 use crate::interval::Interval;
-use crate::note::{Note, NoteError, Notes, Pitch, NoteLetter};
+use crate::note::{Note, NoteError, NoteLetter, Notes, Pitch};
+use Number::Triad;
 
 /// A chord.
 #[derive(Debug, Clone, PartialEq)]
@@ -29,12 +37,7 @@ impl Chord {
     }
 
     /// Create a new chord with a given inversion.
-    pub fn with_inversion(
-        root: Pitch,
-        quality: Quality,
-        number: Number,
-        inversion: u8,
-    ) -> Self {
+    pub fn with_inversion(root: Pitch, quality: Quality, number: Number, inversion: u8) -> Self {
         let intervals = Self::chord_intervals(quality, number);
         let inversion = inversion % (intervals.len() + 1) as u8;
         Chord {
@@ -58,7 +61,8 @@ impl Chord {
             return Err(ChordError::InvalidNote("need at least 2 notes".to_string()));
         }
 
-        let intervals: Vec<u8> = notes.iter()
+        let intervals: Vec<u8> = notes
+            .iter()
             .map(|x| x.as_u8() % 12)
             .zip(notes[1..].iter().map(|x| x.as_u8()))
             .map(|(x, y)| if x < y { y - x } else { y + 12 - x })
@@ -95,7 +99,7 @@ impl Chord {
             [4, 3, 3, 4, 3, 4] => (Dominant, Thirteenth),
             [4, 3, 4, 3, 3, 4] => (Major, Thirteenth),
             [3, 4, 3, 4, 3, 4] => (Minor, Thirteenth),
-            _ => return Err(ChordError::UnknownIntervalPattern(interval.to_vec()))
+            _ => return Err(ChordError::UnknownIntervalPattern(interval.to_vec())),
         };
         Ok(Self::new(root, quality, number))
     }
@@ -117,7 +121,8 @@ impl Chord {
             let root_pc = pcs[root_idx];
 
             // Compute intervals from this root to all other pitches
-            let mut above_root: Vec<u8> = pcs.iter()
+            let mut above_root: Vec<u8> = pcs
+                .iter()
                 .enumerate()
                 .filter(|(i, _)| *i != root_idx)
                 .map(|(_, &pc)| (pc + 12 - root_pc) % 12)
@@ -136,12 +141,9 @@ impl Chord {
                 // Determine inversion: which chord tone is the bass (first input pitch)?
                 let bass_pc = pcs[0];
                 let root_chord = Self::new(root, chord.quality, chord.number);
-                let chord_pcs: Vec<u8> = root_chord.notes().iter()
-                    .map(|n| n.pitch.as_u8())
-                    .collect();
-                let inversion = chord_pcs.iter()
-                    .position(|&pc| pc == bass_pc)
-                    .unwrap_or(0);
+                let chord_pcs: Vec<u8> =
+                    root_chord.notes().iter().map(|n| n.pitch.as_u8()).collect();
+                let inversion = chord_pcs.iter().position(|&pc| pc == bass_pc).unwrap_or(0);
 
                 let mut chord = chord;
                 chord.inversion = inversion as u8;
@@ -236,12 +238,8 @@ impl Chord {
             Triad
         };
 
-        let chord = Chord::with_inversion(
-            pitch,
-            quality,
-            number,
-            inversion_num_option.unwrap_or(0),
-        );
+        let chord =
+            Chord::with_inversion(pitch, quality, number, inversion_num_option.unwrap_or(0));
 
         if let Ok((bass_note, _)) = bass_note_result {
             let inversion = chord
@@ -290,14 +288,16 @@ impl Notes for Chord {
         // Root (index 0) is preserved as-is.
         for (i, note) in notes.iter_mut().enumerate().skip(1) {
             let offset = letter_offsets.get(i).copied().unwrap_or((i as u8 * 2) % 7);
-            let target_letter = NoteLetter::from_index(
-                (self.root.letter as u8 + offset) % 7,
-            );
+            let target_letter = NoteLetter::from_index((self.root.letter as u8 + offset) % 7);
             let natural_semitone = Pitch::new(target_letter, 0).as_u8() as i8;
             let tone_semitone = note.pitch.as_u8() as i8;
             let mut diff = tone_semitone - natural_semitone;
-            if diff > 6 { diff -= 12; }
-            if diff < -6 { diff += 12; }
+            if diff > 6 {
+                diff -= 12;
+            }
+            if diff < -6 {
+                diff += 12;
+            }
 
             if diff.abs() <= 1 {
                 note.pitch = Pitch::new(target_letter, diff);
@@ -306,7 +306,7 @@ impl Notes for Chord {
                 note.pitch = Pitch::from_u8(note.pitch.as_u8());
             }
         }
-        
+
         notes.rotate_left(self.inversion as usize);
 
         // Normalize to the correct octave
@@ -332,7 +332,10 @@ impl Default for Chord {
         let quality = Quality::Major;
         let number = Number::Triad;
         Chord {
-            root: Pitch { letter: NoteLetter::C, accidental: 0 },
+            root: Pitch {
+                letter: NoteLetter::C,
+                accidental: 0,
+            },
             octave: 4,
             intervals: Self::chord_intervals(quality, number),
             quality,

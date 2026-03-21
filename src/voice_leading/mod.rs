@@ -44,8 +44,13 @@ pub fn minimal_movement(from: &[Note], to: &[Note]) -> VoiceLeading {
     let mut indices: Vec<usize> = (0..n).collect();
 
     permute(
-        &mut indices, 0, n, from, to,
-        &mut best_distance, &mut best_perm,
+        &mut indices,
+        0,
+        n,
+        from,
+        to,
+        &mut best_distance,
+        &mut best_perm,
     );
 
     let mut movements = Vec::with_capacity(n);
@@ -76,7 +81,9 @@ fn permute(
     best_perm: &mut Vec<usize>,
 ) {
     if start == n {
-        let dist: u16 = indices.iter().enumerate()
+        let dist: u16 = indices
+            .iter()
+            .enumerate()
             .map(|(i, &j)| {
                 let d = absolute_pitch(&to[j]) - absolute_pitch(&from[i]);
                 d.unsigned_abs()

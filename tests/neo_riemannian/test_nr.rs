@@ -1,5 +1,5 @@
 extern crate mt_rs as theory;
-use theory::chord::{Chord, Quality, Number};
+use theory::chord::{Chord, Number, Quality};
 use theory::neo_riemannian::{transform, transform_chain, NROperation};
 use theory::note::{Pitch, PitchSymbol::*};
 
@@ -58,7 +58,8 @@ mod nr_tests {
     #[test]
     fn test_p_is_involution() {
         let chord = Chord::new(Pitch::from(C), Quality::Major, Number::Triad);
-        let result = transform(&transform(&chord, NROperation::P).unwrap(), NROperation::P).unwrap();
+        let result =
+            transform(&transform(&chord, NROperation::P).unwrap(), NROperation::P).unwrap();
         assert_eq!(result.root.as_u8(), chord.root.as_u8());
         assert_eq!(result.quality, chord.quality);
     }
@@ -66,7 +67,8 @@ mod nr_tests {
     #[test]
     fn test_r_is_involution() {
         let chord = Chord::new(Pitch::from(C), Quality::Major, Number::Triad);
-        let result = transform(&transform(&chord, NROperation::R).unwrap(), NROperation::R).unwrap();
+        let result =
+            transform(&transform(&chord, NROperation::R).unwrap(), NROperation::R).unwrap();
         assert_eq!(result.root.as_u8(), chord.root.as_u8());
         assert_eq!(result.quality, chord.quality);
     }
@@ -74,7 +76,8 @@ mod nr_tests {
     #[test]
     fn test_l_is_involution() {
         let chord = Chord::new(Pitch::from(C), Quality::Major, Number::Triad);
-        let result = transform(&transform(&chord, NROperation::L).unwrap(), NROperation::L).unwrap();
+        let result =
+            transform(&transform(&chord, NROperation::L).unwrap(), NROperation::L).unwrap();
         assert_eq!(result.root.as_u8(), chord.root.as_u8());
         assert_eq!(result.quality, chord.quality);
     }
@@ -82,7 +85,8 @@ mod nr_tests {
     #[test]
     fn test_chain_returns_intermediates() {
         let chord = Chord::new(Pitch::from(C), Quality::Major, Number::Triad);
-        let chain = transform_chain(&chord, &[NROperation::P, NROperation::R, NROperation::L]).unwrap();
+        let chain =
+            transform_chain(&chord, &[NROperation::P, NROperation::R, NROperation::L]).unwrap();
         assert_eq!(chain.len(), 4); // original + 3 transforms
         assert_eq!(chain[0].root.as_u8(), 0); // C major
         assert_eq!(chain[1].quality, Quality::Minor); // C minor (after P)

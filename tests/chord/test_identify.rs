@@ -1,5 +1,5 @@
 extern crate mt_rs as theory;
-use theory::chord::{Chord, Quality, Number};
+use theory::chord::{Chord, Number, Quality};
 use theory::note::{NoteLetter, Pitch, PitchSymbol::*};
 
 #[cfg(test)]
@@ -23,11 +23,9 @@ mod identify_tests {
         // E G C = C major first inversion
         let notes: Vec<Pitch> = vec![E, G, C].into_iter().map(Pitch::from).collect();
         let matches = Chord::identify(&notes);
-        assert!(matches.iter().any(|c|
-            c.root.letter == NoteLetter::C
+        assert!(matches.iter().any(|c| c.root.letter == NoteLetter::C
             && c.quality == Quality::Major
-            && c.inversion == 1
-        ));
+            && c.inversion == 1));
     }
 
     #[test]
@@ -35,31 +33,27 @@ mod identify_tests {
         // C G E (not sorted) should still find C major
         let notes: Vec<Pitch> = vec![C, G, E].into_iter().map(Pitch::from).collect();
         let matches = Chord::identify(&notes);
-        assert!(matches.iter().any(|c|
-            c.root.letter == NoteLetter::C
-            && c.quality == Quality::Major
-        ));
+        assert!(matches
+            .iter()
+            .any(|c| c.root.letter == NoteLetter::C && c.quality == Quality::Major));
     }
 
     #[test]
     fn test_identify_minor_chord() {
         let notes: Vec<Pitch> = vec![A, C, E].into_iter().map(Pitch::from).collect();
         let matches = Chord::identify(&notes);
-        assert!(matches.iter().any(|c|
-            c.root.letter == NoteLetter::A
-            && c.quality == Quality::Minor
-        ));
+        assert!(matches
+            .iter()
+            .any(|c| c.root.letter == NoteLetter::A && c.quality == Quality::Minor));
     }
 
     #[test]
     fn test_identify_seventh_chord() {
         let notes: Vec<Pitch> = vec![G, B, D, F].into_iter().map(Pitch::from).collect();
         let matches = Chord::identify(&notes);
-        assert!(matches.iter().any(|c|
-            c.root.letter == NoteLetter::G
+        assert!(matches.iter().any(|c| c.root.letter == NoteLetter::G
             && c.quality == Quality::Dominant
-            && c.number == Number::Seventh
-        ));
+            && c.number == Number::Seventh));
     }
 
     #[test]
@@ -67,11 +61,9 @@ mod identify_tests {
         // G C E = C major second inversion
         let notes: Vec<Pitch> = vec![G, C, E].into_iter().map(Pitch::from).collect();
         let matches = Chord::identify(&notes);
-        assert!(matches.iter().any(|c|
-            c.root.letter == NoteLetter::C
+        assert!(matches.iter().any(|c| c.root.letter == NoteLetter::C
             && c.quality == Quality::Major
-            && c.inversion == 2
-        ));
+            && c.inversion == 2));
     }
 
     #[test]

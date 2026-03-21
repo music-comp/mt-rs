@@ -116,7 +116,11 @@ impl fmt::Display for CliError {
 /// Run the CLI with the parsed arguments. Returns Ok(output) or Err(error).
 pub fn run(cli: Cli) -> Result<String, CliError> {
     match cli.command {
-        Commands::Scale { action, args, descending } => run_scale(action, args, descending),
+        Commands::Scale {
+            action,
+            args,
+            descending,
+        } => run_scale(action, args, descending),
         Commands::Chord { action, args } => run_chord(action, args),
     }
 }

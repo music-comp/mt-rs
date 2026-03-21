@@ -3,9 +3,9 @@
 
 extern crate mt_rs as theory;
 
-use theory::chord::{Chord, Quality as ChordQuality, Number as ChordNumber};
-use theory::interval::{Interval, Quality as IntervalQuality, Number as IntervalNumber};
-use theory::note::{Note, NoteLetter, Pitch, PitchSymbol, Notes};
+use theory::chord::{Chord, Number as ChordNumber, Quality as ChordQuality};
+use theory::interval::{Interval, Number as IntervalNumber, Quality as IntervalQuality};
+use theory::note::{Note, NoteLetter, Notes, Pitch, PitchSymbol};
 use theory::scale::{Direction, Mode, Scale, ScaleType};
 
 // ============================================================
@@ -351,7 +351,11 @@ fn test_roman_numeral_augmented_triad() {
     // In C major, no diatonic augmented triad, but we can test the label format
     // by creating an augmented chord on a diatonic root
     use theory::analysis::roman_numeral;
-    let chord = Chord::new(Pitch::new(NoteLetter::C, 0), ChordQuality::Augmented, ChordNumber::Triad);
+    let chord = Chord::new(
+        Pitch::new(NoteLetter::C, 0),
+        ChordQuality::Augmented,
+        ChordNumber::Triad,
+    );
     let rn = roman_numeral(Pitch::new(NoteLetter::C, 0), Mode::Ionian, &chord);
     if let Some(rn) = rn {
         assert!(rn.label.contains("+"));
@@ -361,7 +365,11 @@ fn test_roman_numeral_augmented_triad() {
 #[test]
 fn test_roman_numeral_ninth() {
     use theory::analysis::roman_numeral;
-    let chord = Chord::new(Pitch::new(NoteLetter::G, 0), ChordQuality::Dominant, ChordNumber::Ninth);
+    let chord = Chord::new(
+        Pitch::new(NoteLetter::G, 0),
+        ChordQuality::Dominant,
+        ChordNumber::Ninth,
+    );
     let rn = roman_numeral(Pitch::new(NoteLetter::C, 0), Mode::Ionian, &chord).unwrap();
     assert_eq!(rn.label, "V9");
 }
@@ -369,7 +377,11 @@ fn test_roman_numeral_ninth() {
 #[test]
 fn test_roman_numeral_eleventh() {
     use theory::analysis::roman_numeral;
-    let chord = Chord::new(Pitch::new(NoteLetter::G, 0), ChordQuality::Dominant, ChordNumber::Eleventh);
+    let chord = Chord::new(
+        Pitch::new(NoteLetter::G, 0),
+        ChordQuality::Dominant,
+        ChordNumber::Eleventh,
+    );
     let rn = roman_numeral(Pitch::new(NoteLetter::C, 0), Mode::Ionian, &chord).unwrap();
     assert_eq!(rn.label, "V11");
 }
@@ -377,7 +389,11 @@ fn test_roman_numeral_eleventh() {
 #[test]
 fn test_roman_numeral_thirteenth() {
     use theory::analysis::roman_numeral;
-    let chord = Chord::new(Pitch::new(NoteLetter::G, 0), ChordQuality::Dominant, ChordNumber::Thirteenth);
+    let chord = Chord::new(
+        Pitch::new(NoteLetter::G, 0),
+        ChordQuality::Dominant,
+        ChordNumber::Thirteenth,
+    );
     let rn = roman_numeral(Pitch::new(NoteLetter::C, 0), Mode::Ionian, &chord).unwrap();
     assert_eq!(rn.label, "V13");
 }
@@ -385,7 +401,11 @@ fn test_roman_numeral_thirteenth() {
 #[test]
 fn test_roman_numeral_diminished_seventh() {
     use theory::analysis::roman_numeral;
-    let chord = Chord::new(Pitch::new(NoteLetter::B, 0), ChordQuality::Diminished, ChordNumber::Seventh);
+    let chord = Chord::new(
+        Pitch::new(NoteLetter::B, 0),
+        ChordQuality::Diminished,
+        ChordNumber::Seventh,
+    );
     let rn = roman_numeral(Pitch::new(NoteLetter::C, 0), Mode::Ionian, &chord).unwrap();
     assert_eq!(rn.label, "vii°7");
 }
@@ -393,7 +413,11 @@ fn test_roman_numeral_diminished_seventh() {
 #[test]
 fn test_roman_numeral_augmented_seventh() {
     use theory::analysis::roman_numeral;
-    let chord = Chord::new(Pitch::new(NoteLetter::C, 0), ChordQuality::Augmented, ChordNumber::Seventh);
+    let chord = Chord::new(
+        Pitch::new(NoteLetter::C, 0),
+        ChordQuality::Augmented,
+        ChordNumber::Seventh,
+    );
     let rn = roman_numeral(Pitch::new(NoteLetter::C, 0), Mode::Ionian, &chord).unwrap();
     assert_eq!(rn.label, "I+7");
 }
@@ -401,7 +425,11 @@ fn test_roman_numeral_augmented_seventh() {
 #[test]
 fn test_roman_numeral_suspended() {
     use theory::analysis::roman_numeral;
-    let chord = Chord::new(Pitch::new(NoteLetter::C, 0), ChordQuality::Suspended4, ChordNumber::Triad);
+    let chord = Chord::new(
+        Pitch::new(NoteLetter::C, 0),
+        ChordQuality::Suspended4,
+        ChordNumber::Triad,
+    );
     let rn = roman_numeral(Pitch::new(NoteLetter::C, 0), Mode::Ionian, &chord).unwrap();
     assert_eq!(rn.label, "I");
 }
@@ -511,7 +539,11 @@ fn test_interval_default() {
 
 #[test]
 fn test_format_notes_chord() {
-    let chord = Chord::new(Pitch::new(NoteLetter::C, 0), ChordQuality::Major, ChordNumber::Triad);
+    let chord = Chord::new(
+        Pitch::new(NoteLetter::C, 0),
+        ChordQuality::Major,
+        ChordNumber::Triad,
+    );
     let formatted = chord.format_notes();
     assert!(formatted.contains("Notes:"));
     assert!(formatted.contains("1: C"));
@@ -530,7 +562,11 @@ fn test_format_notes_scale() {
 #[test]
 fn test_print_notes_calls_format() {
     // Just verify print_notes doesn't panic
-    let chord = Chord::new(Pitch::new(NoteLetter::C, 0), ChordQuality::Major, ChordNumber::Triad);
+    let chord = Chord::new(
+        Pitch::new(NoteLetter::C, 0),
+        ChordQuality::Major,
+        ChordNumber::Triad,
+    );
     chord.print_notes();
 }
 
@@ -609,7 +645,9 @@ fn test_interval_display_augmented_fourth() {
 #[test]
 fn test_interval_display_all_compound_numbers() {
     use theory::interval::Number::*;
-    let numbers = [Ninth, Tenth, Eleventh, Twelfth, Thirteenth, Fourteenth, Fifteenth];
+    let numbers = [
+        Ninth, Tenth, Eleventh, Twelfth, Thirteenth, Fourteenth, Fifteenth,
+    ];
     let expected = ["9", "10", "11", "12", "13", "14", "15"];
     for (num, exp) in numbers.iter().zip(expected.iter()) {
         assert_eq!(format!("{}", num), *exp);
@@ -623,21 +661,33 @@ fn test_interval_display_all_compound_numbers() {
 #[test]
 fn test_chord_notes_extended_ninths() {
     // Cover 9th chord voicing (positions 4+)
-    let chord = Chord::new(Pitch::new(NoteLetter::C, 0), ChordQuality::Dominant, ChordNumber::Ninth);
+    let chord = Chord::new(
+        Pitch::new(NoteLetter::C, 0),
+        ChordQuality::Dominant,
+        ChordNumber::Ninth,
+    );
     let notes = chord.notes();
     assert_eq!(notes.len(), 5);
 }
 
 #[test]
 fn test_chord_notes_extended_thirteenths() {
-    let chord = Chord::new(Pitch::new(NoteLetter::C, 0), ChordQuality::Dominant, ChordNumber::Thirteenth);
+    let chord = Chord::new(
+        Pitch::new(NoteLetter::C, 0),
+        ChordQuality::Dominant,
+        ChordNumber::Thirteenth,
+    );
     let notes = chord.notes();
     assert_eq!(notes.len(), 7);
 }
 
 #[test]
 fn test_chord_notes_sus2_seventh() {
-    let chord = Chord::new(Pitch::new(NoteLetter::C, 0), ChordQuality::Suspended2, ChordNumber::Seventh);
+    let chord = Chord::new(
+        Pitch::new(NoteLetter::C, 0),
+        ChordQuality::Suspended2,
+        ChordNumber::Seventh,
+    );
     let notes = chord.notes();
     assert_eq!(notes.len(), 4);
 }
@@ -648,12 +698,18 @@ fn test_chord_notes_sus2_seventh() {
 
 #[test]
 fn test_figured_bass_64() {
-    use theory::figured_bass::{Figure, realize};
+    use theory::figured_bass::{realize, Figure};
     // 6/4 = second inversion
     let bass = vec![Note::new(Pitch::new(NoteLetter::G, 0), 3)];
     let figures = vec![vec![
-        Figure { interval: 6, accidental: 0 },
-        Figure { interval: 4, accidental: 0 },
+        Figure {
+            interval: 6,
+            accidental: 0,
+        },
+        Figure {
+            interval: 4,
+            accidental: 0,
+        },
     ]];
     let result = realize(&bass, &figures, Pitch::new(NoteLetter::C, 0), Mode::Ionian);
     assert_eq!(result.len(), 1);
@@ -663,9 +719,12 @@ fn test_figured_bass_64() {
 
 #[test]
 fn test_figured_bass_flat_accidental() {
-    use theory::figured_bass::{Figure, realize};
+    use theory::figured_bass::{realize, Figure};
     let bass = vec![Note::new(Pitch::new(NoteLetter::C, 0), 3)];
-    let figures = vec![vec![Figure { interval: 3, accidental: -1 }]];
+    let figures = vec![vec![Figure {
+        interval: 3,
+        accidental: -1,
+    }]];
     let result = realize(&bass, &figures, Pitch::new(NoteLetter::C, 0), Mode::Ionian);
     assert_eq!(result.len(), 1);
 }
@@ -692,8 +751,15 @@ fn test_diatonic_triads_blues_returns_empty() {
 #[test]
 fn test_diatonic_sevenths_all_keys() {
     use theory::harmony;
-    for mode in [Mode::Ionian, Mode::Dorian, Mode::Phrygian, Mode::Lydian,
-                  Mode::Mixolydian, Mode::Aeolian, Mode::Locrian] {
+    for mode in [
+        Mode::Ionian,
+        Mode::Dorian,
+        Mode::Phrygian,
+        Mode::Lydian,
+        Mode::Mixolydian,
+        Mode::Aeolian,
+        Mode::Locrian,
+    ] {
         let chords = harmony::diatonic_sevenths(Pitch::new(NoteLetter::C, 0), mode);
         assert_eq!(chords.len(), 7, "Failed for mode {:?}", mode);
     }
@@ -713,7 +779,8 @@ fn test_pitch_from_u8_with_direction() {
 fn test_pitch_from_interval_with_context() {
     let c = Pitch::new(NoteLetter::C, 0);
     let interval = Interval::from_semitone(4).unwrap();
-    let result = Pitch::from_interval_with_context(c, interval, Some(Mode::Ionian), Direction::Ascending);
+    let result =
+        Pitch::from_interval_with_context(c, interval, Some(Mode::Ionian), Direction::Ascending);
     assert_eq!(result.as_u8(), 4);
 }
 
@@ -721,7 +788,12 @@ fn test_pitch_from_interval_with_context() {
 fn test_pitch_from_interval_down_with_context() {
     let e = Pitch::new(NoteLetter::E, 0);
     let interval = Interval::from_semitone(4).unwrap();
-    let result = Pitch::from_interval_down_with_context(e, interval, Some(Mode::Ionian), Direction::Descending);
+    let result = Pitch::from_interval_down_with_context(
+        e,
+        interval,
+        Some(Mode::Ionian),
+        Direction::Descending,
+    );
     assert_eq!(result.as_u8(), 0);
 }
 

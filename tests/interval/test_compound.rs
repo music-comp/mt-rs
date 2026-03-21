@@ -1,5 +1,5 @@
 extern crate mt_rs as theory;
-use theory::interval::{Interval, Quality, Number};
+use theory::interval::{Interval, Number, Quality};
 
 #[cfg(test)]
 mod compound_tests {

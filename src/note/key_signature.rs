@@ -3,24 +3,179 @@ use crate::scale::Mode;
 use std::collections::HashMap;
 use std::sync::LazyLock;
 
-static KEY_SIGNATURE_SPELLINGS: LazyLock<HashMap<(NoteLetter, i8), Vec<PitchSymbol>>> = LazyLock::new(|| {
-    let mut m = HashMap::new();
-        m.insert((NoteLetter::C, 0), vec![PitchSymbol::C, PitchSymbol::D, PitchSymbol::E, PitchSymbol::F, PitchSymbol::G, PitchSymbol::A, PitchSymbol::B]);
-        m.insert((NoteLetter::G, 0), vec![PitchSymbol::G, PitchSymbol::A, PitchSymbol::B, PitchSymbol::C, PitchSymbol::D, PitchSymbol::E, PitchSymbol::Fs]);
-        m.insert((NoteLetter::D, 0), vec![PitchSymbol::D, PitchSymbol::E, PitchSymbol::Fs, PitchSymbol::G, PitchSymbol::A, PitchSymbol::B, PitchSymbol::Cs]);
-        m.insert((NoteLetter::A, 0), vec![PitchSymbol::A, PitchSymbol::B, PitchSymbol::Cs, PitchSymbol::D, PitchSymbol::E, PitchSymbol::Fs, PitchSymbol::Gs]);
-        m.insert((NoteLetter::E, 0), vec![PitchSymbol::E, PitchSymbol::Fs, PitchSymbol::Gs, PitchSymbol::A, PitchSymbol::B, PitchSymbol::Cs, PitchSymbol::Ds]);
-        m.insert((NoteLetter::B, 0), vec![PitchSymbol::B, PitchSymbol::Cs, PitchSymbol::Ds, PitchSymbol::E, PitchSymbol::Fs, PitchSymbol::Gs, PitchSymbol::As]);
-        m.insert((NoteLetter::F, 0), vec![PitchSymbol::F, PitchSymbol::G, PitchSymbol::A, PitchSymbol::Bb, PitchSymbol::C, PitchSymbol::D, PitchSymbol::E]);
-        m.insert((NoteLetter::B, -1), vec![PitchSymbol::Bb, PitchSymbol::C, PitchSymbol::D, PitchSymbol::Eb, PitchSymbol::F, PitchSymbol::G, PitchSymbol::A]);
-        m.insert((NoteLetter::E, -1), vec![PitchSymbol::Eb, PitchSymbol::F, PitchSymbol::G, PitchSymbol::Ab, PitchSymbol::Bb, PitchSymbol::C, PitchSymbol::D]);
-        m.insert((NoteLetter::A, -1), vec![PitchSymbol::Ab, PitchSymbol::Bb, PitchSymbol::C, PitchSymbol::Db, PitchSymbol::Eb, PitchSymbol::F, PitchSymbol::G]);
-        m.insert((NoteLetter::D, -1), vec![PitchSymbol::Db, PitchSymbol::Eb, PitchSymbol::F, PitchSymbol::Gb, PitchSymbol::Ab, PitchSymbol::Bb, PitchSymbol::C]);
-        m.insert((NoteLetter::G, -1), vec![PitchSymbol::Gb, PitchSymbol::Ab, PitchSymbol::Bb, PitchSymbol::Cb, PitchSymbol::Db, PitchSymbol::Eb, PitchSymbol::F]);
-        m.insert((NoteLetter::F, 1), vec![PitchSymbol::Fs, PitchSymbol::Gs, PitchSymbol::As, PitchSymbol::B, PitchSymbol::Cs, PitchSymbol::Ds, PitchSymbol::Es]);
-        m.insert((NoteLetter::C, 1), vec![PitchSymbol::Cs, PitchSymbol::Ds, PitchSymbol::Es, PitchSymbol::Fs, PitchSymbol::Gs, PitchSymbol::As, PitchSymbol::Bs]);
-    m
-});
+static KEY_SIGNATURE_SPELLINGS: LazyLock<HashMap<(NoteLetter, i8), Vec<PitchSymbol>>> =
+    LazyLock::new(|| {
+        let mut m = HashMap::new();
+        m.insert(
+            (NoteLetter::C, 0),
+            vec![
+                PitchSymbol::C,
+                PitchSymbol::D,
+                PitchSymbol::E,
+                PitchSymbol::F,
+                PitchSymbol::G,
+                PitchSymbol::A,
+                PitchSymbol::B,
+            ],
+        );
+        m.insert(
+            (NoteLetter::G, 0),
+            vec![
+                PitchSymbol::G,
+                PitchSymbol::A,
+                PitchSymbol::B,
+                PitchSymbol::C,
+                PitchSymbol::D,
+                PitchSymbol::E,
+                PitchSymbol::Fs,
+            ],
+        );
+        m.insert(
+            (NoteLetter::D, 0),
+            vec![
+                PitchSymbol::D,
+                PitchSymbol::E,
+                PitchSymbol::Fs,
+                PitchSymbol::G,
+                PitchSymbol::A,
+                PitchSymbol::B,
+                PitchSymbol::Cs,
+            ],
+        );
+        m.insert(
+            (NoteLetter::A, 0),
+            vec![
+                PitchSymbol::A,
+                PitchSymbol::B,
+                PitchSymbol::Cs,
+                PitchSymbol::D,
+                PitchSymbol::E,
+                PitchSymbol::Fs,
+                PitchSymbol::Gs,
+            ],
+        );
+        m.insert(
+            (NoteLetter::E, 0),
+            vec![
+                PitchSymbol::E,
+                PitchSymbol::Fs,
+                PitchSymbol::Gs,
+                PitchSymbol::A,
+                PitchSymbol::B,
+                PitchSymbol::Cs,
+                PitchSymbol::Ds,
+            ],
+        );
+        m.insert(
+            (NoteLetter::B, 0),
+            vec![
+                PitchSymbol::B,
+                PitchSymbol::Cs,
+                PitchSymbol::Ds,
+                PitchSymbol::E,
+                PitchSymbol::Fs,
+                PitchSymbol::Gs,
+                PitchSymbol::As,
+            ],
+        );
+        m.insert(
+            (NoteLetter::F, 0),
+            vec![
+                PitchSymbol::F,
+                PitchSymbol::G,
+                PitchSymbol::A,
+                PitchSymbol::Bb,
+                PitchSymbol::C,
+                PitchSymbol::D,
+                PitchSymbol::E,
+            ],
+        );
+        m.insert(
+            (NoteLetter::B, -1),
+            vec![
+                PitchSymbol::Bb,
+                PitchSymbol::C,
+                PitchSymbol::D,
+                PitchSymbol::Eb,
+                PitchSymbol::F,
+                PitchSymbol::G,
+                PitchSymbol::A,
+            ],
+        );
+        m.insert(
+            (NoteLetter::E, -1),
+            vec![
+                PitchSymbol::Eb,
+                PitchSymbol::F,
+                PitchSymbol::G,
+                PitchSymbol::Ab,
+                PitchSymbol::Bb,
+                PitchSymbol::C,
+                PitchSymbol::D,
+            ],
+        );
+        m.insert(
+            (NoteLetter::A, -1),
+            vec![
+                PitchSymbol::Ab,
+                PitchSymbol::Bb,
+                PitchSymbol::C,
+                PitchSymbol::Db,
+                PitchSymbol::Eb,
+                PitchSymbol::F,
+                PitchSymbol::G,
+            ],
+        );
+        m.insert(
+            (NoteLetter::D, -1),
+            vec![
+                PitchSymbol::Db,
+                PitchSymbol::Eb,
+                PitchSymbol::F,
+                PitchSymbol::Gb,
+                PitchSymbol::Ab,
+                PitchSymbol::Bb,
+                PitchSymbol::C,
+            ],
+        );
+        m.insert(
+            (NoteLetter::G, -1),
+            vec![
+                PitchSymbol::Gb,
+                PitchSymbol::Ab,
+                PitchSymbol::Bb,
+                PitchSymbol::Cb,
+                PitchSymbol::Db,
+                PitchSymbol::Eb,
+                PitchSymbol::F,
+            ],
+        );
+        m.insert(
+            (NoteLetter::F, 1),
+            vec![
+                PitchSymbol::Fs,
+                PitchSymbol::Gs,
+                PitchSymbol::As,
+                PitchSymbol::B,
+                PitchSymbol::Cs,
+                PitchSymbol::Ds,
+                PitchSymbol::Es,
+            ],
+        );
+        m.insert(
+            (NoteLetter::C, 1),
+            vec![
+                PitchSymbol::Cs,
+                PitchSymbol::Ds,
+                PitchSymbol::Es,
+                PitchSymbol::Fs,
+                PitchSymbol::Gs,
+                PitchSymbol::As,
+                PitchSymbol::Bs,
+            ],
+        );
+        m
+    });
 
 /// A key signature.
 #[derive(Debug, Clone, PartialEq)]
@@ -35,10 +190,7 @@ pub struct KeySignature {
 impl KeySignature {
     /// Create a new key signature.
     pub fn new(tonic: Pitch) -> Self {
-        KeySignature {
-            tonic,
-            mode: None,
-        }
+        KeySignature { tonic, mode: None }
     }
 
     /// Create a new key signature with a mode.
@@ -51,10 +203,8 @@ impl KeySignature {
     pub fn for_chord(root: Pitch, quality: crate::chord::Quality) -> Self {
         use crate::chord::Quality;
         let mode = match quality {
-            Quality::Minor | Quality::Diminished | Quality::HalfDiminished => {
-                Some(Mode::Aeolian)
-            },
-            _ => None,  // Major, Dominant, Augmented, Suspended use major key sig
+            Quality::Minor | Quality::Diminished | Quality::HalfDiminished => Some(Mode::Aeolian),
+            _ => None, // Major, Dominant, Augmented, Suspended use major key sig
         };
         KeySignature { tonic: root, mode }
     }
@@ -65,21 +215,34 @@ impl KeySignature {
     fn get_relative_major_key(&self, semitones: u8) -> (NoteLetter, i8) {
         use NoteLetter::*;
         let prefer_sharps = self.tonic.accidental > 0
-            || (self.tonic.accidental >= 0 && matches!(
-                self.tonic.letter,
-                NoteLetter::G | NoteLetter::D | NoteLetter::A | NoteLetter::E | NoteLetter::B
-            ));
+            || (self.tonic.accidental >= 0
+                && matches!(
+                    self.tonic.letter,
+                    NoteLetter::G | NoteLetter::D | NoteLetter::A | NoteLetter::E | NoteLetter::B
+                ));
 
         match semitones {
             0 => (C, 0),
-            1 => if prefer_sharps { (C, 1) } else { (D, -1) },
+            1 => {
+                if prefer_sharps {
+                    (C, 1)
+                } else {
+                    (D, -1)
+                }
+            }
             2 => (D, 0),
-            3 => (E, -1),  // Eb major (D# major is theoretical)
+            3 => (E, -1), // Eb major (D# major is theoretical)
             4 => (E, 0),
             5 => (F, 0),
-            6 => if prefer_sharps { (F, 1) } else { (G, -1) },
+            6 => {
+                if prefer_sharps {
+                    (F, 1)
+                } else {
+                    (G, -1)
+                }
+            }
             7 => (G, 0),
-            8 => (A, -1),  // Ab major (G# major is theoretical)
+            8 => (A, -1), // Ab major (G# major is theoretical)
             9 => (A, 0),
             10 => (B, -1), // Bb major (A# major is theoretical)
             11 => (B, 0),
@@ -95,32 +258,32 @@ impl KeySignature {
                 // Aeolian is the 6th degree: relative major is 3 semitones up.
                 let relative_major_semitones = (self.tonic.as_u8() + 3) % 12;
                 self.get_relative_major_key(relative_major_semitones)
-            },
+            }
             Some(Mode::Dorian) => {
                 let relative_major_semitones = (self.tonic.as_u8() + 12 - 2) % 12;
                 self.get_relative_major_key(relative_major_semitones)
-            },
+            }
             Some(Mode::Phrygian) => {
                 let relative_major_semitones = (self.tonic.as_u8() + 12 - 4) % 12;
                 self.get_relative_major_key(relative_major_semitones)
-            },
+            }
             Some(Mode::Lydian) => {
                 let relative_major_semitones = (self.tonic.as_u8() + 12 - 5) % 12;
                 self.get_relative_major_key(relative_major_semitones)
-            },
+            }
             Some(Mode::Mixolydian) => {
                 let relative_major_semitones = (self.tonic.as_u8() + 12 - 7) % 12;
                 self.get_relative_major_key(relative_major_semitones)
-            },
+            }
             Some(Mode::Locrian) => {
                 let relative_major_semitones = (self.tonic.as_u8() + 12 - 11) % 12;
                 self.get_relative_major_key(relative_major_semitones)
-            },
+            }
             Some(Mode::Blues) | Some(Mode::PentatonicMinor) => {
                 // Blues and minor pentatonic use the same key signature as Aeolian
                 let relative_major_semitones = (self.tonic.as_u8() + 3) % 12;
                 self.get_relative_major_key(relative_major_semitones)
-            },
+            }
             _ => {
                 // Ionian, PentatonicMajor, Chromatic, WholeTone, or no mode: use tonic as major
                 (self.tonic.letter, self.tonic.accidental)
@@ -134,9 +297,14 @@ impl KeySignature {
         // C major (no sharps/flats) and sharp keys prefer sharps for chromatic notes
         matches!(
             (key_letter, key_accidental),
-            (NoteLetter::C, 0) | (NoteLetter::G, 0) | (NoteLetter::D, 0) |
-            (NoteLetter::A, 0) | (NoteLetter::E, 0) | (NoteLetter::B, 0) |
-            (NoteLetter::F, 1) | (NoteLetter::C, 1)
+            (NoteLetter::C, 0)
+                | (NoteLetter::G, 0)
+                | (NoteLetter::D, 0)
+                | (NoteLetter::A, 0)
+                | (NoteLetter::E, 0)
+                | (NoteLetter::B, 0)
+                | (NoteLetter::F, 1)
+                | (NoteLetter::C, 1)
         )
     }
 
@@ -159,16 +327,46 @@ impl KeySignature {
 
         match pitch.as_u8() {
             0 => C,
-            1 => if is_sharp { Cs } else { Db },
+            1 => {
+                if is_sharp {
+                    Cs
+                } else {
+                    Db
+                }
+            }
             2 => D,
-            3 => if is_sharp { Ds } else { Eb },
+            3 => {
+                if is_sharp {
+                    Ds
+                } else {
+                    Eb
+                }
+            }
             4 => E,
             5 => F,
-            6 => if is_sharp { Fs } else { Gb },
+            6 => {
+                if is_sharp {
+                    Fs
+                } else {
+                    Gb
+                }
+            }
             7 => G,
-            8 => if is_sharp { Gs } else { Ab },
+            8 => {
+                if is_sharp {
+                    Gs
+                } else {
+                    Ab
+                }
+            }
             9 => A,
-            10 => if is_sharp { As } else { Bb },
+            10 => {
+                if is_sharp {
+                    As
+                } else {
+                    Bb
+                }
+            }
             11 => B,
             _ => unreachable!(),
         }

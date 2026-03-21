@@ -28,14 +28,10 @@ pub fn pivot_chords(
     let mut results = Vec::new();
 
     for dc_a in &chords_a {
-        let pcs_a: HashSet<u8> = dc_a.chord.notes().iter()
-            .map(|n| n.pitch.as_u8())
-            .collect();
+        let pcs_a: HashSet<u8> = dc_a.chord.notes().iter().map(|n| n.pitch.as_u8()).collect();
 
         for dc_b in &chords_b {
-            let pcs_b: HashSet<u8> = dc_b.chord.notes().iter()
-                .map(|n| n.pitch.as_u8())
-                .collect();
+            let pcs_b: HashSet<u8> = dc_b.chord.notes().iter().map(|n| n.pitch.as_u8()).collect();
 
             if pcs_a == pcs_b {
                 if let (Some(rn_a), Some(rn_b)) = (

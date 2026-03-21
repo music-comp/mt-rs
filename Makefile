@@ -24,9 +24,9 @@ BINARIES := $(CODE_NAME)
 
 # Git remotes to push to
 GIT_REMOTES := macpro github codeberg
-REMOTE_macpro := ssh://macpro.local:23231/oxur/$(CODE_NAME).git
-REMOTE_github := git@github.com:oxur/$(CODE_NAME).git
-REMOTE_codeberg := ssh://git@codeberg.org/oxur/$(CODE_NAME).git
+REMOTE_macpro := ssh://macpro.local:23231/music-comp/$(CODE_NAME).git
+REMOTE_github := git@github.com:music-comp/$(CODE_NAME).git
+REMOTE_codeberg := ssh://git@codeberg.org/music-comp/$(CODE_NAME).git
 
 
 # Default target

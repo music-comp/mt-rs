@@ -7,7 +7,8 @@ use std::str::FromStr;
 use std::sync::LazyLock;
 use strum_macros::EnumIter;
 
-static REGEX_PITCH: LazyLock<Regex> = LazyLock::new(|| Regex::new("^[ABCDEFGabcdefg][b♭#s𝄪x]*").unwrap());
+static REGEX_PITCH: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new("^[ABCDEFGabcdefg][b♭#s𝄪x]*").unwrap());
 
 /// A note letter without an accidental.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, EnumIter, Hash)]
@@ -116,8 +117,8 @@ impl Pitch {
     /// Create a pitch from an integer with a preferred spelling based on mode and scale type
     pub fn from_u8_with_scale_context(val: u8, mode: Option<Mode>, direction: Direction) -> Self {
         use super::PitchSymbol;
-        use PitchSymbol::*;
         use Mode::*;
+        use PitchSymbol::*;
 
         let pitch_number = val % 12;
 
@@ -194,9 +195,9 @@ impl Pitch {
             A => 9,
             B => 11,
         };
-        
+
         // Handle negative accidentals correctly by adding 12 first
-        
+
         ((base as i8 + self.accidental + 12) % 12) as u8
     }
 
@@ -217,14 +218,24 @@ impl Pitch {
     }
 
     /// Create a pitch by moving up the given pitch by an interval with scale context.
-    pub fn from_interval_with_context(pitch: Self, interval: Interval, mode: Option<Mode>, direction: Direction) -> Self {
+    pub fn from_interval_with_context(
+        pitch: Self,
+        interval: Interval,
+        mode: Option<Mode>,
+        direction: Direction,
+    ) -> Self {
         let current_pitch = pitch.as_u8();
         let new_pitch = current_pitch + interval.semitone_count;
         Self::from_u8_with_scale_context(new_pitch, mode, direction)
     }
 
     /// Create a pitch by moving down the given pitch by an interval with scale context.
-    pub fn from_interval_down_with_context(pitch: Self, interval: Interval, mode: Option<Mode>, direction: Direction) -> Self {
+    pub fn from_interval_down_with_context(
+        pitch: Self,
+        interval: Interval,
+        mode: Option<Mode>,
+        direction: Direction,
+    ) -> Self {
         let current_pitch = pitch.as_u8();
         let new_pitch = (12 + (current_pitch as i16 - interval.semitone_count as i16)) % 12;
         Self::from_u8_with_scale_context(new_pitch as u8, mode, direction)
@@ -254,17 +265,23 @@ impl Pitch {
         for ch in characters {
             match ch {
                 '#' | 's' | 'S' | '♯' => {
-                    if direction == Some(-1) { return None; }
+                    if direction == Some(-1) {
+                        return None;
+                    }
                     direction = Some(1);
                     accidental += 1;
                 }
                 '𝄪' | 'x' => {
-                    if direction == Some(-1) { return None; }
+                    if direction == Some(-1) {
+                        return None;
+                    }
                     direction = Some(1);
                     accidental += 2;
                 }
                 'b' | '♭' => {
-                    if direction == Some(1) { return None; }
+                    if direction == Some(1) {
+                        return None;
+                    }
                     direction = Some(-1);
                     accidental -= 1;
                 }

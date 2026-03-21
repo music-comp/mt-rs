@@ -1,5 +1,5 @@
 extern crate mt_rs as theory;
-use theory::note::{Note, Pitch, NoteLetter};
+use theory::note::{Note, NoteLetter, Pitch};
 
 #[cfg(test)]
 mod test_note {

@@ -1,9 +1,9 @@
 extern crate mt_rs as theory;
+use theory::interval::Interval;
 use theory::note::{PitchSymbol::*, *};
 use theory::scale::Mode::*;
 use theory::scale::ScaleType::*;
 use theory::scale::*;
-use theory::interval::Interval;
 
 fn assert_notes(symbols: &[PitchSymbol], notes: Vec<Note>) {
     for (i, symbol) in symbols.iter().enumerate() {
@@ -19,20 +19,20 @@ mod scale_tests {
     fn test_all_scales_in_c() {
         let scale_tuples = [
             ((Diatonic, Some(Ionian)), vec![C, D, E, F, G, A, B, C]),
-            ((Diatonic, Some(Dorian)), vec![C, D, Eb, F, G, A, Bb, C]),  // Uses Bb major key signature (2 flats)
-            ((Diatonic, Some(Phrygian)), vec![C, Db, Eb, F, G, Ab, Bb, C]),  // Uses Ab major key signature (4 flats)
-            ((Diatonic, Some(Lydian)), vec![C, D, E, Fs, G, A, B, C]),  // Uses G major key signature (1 sharp)
-            ((Diatonic, Some(Mixolydian)), vec![C, D, E, F, G, A, Bb, C]),  // Uses F major key signature (1 flat)
-            ((Diatonic, Some(Aeolian)), vec![C, D, Eb, F, G, Ab, Bb, C]),  // Uses Eb major key signature (3 flats)
-            ((Diatonic, Some(Locrian)), vec![C, Db, Eb, F, Gb, Ab, Bb, C]),  // Uses Db major key signature (5 flats)
+            ((Diatonic, Some(Dorian)), vec![C, D, Eb, F, G, A, Bb, C]), // Uses Bb major key signature (2 flats)
+            ((Diatonic, Some(Phrygian)), vec![C, Db, Eb, F, G, Ab, Bb, C]), // Uses Ab major key signature (4 flats)
+            ((Diatonic, Some(Lydian)), vec![C, D, E, Fs, G, A, B, C]), // Uses G major key signature (1 sharp)
+            ((Diatonic, Some(Mixolydian)), vec![C, D, E, F, G, A, Bb, C]), // Uses F major key signature (1 flat)
+            ((Diatonic, Some(Aeolian)), vec![C, D, Eb, F, G, Ab, Bb, C]), // Uses Eb major key signature (3 flats)
+            ((Diatonic, Some(Locrian)), vec![C, Db, Eb, F, Gb, Ab, Bb, C]), // Uses Db major key signature (5 flats)
             (
                 (ScaleType::HarmonicMinor, None),
-                vec![C, D, Eb, F, G, Ab, B, C],  // Uses C minor key sig (Eb major = 3 flats)
+                vec![C, D, Eb, F, G, Ab, B, C], // Uses C minor key sig (Eb major = 3 flats)
             ),
             (
                 (ScaleType::MelodicMinor, None),
-                vec![C, D, Eb, F, G, A, B, C],  // Uses C minor key sig (Eb major = 3 flats)
-            )
+                vec![C, D, Eb, F, G, A, B, C], // Uses C minor key sig (Eb major = 3 flats)
+            ),
         ];
 
         for (scale_tuple, pitches) in scale_tuples.iter() {
@@ -44,7 +44,8 @@ mod scale_tests {
             // Melodic minor descending uses natural minor — don't test as reversed ascending
             if *scale_type != ScaleType::MelodicMinor {
                 let scale_descending =
-                    Scale::new(*scale_type, Pitch::from(C), 4, *mode, Direction::Descending).unwrap();
+                    Scale::new(*scale_type, Pitch::from(C), 4, *mode, Direction::Descending)
+                        .unwrap();
                 let mut pitches_descending = pitches.clone();
                 pitches_descending.reverse();
                 assert_notes(&pitches_descending, scale_descending.notes());
@@ -59,13 +60,15 @@ mod scale_tests {
 
         // Melodic minor descending uses natural minor (Aeolian) intervals
         let mel_minor_desc = Scale::new(
-            ScaleType::MelodicMinor, Pitch::from(C), 4, None, Direction::Descending,
-        ).unwrap();
+            ScaleType::MelodicMinor,
+            Pitch::from(C),
+            4,
+            None,
+            Direction::Descending,
+        )
+        .unwrap();
         // C descending melodic minor: C Bb Ab G F Eb D C
-        assert_notes(
-            &[C, Bb, Ab, G, F, Eb, D, C],
-            mel_minor_desc.notes(),
-        );
+        assert_notes(&[C, Bb, Ab, G, F, Eb, D, C], mel_minor_desc.notes());
     }
 
     #[test]
@@ -114,40 +117,167 @@ mod scale_tests {
         // Structure: (note1_letter, note1_acc, note2_letter, note2_acc, mode, scale_type, description)
         let test_cases = vec![
             // Major scale (Ionian) enharmonic pairs
-            (NoteLetter::C, 1, NoteLetter::D, -1, Some(Ionian), Diatonic, "C♯ major and D♭ major"),
-            (NoteLetter::F, 1, NoteLetter::G, -1, Some(Ionian), Diatonic, "F♯ major and G♭ major"),
-            (NoteLetter::B, 1, NoteLetter::C, 0, Some(Ionian), Diatonic, "B♯ major and C major"),
-            (NoteLetter::E, 1, NoteLetter::F, 0, Some(Ionian), Diatonic, "E♯ major and F major"),
-            
+            (
+                NoteLetter::C,
+                1,
+                NoteLetter::D,
+                -1,
+                Some(Ionian),
+                Diatonic,
+                "C♯ major and D♭ major",
+            ),
+            (
+                NoteLetter::F,
+                1,
+                NoteLetter::G,
+                -1,
+                Some(Ionian),
+                Diatonic,
+                "F♯ major and G♭ major",
+            ),
+            (
+                NoteLetter::B,
+                1,
+                NoteLetter::C,
+                0,
+                Some(Ionian),
+                Diatonic,
+                "B♯ major and C major",
+            ),
+            (
+                NoteLetter::E,
+                1,
+                NoteLetter::F,
+                0,
+                Some(Ionian),
+                Diatonic,
+                "E♯ major and F major",
+            ),
             // Minor scale (Aeolian) enharmonic pairs
-            (NoteLetter::A, 1, NoteLetter::B, -1, Some(Aeolian), Diatonic, "A♯ minor and B♭ minor"),
-            (NoteLetter::D, 1, NoteLetter::E, -1, Some(Aeolian), Diatonic, "D♯ minor and E♭ minor"),
-            (NoteLetter::G, 1, NoteLetter::A, -1, Some(Aeolian), Diatonic, "G♯ minor and A♭ minor"),
-            
+            (
+                NoteLetter::A,
+                1,
+                NoteLetter::B,
+                -1,
+                Some(Aeolian),
+                Diatonic,
+                "A♯ minor and B♭ minor",
+            ),
+            (
+                NoteLetter::D,
+                1,
+                NoteLetter::E,
+                -1,
+                Some(Aeolian),
+                Diatonic,
+                "D♯ minor and E♭ minor",
+            ),
+            (
+                NoteLetter::G,
+                1,
+                NoteLetter::A,
+                -1,
+                Some(Aeolian),
+                Diatonic,
+                "G♯ minor and A♭ minor",
+            ),
             // Double accidentals
-            (NoteLetter::C, 2, NoteLetter::D, 0, Some(Ionian), Diatonic, "C𝄪 major and D major"),
-            (NoteLetter::F, -2, NoteLetter::E, -1, Some(Ionian), Diatonic, "F𝄫 major and E♭ major"),
-            
+            (
+                NoteLetter::C,
+                2,
+                NoteLetter::D,
+                0,
+                Some(Ionian),
+                Diatonic,
+                "C𝄪 major and D major",
+            ),
+            (
+                NoteLetter::F,
+                -2,
+                NoteLetter::E,
+                -1,
+                Some(Ionian),
+                Diatonic,
+                "F𝄫 major and E♭ major",
+            ),
             // Other modes
-            (NoteLetter::D, 1, NoteLetter::E, -1, Some(Dorian), Diatonic, "D♯ dorian and E♭ dorian"),
-            (NoteLetter::E, 1, NoteLetter::F, 0, Some(Phrygian), Diatonic, "E♯ phrygian and F phrygian"),
-            (NoteLetter::F, 1, NoteLetter::G, -1, Some(Lydian), Diatonic, "F♯ lydian and G♭ lydian"),
-            (NoteLetter::G, 1, NoteLetter::A, -1, Some(Mixolydian), Diatonic, "G♯ mixolydian and A♭ mixolydian"),
-            (NoteLetter::B, 1, NoteLetter::C, 0, Some(Locrian), Diatonic, "B♯ locrian and C locrian"),
-            
+            (
+                NoteLetter::D,
+                1,
+                NoteLetter::E,
+                -1,
+                Some(Dorian),
+                Diatonic,
+                "D♯ dorian and E♭ dorian",
+            ),
+            (
+                NoteLetter::E,
+                1,
+                NoteLetter::F,
+                0,
+                Some(Phrygian),
+                Diatonic,
+                "E♯ phrygian and F phrygian",
+            ),
+            (
+                NoteLetter::F,
+                1,
+                NoteLetter::G,
+                -1,
+                Some(Lydian),
+                Diatonic,
+                "F♯ lydian and G♭ lydian",
+            ),
+            (
+                NoteLetter::G,
+                1,
+                NoteLetter::A,
+                -1,
+                Some(Mixolydian),
+                Diatonic,
+                "G♯ mixolydian and A♭ mixolydian",
+            ),
+            (
+                NoteLetter::B,
+                1,
+                NoteLetter::C,
+                0,
+                Some(Locrian),
+                Diatonic,
+                "B♯ locrian and C locrian",
+            ),
             // Melodic minor enharmonic pairs
-            (NoteLetter::C, 1, NoteLetter::D, -1, None, ScaleType::MelodicMinor, "C♯ melodic minor and D♭ melodic minor"),
-            (NoteLetter::F, 1, NoteLetter::G, -1, None, ScaleType::MelodicMinor, "F♯ melodic minor and G♭ melodic minor"),
+            (
+                NoteLetter::C,
+                1,
+                NoteLetter::D,
+                -1,
+                None,
+                ScaleType::MelodicMinor,
+                "C♯ melodic minor and D♭ melodic minor",
+            ),
+            (
+                NoteLetter::F,
+                1,
+                NoteLetter::G,
+                -1,
+                None,
+                ScaleType::MelodicMinor,
+                "F♯ melodic minor and G♭ melodic minor",
+            ),
         ];
 
-        for (note1_letter, note1_acc, note2_letter, note2_acc, mode, scale_type, description) in test_cases {
+        for (note1_letter, note1_acc, note2_letter, note2_acc, mode, scale_type, description) in
+            test_cases
+        {
             let scale1 = Scale::new(
                 scale_type,
                 Pitch::new(note1_letter, note1_acc),
                 4,
                 mode,
                 Direction::Ascending,
-            ).unwrap();
+            )
+            .unwrap();
 
             let scale2 = Scale::new(
                 scale_type,
@@ -155,12 +285,17 @@ mod scale_tests {
                 4,
                 mode,
                 Direction::Ascending,
-            ).unwrap();
+            )
+            .unwrap();
 
             // Verify that the semitone values are the same
             let notes1: Vec<u8> = scale1.notes().iter().map(|n| n.pitch.as_u8()).collect();
             let notes2: Vec<u8> = scale2.notes().iter().map(|n| n.pitch.as_u8()).collect();
-            assert_eq!(notes1, notes2, "{} should be enharmonically equivalent", description);
+            assert_eq!(
+                notes1, notes2,
+                "{} should be enharmonically equivalent",
+                description
+            );
 
             // Verify intervals are consistent
             assert_eq!(
@@ -205,7 +340,8 @@ mod scale_tests {
 
     #[test]
     fn test_scale_descending() {
-        let c_major_desc = Scale::from_regex_in_direction("C major", Direction::Descending).unwrap();
+        let c_major_desc =
+            Scale::from_regex_in_direction("C major", Direction::Descending).unwrap();
         let notes = c_major_desc.notes();
 
         // In descending order, starting from C going down
