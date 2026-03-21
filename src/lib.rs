@@ -37,6 +37,7 @@
 
 pub mod analysis;
 pub mod chord;
+pub mod counterpoint;
 pub mod harmony;
 pub mod interval;
 pub mod neo_riemannian;

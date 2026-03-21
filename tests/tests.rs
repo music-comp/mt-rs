@@ -1,3 +1,5 @@
+mod counterpoint;
+
 mod chord {
     mod test_chord;
     mod test_number;

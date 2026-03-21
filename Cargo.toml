@@ -4,11 +4,14 @@ description = "A library that procedurally implements music theory notions like 
 license = "MIT"
 version = "0.3.0"
 readme = "README.md"
-repository = "https://github.com/ozankasikci/rust-music-theory"
-authors = ["Ozan Kaşıkçı <ozan@kasikci.io>"]
+repository = "https://github.com/music-comp/mt-ts"
+authors = [
+    "Duncan McGreggor <oubiwann@gmail.com>",
+    "Ozan Kaşıkçı <ozan@kasikci.io>",
+]
 edition = "2021"
 exclude = [".gitignore"]
-keywords = ["music", "music-theory"]
+keywords = ["music", "music-theory", "music-composition"]
 
 [features]
 default = []
@@ -19,8 +22,8 @@ serde = ["dep:serde"]
 crate-type = ["rlib"]
 
 [dependencies]
-strum = "0.26"
-strum_macros = "0.26"
+strum = "0.28"
+strum_macros = "0.28"
 regex = "1"
 clap = { version = "4", features = ["derive"] }
 serde = { version = "1", features = ["derive"], optional = true }
