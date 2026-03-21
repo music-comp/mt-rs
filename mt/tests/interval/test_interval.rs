@@ -59,14 +59,20 @@ mod interval_tests {
     fn test_octave_jump_down() {
         // Test interval descent: E4 down a major third = C4
         let major_third = Interval::from_semitone(4).unwrap();
-        let e4 = Note { pitch: Pitch::from(E), octave: 4 };
+        let e4 = Note {
+            pitch: Pitch::from(E),
+            octave: 4,
+        };
         let result = major_third.second_note_down_from(e4);
         assert_eq!(result.pitch.as_u8(), 0); // C
         assert_eq!(result.octave, 4);
 
         // G4 down a perfect fifth = C4
         let p5 = Interval::from_semitone(7).unwrap();
-        let g4 = Note { pitch: Pitch::from(G), octave: 4 };
+        let g4 = Note {
+            pitch: Pitch::from(G),
+            octave: 4,
+        };
         let result = p5.second_note_down_from(g4);
         assert_eq!(result.pitch.as_u8(), 0); // C
         assert_eq!(result.octave, 4);

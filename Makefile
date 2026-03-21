@@ -50,6 +50,7 @@ help:
 	@echo "  $(YELLOW)make lint$(RESET)             - Run clippy and format check"
 	@echo "  $(YELLOW)make format$(RESET)           - Format all code with rustfmt"
 	@echo "  $(YELLOW)make coverage$(RESET)         - Generate test coverage report"
+	@echo "  $(YELLOW)make coverage-check$(RESET)   - Verify coverage meets 90% threshold"
 	@echo "  $(YELLOW)make check$(RESET)            - Build + lint + test"
 	@echo "  $(YELLOW)make check-all$(RESET)        - Build + lint + coverage"
 	@echo ""
@@ -190,12 +191,15 @@ test:
 .PHONY: lint
 lint:
 	@echo "$(BLUE)Running linter checks...$(RESET)"
-	@echo "$(CYAN)• Running clippy...$(RESET)"
-	@cargo clippy --workspace --all-targets --all-features -- -D warnings
-	@echo "$(GREEN)✓ Clippy passed$(RESET)"
 	@echo "$(CYAN)• Checking code formatting...$(RESET)"
 	@cargo fmt --all -- --check
 	@echo "$(GREEN)✓ Format check passed$(RESET)"
+	@echo "$(CYAN)• Running clippy (default features)...$(RESET)"
+	@cargo clippy --workspace --all-targets -- -D warnings
+	@echo "$(GREEN)✓ Clippy (default) passed$(RESET)"
+	@echo "$(CYAN)• Running clippy (all features)...$(RESET)"
+	@cargo clippy --workspace --all-targets --all-features -- -D warnings
+	@echo "$(GREEN)✓ Clippy (all features) passed$(RESET)"
 
 .PHONY: format
 format:
@@ -220,6 +224,18 @@ coverage-html:
 	@echo "$(GREEN)✓ HTML coverage report generated$(RESET)"
 	@echo "$(CYAN)→ Report: target/llvm-cov/html/index.html$(RESET)"
 
+.PHONY: coverage-check
+coverage-check:
+	@echo "$(BLUE)Checking coverage threshold (90%)...$(RESET)"
+	@COVERAGE=$$(cargo llvm-cov --workspace --all-features --summary-only 2>&1 | grep 'TOTAL' | awk '{print $$4}' | tr -d '%'); \
+	echo "$(CYAN)• Coverage: $${COVERAGE}%$(RESET)"; \
+	if [ $$(echo "$${COVERAGE} < 90" | bc -l) -eq 1 ]; then \
+		echo "$(RED)✗ Coverage $${COVERAGE}% is below 90% threshold$(RESET)"; \
+		exit 1; \
+	else \
+		echo "$(GREEN)✓ Coverage $${COVERAGE}% meets threshold$(RESET)"; \
+	fi
+
 # Common checks
 .PHONY: common-checks
 common-checks: check-deps lint build
@@ -232,7 +248,7 @@ check: common-checks test
 	@echo ""
 
 .PHONY: check-all
-check-all: common-checks coverage
+check-all: common-checks coverage docs
 	@echo ""
 	@echo "$(GREEN)✓ Full validation complete (build + lint + coverage)$(RESET)"
 	@echo ""
@@ -274,7 +290,7 @@ deps: ensure-binstall
 
 docs: DOCS_PATH = target/doc/music_comp_mt
 docs:
-	@cargo doc --all-features --no-deps --workspace
+	@RUSTDOCFLAGS="-D warnings" cargo doc --workspace --no-deps --all-features
 	@echo
 	@echo "Docs are available here:"
 	@echo " * $(DOCS_PATH)"

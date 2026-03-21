@@ -6,7 +6,6 @@ on:
   pull_request:
     branches: [main]
   schedule:
-    # Run daily at 4am UTC to catch upstream breakage
     - cron: "0 4 * * *"
 
 env:
@@ -35,19 +34,11 @@ jobs:
           cache-on-failure: true
           save-if: ${{ github.ref == 'refs/heads/main' }}
 
-      - name: Check formatting
-        run: cargo fmt --all -- --check
+      - name: Lint (fmt + clippy)
+        run: make lint
 
-      - name: Clippy (default features)
-        run: cargo clippy --workspace --all-targets -- -D warnings
-
-      - name: Clippy (all features)
-        run: cargo clippy --workspace --all-targets --all-features -- -D warnings
-
-      - name: Build docs
-        run: cargo doc --workspace --no-deps --all-features
-        env:
-          RUSTDOCFLAGS: -D warnings
+      - name: Build docs (warnings as errors)
+        run: make docs
 
   test:
     name: Test (${{ matrix.os }}, ${{ matrix.features }})
@@ -72,7 +63,7 @@ jobs:
           save-if: ${{ github.ref == 'refs/heads/main' }}
 
       - name: Run tests
-        run: cargo test ${{ matrix.features }}
+        run: cargo test --workspace ${{ matrix.features }}
 
   coverage:
     name: Coverage
@@ -94,17 +85,11 @@ jobs:
           cache-on-failure: true
           save-if: ${{ github.ref == 'refs/heads/main' }}
 
-      - name: Generate coverage
-        run: cargo llvm-cov --all-features --lcov --output-path lcov.info
-
       - name: Check coverage threshold
-        run: |
-          COVERAGE=$(cargo llvm-cov --all-features --summary-only 2>&1 | grep 'TOTAL' | awk '{print $4}' | tr -d '%')
-          echo "Coverage: ${COVERAGE}%"
-          if (( $(echo "$COVERAGE < 90" | bc -l) )); then
-            echo "::error::Coverage ${COVERAGE}% is below 90% threshold"
-            exit 1
-          fi
+        run: make coverage-check
+
+      - name: Generate LCOV report
+        run: cargo llvm-cov --workspace --all-features --lcov --output-path lcov.info
 
       - name: Upload coverage to Codecov
         if: github.ref == 'refs/heads/main'
