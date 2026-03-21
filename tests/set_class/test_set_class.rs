@@ -1,4 +1,4 @@
-extern crate rust_music_theory as theory;
+extern crate mt_rs as theory;
 use theory::set_class::PitchClassSet;
 
 #[cfg(test)]
@@ -161,8 +161,8 @@ mod set_class_tests {
     fn test_empty_set() {
         let pcs = PitchClassSet::new(&[]);
         assert!(pcs.is_empty());
-        assert_eq!(pcs.normal_form(), vec![]);
-        assert_eq!(pcs.prime_form(), vec![]);
+        assert_eq!(pcs.normal_form(), Vec::<u8>::new());
+        assert_eq!(pcs.prime_form(), Vec::<u8>::new());
         assert_eq!(pcs.forte_number(), None);
     }
 }

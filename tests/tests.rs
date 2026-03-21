@@ -1,4 +1,5 @@
 mod counterpoint;
+mod figured_bass;
 
 mod chord {
     mod test_chord;

@@ -1,7 +1,7 @@
 use clap::{Parser, Subcommand};
-use rust_music_theory::chord::Chord;
-use rust_music_theory::note::Notes;
-use rust_music_theory::scale::{Direction, Scale};
+use mt_rs::chord::Chord;
+use mt_rs::note::Notes;
+use mt_rs::scale::{Direction, Scale};
 use std::process;
 
 const AVAILABLE_SCALES: [&str; 14] = [

@@ -7,7 +7,7 @@ pub struct Violation {
     /// Beat position (0-indexed).
     pub position: usize,
     /// Rule identifier.
-    pub rule: &'static str,
+    pub rule: String,
     /// Human-readable explanation.
     pub description: String,
 }
@@ -66,22 +66,19 @@ pub fn check_first_species(cantus_firmus: &[Note], counterpoint: &[Note]) -> Cou
         if !is_consonant(ic) {
             violations.push(Violation {
                 position: i,
-                rule: "dissonance",
+                rule: "dissonance".into(),
                 description: format!("Dissonant interval (ic {}) at position {}", ic, i),
             });
         }
 
         // Rule 5: voice crossing
-        if cp_above && absolute_pitch(&counterpoint[i]) < absolute_pitch(&cantus_firmus[i]) {
+        let cp_pitch = absolute_pitch(&counterpoint[i]);
+        let cf_pitch = absolute_pitch(&cantus_firmus[i]);
+        let crossed = (cp_above && cp_pitch < cf_pitch) || (!cp_above && cp_pitch > cf_pitch);
+        if crossed {
             violations.push(Violation {
                 position: i,
-                rule: "voice_crossing",
-                description: format!("Voice crossing at position {}", i),
-            });
-        } else if !cp_above && absolute_pitch(&counterpoint[i]) > absolute_pitch(&cantus_firmus[i]) {
-            violations.push(Violation {
-                position: i,
-                rule: "voice_crossing",
+                rule: "voice_crossing".into(),
                 description: format!("Voice crossing at position {}", i),
             });
         }
@@ -92,7 +89,7 @@ pub fn check_first_species(cantus_firmus: &[Note], counterpoint: &[Note]) -> Cou
     if !is_perfect_consonance(first_ic) {
         violations.push(Violation {
             position: 0,
-            rule: "opening",
+            rule: "opening".into(),
             description: format!("Opening interval (ic {}) must be a perfect consonance", first_ic),
         });
     }
@@ -103,7 +100,7 @@ pub fn check_first_species(cantus_firmus: &[Note], counterpoint: &[Note]) -> Cou
         if !is_perfect_consonance(last_ic) {
             violations.push(Violation {
                 position: n - 1,
-                rule: "closing",
+                rule: "closing".into(),
                 description: format!("Closing interval (ic {}) must be a perfect consonance", last_ic),
             });
         }
@@ -117,7 +114,7 @@ pub fn check_first_species(cantus_firmus: &[Note], counterpoint: &[Note]) -> Cou
         if is_perfect_consonance(prev_ic) && prev_ic == curr_ic {
             violations.push(Violation {
                 position: i,
-                rule: "parallel_perfect",
+                rule: "parallel_perfect".into(),
                 description: format!(
                     "Parallel perfect consonance (ic {}) at positions {}-{}",
                     curr_ic, i - 1, i

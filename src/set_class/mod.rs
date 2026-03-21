@@ -98,7 +98,7 @@ impl PitchClassSet {
             for j in (i + 1)..pcs.len() {
                 let diff = (pcs[j] + 12 - pcs[i]) % 12;
                 let ic = if diff > 6 { 12 - diff } else { diff };
-                if ic >= 1 && ic <= 6 {
+                if (1..=6).contains(&ic) {
                     iv[(ic - 1) as usize] += 1;
                 }
             }

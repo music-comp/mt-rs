@@ -1,4 +1,4 @@
-extern crate rust_music_theory as theory;
+extern crate mt_rs as theory;
 
 use theory::note::{NoteLetter, Notes, Pitch, PitchSymbol::*};
 use theory::scale::{Direction, Mode, Scale, ScaleType};

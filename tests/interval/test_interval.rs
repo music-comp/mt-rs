@@ -1,4 +1,4 @@
-extern crate rust_music_theory as theory;
+extern crate mt_rs as theory;
 use theory::interval::Interval;
 use theory::note::{Note, Pitch, PitchSymbol::*};
 
