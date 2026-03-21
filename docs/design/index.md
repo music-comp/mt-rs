@@ -6,6 +6,7 @@ This index is automatically generated. Do not edit manually.
 
 | Number | Title | State | Updated |
 |--------|-------|-------|----------|
+| 0004 | Tier 3 Advanced Music Theory — Design Spec | Under Review | 2026-03-20 |
 | 0003 | Tier 2 Music Theory Enhancements — Design Spec | Under Review | 2026-03-20 |
 | 0002 | Music Theory Correctness Audit Report | Final | 2026-03-20 |
 | 0001 | Music Theory Library: Comprehensive Audit, Fix, and Enhancement Plan | Final | 2026-03-20 |
@@ -19,4 +20,5 @@ This index is automatically generated. Do not edit manually.
 
 ### Under Review
 
+- [0004 - Tier 3 Advanced Music Theory — Design Spec](02-under-review/0004-tier-3-advanced-music-theory-design-spec.md)
 - [0003 - Tier 2 Music Theory Enhancements — Design Spec](02-under-review/0003-tier-2-music-theory-enhancements-design-spec.md)
