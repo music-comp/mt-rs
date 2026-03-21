@@ -37,6 +37,7 @@
 
 pub mod analysis;
 pub mod chord;
+pub mod cli;
 pub mod counterpoint;
 pub mod figured_bass;
 pub mod harmony;

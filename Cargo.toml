@@ -21,6 +21,10 @@ serde = ["dep:serde"]
 [lib]
 crate-type = ["rlib"]
 
+[[bin]]
+name = "mt"
+path = "src/main.rs"
+
 [dependencies]
 strum = "0.28"
 strum_macros = "0.28"
