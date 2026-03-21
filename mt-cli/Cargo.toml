@@ -18,5 +18,5 @@ name = "mt"
 path = "src/main.rs"
 
 [dependencies]
-music-comp-mt = { path = "../mt" }
+music-comp-mt = { version = "0.4", path = "../mt" }
 clap = { version = "4", features = ["derive"] }
