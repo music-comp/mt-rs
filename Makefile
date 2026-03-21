@@ -20,7 +20,7 @@ BUILD_TIME := $(shell date -u '+%Y-%m-%dT%H:%M:%SZ')
 RUST_VERSION := $(shell rustc --version 2>/dev/null || echo "unknown")
 
 # List of binaries to build and install
-BINARIES := $(CODE_NAME)
+BINARIES := mt
 
 # Git remotes to push to
 GIT_REMOTES := macpro github codeberg
