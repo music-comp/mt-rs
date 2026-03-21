@@ -44,23 +44,27 @@ pub trait Notes {
     /// Get the sequence of notes.
     fn notes(&self) -> Vec<Note>;
 
-    /// Print the sequence of notes.
+    /// Format the notes as a numbered list string.
     ///
-    /// By default this function will print out each notes' index and its pitch class. For example,
-    /// printing out C major would look like:
+    /// Returns a string like:
     /// ```text
     /// Notes:
     ///   1: C
     ///   2: E
     ///   3: G
     /// ```
-    fn print_notes(&self) {
+    fn format_notes(&self) -> String {
         let notes = self.notes();
-
-        println!("Notes:");
+        let mut output = String::from("Notes:\n");
         for (i, note) in notes.iter().enumerate() {
-            println!("  {}: {}", i + 1, note.pitch)
+            output.push_str(&format!("  {}: {}\n", i + 1, note.pitch));
         }
+        output
+    }
+
+    /// Print the sequence of notes to stdout.
+    fn print_notes(&self) {
+        print!("{}", self.format_notes());
     }
 }
 
