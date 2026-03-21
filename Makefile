@@ -153,7 +153,7 @@ build-release: TARGET = ./target/$(MODE)
 build-release: clean $(BIN_DIR)
 	@echo "$(BLUE)Building $(PROJECT_NAME) in release mode...$(RESET)"
 	@echo "$(CYAN)• Compiling optimized workspace...$(RESET)"
-	@cargo build --release --features demo
+	@cargo build --release --workspace
 	@echo "$(CYAN)• Copying binaries to $(BIN_DIR)/$(RESET)"
 	@for bin in $(BINARIES); do \
 		if [ -f $(TARGET)/$$bin ]; then \
@@ -207,16 +207,16 @@ format:
 .PHONY: coverage
 coverage:
 	@echo "$(BLUE)Generating test coverage report...$(RESET)"
-	@echo "$(CYAN)• Running tests with coverage ($(CODE_NAME) crate only)...$(RESET)"
-	@cargo llvm-cov --all-targets --no-default-features
+	@echo "$(CYAN)• Running tests with coverage (workspace)...$(RESET)"
+	@cargo llvm-cov --workspace --all-features
 	@echo "$(GREEN)✓ Coverage report generated$(RESET)"
-	@echo "$(YELLOW)→ For detailed HTML report, run: cargo llvm-cov --html --all-targets --no-default-features$(RESET)"
+	@echo "$(YELLOW)→ For detailed HTML report, run: make coverage-html$(RESET)"
 
 .PHONY: coverage-html
 coverage-html:
 	@echo "$(BLUE)Generating HTML coverage report...$(RESET)"
-	@echo "$(CYAN)• Running tests with coverage ($(CODE_NAME) crate only)...$(RESET)"
-	@cargo llvm-cov --html --all-targets --no-default-features
+	@echo "$(CYAN)• Running tests with coverage (workspace)...$(RESET)"
+	@cargo llvm-cov --html --workspace --all-features
 	@echo "$(GREEN)✓ HTML coverage report generated$(RESET)"
 	@echo "$(CYAN)→ Report: target/llvm-cov/html/index.html$(RESET)"
 
@@ -272,7 +272,7 @@ deps: ensure-binstall
 	@cargo upgrade
 	@echo "$(GREEN)✓ Cargo deps upgraded$(RESET)"
 
-docs: DOCS_PATH = target/doc/$(CODE_NAME)
+docs: DOCS_PATH = target/doc/music_comp_mt
 docs:
 	@cargo doc --all-features --no-deps --workspace
 	@echo
@@ -317,7 +317,7 @@ push:
 	done
 
 # Crates in dependency order (leaf crates first, dependent crates later)
-PUBLISH_ORDER := $(CODE_NAME)
+PUBLISH_ORDER := music-comp-mt music-comp-mt-cli
 # crates.io rate limit delay (seconds)
 PUBLISH_DELAY := 372
 .PHONY: publish
@@ -406,7 +406,7 @@ publish-dry-run:
 publish-one:
 	@if [ -z "$(CRATE)" ]; then \
 		echo "$(RED)Error: CRATE variable not set$(RESET)"; \
-		echo "Usage: make publish-one CRATE=$(CODE_NAME)"; \
+		echo "Usage: make publish-one CRATE=music-comp-mt"; \
 		exit 1; \
 	fi
 	@echo ""
