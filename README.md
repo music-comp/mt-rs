@@ -1,6 +1,6 @@
 ## Rust Music Theory
 
-[![Coverage Status](https://coveralls.io/repos/github/ozankasikci/rust-music-theory/badge.svg?branch=master)](https://coveralls.io/github/ozankasikci/rust-music-theory?branch=master)
+[![Coverage](https://img.shields.io/badge/coverage-96%25-brightgreen)](https://github.com/music-comp/mt-rs)
 [![Crates.io](https://img.shields.io/crates/v/rust-music-theory.svg?style=flat-square)](https://crates.io/crates/rust-music-theory)
 [![Documentation](https://docs.rs/rust-music-theory/badge.svg)](https://docs.rs/rust-music-theory)
 
