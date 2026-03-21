@@ -2,7 +2,7 @@ name: Publish
 
 on:
   push:
-    tags: ["v*"]
+    tags: ["[0-9]+.*"]
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
@@ -20,7 +20,7 @@ jobs:
 
       - name: Verify tag matches Cargo.toml version
         run: |
-          TAG_VERSION="${GITHUB_REF#refs/tags/v}"
+          TAG_VERSION="${GITHUB_REF#refs/tags/}"
           CARGO_VERSION=$(grep '^version' mt/Cargo.toml | head -1 | sed 's/.*"\(.*\)".*/\1/')
           if [ "$TAG_VERSION" != "$CARGO_VERSION" ]; then
             echo "::error::Tag version ($TAG_VERSION) doesn't match mt/Cargo.toml version ($CARGO_VERSION)"
