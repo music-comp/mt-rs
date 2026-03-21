@@ -9,6 +9,7 @@ on:
     - cron: "0 4 * * *"
 
 env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
   CARGO_INCREMENTAL: 0
   CARGO_PROFILE_TEST_DEBUG: 0
   CARGO_TERM_COLOR: always

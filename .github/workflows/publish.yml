@@ -5,6 +5,7 @@ on:
     tags: ["v*"]
 
 env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
   CARGO_TERM_COLOR: always
 
 jobs:
@@ -20,15 +21,21 @@ jobs:
       - name: Verify tag matches Cargo.toml version
         run: |
           TAG_VERSION="${GITHUB_REF#refs/tags/v}"
-          CARGO_VERSION=$(grep '^version' Cargo.toml | head -1 | sed 's/.*"\(.*\)".*/\1/')
+          CARGO_VERSION=$(grep '^version' mt/Cargo.toml | head -1 | sed 's/.*"\(.*\)".*/\1/')
           if [ "$TAG_VERSION" != "$CARGO_VERSION" ]; then
-            echo "::error::Tag version ($TAG_VERSION) doesn't match Cargo.toml version ($CARGO_VERSION)"
+            echo "::error::Tag version ($TAG_VERSION) doesn't match mt/Cargo.toml version ($CARGO_VERSION)"
             exit 1
           fi
           echo "Publishing version $CARGO_VERSION"
 
       - name: Run tests before publishing
-        run: cargo test --all-features
+        run: make test
 
-      - name: Publish
-        run: cargo publish --token ${{ secrets.CARGO_REGISTRY_TOKEN }}
+      - name: Publish library
+        run: cargo publish -p music-comp-mt --token ${{ secrets.CARGO_REGISTRY_TOKEN }}
+
+      - name: Wait for index update
+        run: sleep 30
+
+      - name: Publish CLI
+        run: cargo publish -p music-comp-mt-cli --token ${{ secrets.CARGO_REGISTRY_TOKEN }}
