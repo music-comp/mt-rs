@@ -250,7 +250,7 @@ check: common-checks test
 .PHONY: check-all
 check-all: common-checks coverage docs
 	@echo ""
-	@echo "$(GREEN)✓ Full validation complete (build + lint + coverage)$(RESET)"
+	@echo "$(GREEN)✓ Full validation complete (build + lint + coverage + docs)$(RESET)"
 	@echo ""
 
 # Ensure cargo-binstall is available for fast tool installation
@@ -288,6 +288,7 @@ deps: ensure-binstall
 	@cargo upgrade
 	@echo "$(GREEN)✓ Cargo deps upgraded$(RESET)"
 
+.PHONY: docs
 docs: DOCS_PATH = target/doc/music_comp_mt
 docs:
 	@RUSTDOCFLAGS="-D warnings" cargo doc --workspace --no-deps --all-features
