@@ -41,5 +41,6 @@ pub mod harmony;
 pub mod interval;
 pub mod neo_riemannian;
 pub mod note;
+pub mod set_class;
 pub mod scale;
 pub mod voice_leading;

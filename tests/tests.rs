@@ -32,6 +32,8 @@ mod harmony;
 
 mod neo_riemannian;
 
+mod set_class;
+
 mod interval {
     mod test_interval;
     mod test_between;
