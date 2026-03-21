@@ -30,6 +30,8 @@ mod analysis;
 
 mod harmony;
 
+mod neo_riemannian;
+
 mod interval {
     mod test_interval;
     mod test_between;

@@ -39,6 +39,7 @@ pub mod analysis;
 pub mod chord;
 pub mod harmony;
 pub mod interval;
+pub mod neo_riemannian;
 pub mod note;
 pub mod scale;
 pub mod voice_leading;
