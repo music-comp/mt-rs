@@ -5,6 +5,7 @@
 //! quintal reads bottom-to-top as fifths. Both perspectives describe the
 //! same mathematical structure.
 
+mod constructors;
 mod conversion;
 mod error;
 mod interval;
@@ -12,6 +13,9 @@ mod orbit;
 mod types;
 mod voicing;
 
+pub use constructors::{
+    from_stacked_fourths, from_stacked_fourths_voiced, pure_quartal_stack, quartal_neighbors,
+};
 pub use conversion::{pc_chord_quartal_intervals, to_quartal, to_quintal};
 pub use error::QuartalError;
 pub use interval::{
