@@ -9,6 +9,7 @@ mod geodesics;
 mod group;
 mod orbit;
 mod types;
+mod verification;
 
 pub use base_space::{enumerate_all, is_adjacent, BaseSpace};
 pub use centrality::{betweenness_centrality, crossroads_chords};
@@ -19,3 +20,7 @@ pub use geodesics::{count_geodesics, geodesics, passing_chords};
 pub use group::{invert, invert_transpose, orbit, transpose};
 pub use orbit::{classify_all, classify_orbit, Orbit};
 pub use types::{FiberClass, IntervalStructure, PcChord, VoicedChord};
+pub use verification::{
+    fiber_class, inversion_l1_distances, inversions_in_base, verify_fiber_classes,
+    verify_universal_l1_law,
+};
