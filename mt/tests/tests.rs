@@ -35,6 +35,8 @@ mod harmony;
 
 mod neo_riemannian;
 
+mod quintal;
+
 mod set_class;
 
 mod interval {
