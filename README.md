@@ -282,18 +282,19 @@ make check-all    # Build + lint + coverage + docs
 
 ```
 Cargo.toml              workspace root
-mt/                     library crate (music-comp-mt)
-  src/
-    lib.rs
-    note/, interval/, chord/, scale/
-    harmony/, analysis/, voice_leading/
-    neo_riemannian/, set_class/, counterpoint/, figured_bass/
-    quintal/                    fiber bundle voice-leading geometry
-  tests/
-mt-cli/                 binary crate (music-comp-mt-cli)
-  src/
-    main.rs, cli.rs
-  tests/
+crates/
+  mt/                   library crate (music-comp-mt)
+    src/
+      lib.rs
+      note/, interval/, chord/, scale/
+      harmony/, analysis/, voice_leading/
+      neo_riemannian/, set_class/, counterpoint/, figured_bass/
+      quintal/                  fiber bundle voice-leading geometry
+    tests/
+  mt-cli/               binary crate (music-comp-mt-cli)
+    src/
+      main.rs, cli.rs
+    tests/
 ```
 
 ## License

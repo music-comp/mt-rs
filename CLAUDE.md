@@ -21,8 +21,8 @@ git clone https://github.com/oxur/ai-rust assets/ai/ai-rust
 ```bash
 cargo build                          # build library + CLI
 cargo build --features midi          # build with midi_pitch() support
-cargo test                           # run core tests (114 tests)
-cargo test --features midi           # include midi_pitch tests (+5 tests)
+cargo test                           # run all tests (530+)
+cargo test --features midi           # include midi_pitch tests
 cargo test chord::test_chord         # run a specific test module
 cargo test --test tests              # run only integration tests
 cargo clippy                         # lint (4 module_inception warnings are expected)
@@ -37,7 +37,7 @@ cargo run -- chord list              # CLI: list available chords
 
 ### Core Trait: `Notes`
 
-The `Notes` trait (`src/note/note.rs`) is the central abstraction. Both `Chord` and `Scale` implement it, producing `Vec<Note>`.
+The `Notes` trait (`crates/mt/src/note/note.rs`) is the central abstraction. Both `Chord` and `Scale` implement it, producing `Vec<Note>`.
 
 ```
 note (Pitch, Note, NoteLetter, PitchSymbol, KeySignature)
@@ -49,7 +49,7 @@ chord + scale (both build on intervals, both impl Notes)
 
 ### Enharmonic Spelling System
 
-`KeySignature` (`src/note/key_signature.rs`) maps tonic + mode to preferred note spellings. Both `Chord::notes()` and `Scale::notes()` apply key signatures to avoid double-sharps/flats and choose contextually correct enharmonic spellings (e.g., C# vs Db).
+`KeySignature` (`crates/mt/src/note/key_signature.rs`) maps tonic + mode to preferred note spellings. Both `Chord::notes()` and `Scale::notes()` apply key signatures to avoid double-sharps/flats and choose contextually correct enharmonic spellings (e.g., C# vs Db).
 
 ### Regex Parsing Pattern
 
@@ -62,4 +62,4 @@ Each theory type has a `from_regex()` constructor that parses natural-language m
 
 ### Test Organization
 
-Integration tests live in `tests/` organized by module (`tests/chord/`, `tests/scale/`, `tests/note/`, `tests/interval/`). The entry point is `tests/tests.rs` which declares submodules.
+Integration tests live in `crates/mt/tests/` organized by module (`tests/chord/`, `tests/scale/`, `tests/note/`, `tests/interval/`, `tests/quintal/`). The entry point is `tests/tests.rs` which declares submodules.
