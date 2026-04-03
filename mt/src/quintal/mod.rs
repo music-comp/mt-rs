@@ -2,8 +2,12 @@
 
 mod base_space;
 mod error;
+mod group;
+mod orbit;
 mod types;
 
 pub use base_space::{enumerate_all, is_adjacent, BaseSpace};
 pub use error::QuintalError;
+pub use group::{invert, invert_transpose, orbit, transpose};
+pub use orbit::{classify_all, classify_orbit, Orbit};
 pub use types::{FiberClass, IntervalStructure, PcChord, VoicedChord};
