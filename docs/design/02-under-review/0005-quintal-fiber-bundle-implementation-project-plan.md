@@ -34,6 +34,7 @@ The project is divided into **4 phases**, each containing **2–4 milestones** s
 **Scope:** New module `mt/src/quintal/` with foundational types.
 
 **Deliverables:**
+
 - `types.rs` — Core type definitions:
   - `PcChord` — unordered 4-element pitch-class set (stored as sorted `[u8; 4]` with values 0–11). Implements `Eq`, `Hash`, `Ord`. Constructor validates uniqueness and range.
   - `VoicedChord` — ordered ascending 4-tuple of MIDI pitches (`[u8; 4]` with `p[0] < p[1] < p[2] < p[3]`). Constructor validates ascending order.
@@ -44,6 +45,7 @@ The project is divided into **4 phases**, each containing **2–4 milestones** s
 - `conversions.rs` — `PcChord::interval_structure()`, `VoicedChord::interval_structure()`, `VoicedChord::to_pc_chord()` (the projection π: E → B)
 
 **Concept cards for CC to read:**
+
 - `pitch-and-pitch-class` (fundamentals)
 - `pitch-class` (post-tonal-theory)
 - `pitch-vs-pitch-class` (open-music-theory)
@@ -64,6 +66,7 @@ The project is divided into **4 phases**, each containing **2–4 milestones** s
 > **T/I group (ℤ₁₂ ⋊ ℤ₂):** The semidirect product of transposition (Tₙ: add n mod 12 to each pc) and inversion (I: replace each pc x with (12−x) mod 12, then optionally transpose). This group has order 24 and partitions the 228 legal chords into 14 equivalence classes (orbits).
 
 **Tests:**
+
 - Constructors reject invalid inputs (duplicate pcs, out-of-range values, non-ascending voices)
 - `IntervalStructure::is_legal()` correctly classifies all 27 combinations
 - `VoicedChord::to_pc_chord()` round-trips correctly
@@ -78,6 +81,7 @@ The project is divided into **4 phases**, each containing **2–4 milestones** s
 **Scope:** Enumerate all 228 legal chords, build the adjacency graph, compute basic graph properties.
 
 **Deliverables:**
+
 - `enumeration.rs`:
   - `enumerate_all() -> Vec<PcChord>` — brute-force all C(12,4) = 495 four-note pc sets, filter by [6,8] constraint across all rotations of the sorted pc set. Must produce exactly 228 chords.
   - `is_adjacent(a: &PcChord, b: &PcChord) -> bool` — true iff a and b differ by exactly one semitone in exactly one voice (single-semitone voice move) AND both are legal.
@@ -90,6 +94,7 @@ The project is divided into **4 phases**, each containing **2–4 milestones** s
   - `BaseSpace::degree_distribution() -> BTreeMap<u8, usize>` — must match {4→90, 5→48, 6→60, 8→30}
 
 **Concept cards for CC to read:**
+
 - `chord-space-formal-construction` (geometry-of-music)
 - `higher-dimensional-chord-spaces` (geometry-of-music)
 - `boundary-behavior` (geometry-of-music)
@@ -103,6 +108,7 @@ The project is divided into **4 phases**, each containing **2–4 milestones** s
 > **Checking all rotations:** A pc set {a,b,c,d} can be arranged in multiple cyclic orderings. The interval structure depends on which note is considered "bottom." For a pc set to satisfy [6,8], at least one cyclic ordering must produce all intervals in {6,7,8}. Concretely: sort the pcs as a₀ < a₁ < a₂ < a₃, then check all 4 rotations: (a₀,a₁,a₂,a₃), (a₁,a₂,a₃,a₀+12), etc., computing consecutive differences for each. If any rotation has all differences in {6,7,8}, the chord is legal.
 
 **Tests:**
+
 - Exactly 228 chords enumerated
 - Degree distribution matches paper: {4:90, 5:48, 6:60, 8:30}
 - Known adjacencies verified (e.g., C-G-D-A is adjacent to C-F♯-D-A)
@@ -118,6 +124,7 @@ The project is divided into **4 phases**, each containing **2–4 milestones** s
 **Scope:** Implement T/I group actions, classify all 228 chords into the 14 orbits.
 
 **Deliverables:**
+
 - `symmetry.rs`:
   - `transpose(chord: &PcChord, n: u8) -> PcChord` — Tₙ: add n mod 12 to each pc
   - `invert(chord: &PcChord) -> PcChord` — I: replace each pc x with (12−x) mod 12
@@ -137,6 +144,7 @@ The project is divided into **4 phases**, each containing **2–4 milestones** s
 > **The 14 orbit representatives and their sizes:** (see paper §8 table). Orbits of size 6 have a stabilizer of order 4; orbits of size 12 have stabilizer of order 2; orbits of size 24 are generic (trivial stabilizer). Total: 6+6+12+12+12+12+24+24+24+24+24+24+12+12 = 228.
 
 **Tests:**
+
 - `transpose` is cyclic: T₁₂ = identity
 - `invert` is involutory: I² = identity
 - Exactly 14 distinct orbits produced
@@ -157,6 +165,7 @@ The project is divided into **4 phases**, each containing **2–4 milestones** s
 **Scope:** BFS-based shortest-path computation, diameter, eccentricity.
 
 **Deliverables:**
+
 - Extend `BaseSpace` in `graph.rs`:
   - `distance(a: &PcChord, b: &PcChord) -> u8` — BFS shortest path
   - `all_distances_from(a: &PcChord) -> HashMap<PcChord, u8>` — single-source BFS
@@ -165,6 +174,7 @@ The project is divided into **4 phases**, each containing **2–4 milestones** s
   - `center() -> Vec<PcChord>` — chords with minimum eccentricity (must be 54 chords with eccentricity 7)
 
 **Tests:**
+
 - Diameter is exactly 8
 - Eccentricity range is 7–8
 - Center contains 54 chords
@@ -182,6 +192,7 @@ The project is divided into **4 phases**, each containing **2–4 milestones** s
 **Scope:** Enumerate all shortest paths between two chords.
 
 **Deliverables:**
+
 - `geodesics.rs`:
   - `geodesics(space: &BaseSpace, a: &PcChord, b: &PcChord) -> Vec<Vec<PcChord>>` — all shortest paths from a to b. Uses modified BFS that tracks all parents at each distance level, then reconstructs paths.
   - `count_geodesics(space: &BaseSpace, a: &PcChord, b: &PcChord) -> usize` — count without materializing paths
@@ -196,6 +207,7 @@ The project is divided into **4 phases**, each containing **2–4 milestones** s
 > **Geodesic count:** From C-G-D-A to A♭-E♭-B♭-F (distance 7), there are 298 distinct geodesics. The count grows dramatically with distance (see paper §6 table).
 
 **Tests:**
+
 - Geodesics from C-G-D-A at distance 1: exactly 8 paths of length 1
 - Geodesic count to antipodal chord: 298
 - Every path in the geodesic list has correct length d(a,b)
@@ -211,6 +223,7 @@ The project is divided into **4 phases**, each containing **2–4 milestones** s
 **Scope:** Compute betweenness centrality for all chords; identify crossroads chords.
 
 **Deliverables:**
+
 - `centrality.rs`:
   - `betweenness_centrality(space: &BaseSpace) -> HashMap<PcChord, f64>` — normalized betweenness centrality using Brandes' algorithm (O(VE) rather than O(V³))
   - `crossroads_chords(space: &BaseSpace) -> Vec<PcChord>` — the 6 chords with highest betweenness (all [d5,A5,d5] orbit members)
@@ -222,6 +235,7 @@ The project is divided into **4 phases**, each containing **2–4 milestones** s
 > **Expected result:** The 6 [d5,A5,d5] chords each have ~13.9% betweenness centrality, making them the dominant crossroads of the space.
 
 **Tests:**
+
 - Top 6 chords by centrality are all [d5,A5,d5] orbit members
 - Each crossroads chord has approximately 13.9% betweenness
 - Centrality values sum correctly (normalization check)
@@ -240,6 +254,7 @@ The project is divided into **4 phases**, each containing **2–4 milestones** s
 **Scope:** Implement the chord-scale derivation and the t₁/t₋₁ operators.
 
 **Deliverables:**
+
 - `fiber.rs`:
   - `chord_scale(chord: &VoicedChord) -> Vec<u8>` — extract pitch classes, sort in ascending order within one octave, return as the chord's intrinsic scale (step sizes between consecutive elements)
   - `chord_scale_steps(chord: &VoicedChord) -> Vec<u8>` — the step sizes [s₀, s₁, ..., s₃] where sᵢ = (pcᵢ₊₁ − pcᵢ) mod 12, with wrap-around
@@ -255,6 +270,7 @@ The project is divided into **4 phases**, each containing **2–4 milestones** s
 > **Computing t₁:** For each voice pᵢ with pitch class pcᵢ, find the next chord-scale degree above pcᵢ in the circular ordering of S. The step size is the interval from pcᵢ to that next degree. Add this step to pᵢ to get the new pitch. Then re-sort the result into ascending order.
 >
 > **Concrete algorithm for t₁(p₁, p₂, p₃, p₄):**
+>
 > 1. Compute the chord scale: sort the 4 pitch classes into ascending order within [0,11]: cs = [c₀, c₁, c₂, c₃]
 > 2. For each voice pᵢ, find its pitch class pcᵢ = pᵢ mod 12
 > 3. Find the index j such that cs[j] = pcᵢ
@@ -268,6 +284,7 @@ The project is divided into **4 phases**, each containing **2–4 milestones** s
 > **t₋₁ is the reverse:** each voice moves DOWN to the previous chord-scale degree. t₋₁ = t₁³ ∘ T₋₁₂ (equivalently, t₋₁(chord) is the chord that t₁ maps TO chord, shifted down an octave).
 >
 > **Verified example — C3-G3-D4-A4:**
+>
 > - Chord scale {C,D,G,A}, steps [2,5,2,3]
 > - Root: (48,55,62,69) intervals (7,7,7) — in [6,8]
 > - t₁ → (50,57,67,72) → sort → (50,57,67,72) intervals (7,10,5) — NOT in [6,8]
@@ -276,6 +293,7 @@ The project is divided into **4 phases**, each containing **2–4 milestones** s
 > - t₁ → (60,67,74,81) = (48+12,55+12,62+12,69+12) = T₁₂(root) ✓
 
 **Tests:**
+
 - C3-G3-D4-A4 inversion cycle matches paper exactly (all 4 voicings, all intervals)
 - t₁⁴ = T₁₂ for all tested chords
 - t₋₁ reverses t₁: t₋₁(t₁(C)) has same pc set as C (shifted by one inversion position)
@@ -292,6 +310,7 @@ The project is divided into **4 phases**, each containing **2–4 milestones** s
 **Scope:** Implement L1 distance on voiced chords, classify fibers, verify the Universal L1 Law.
 
 **Deliverables:**
+
 - Extend `fiber.rs`:
   - `l1_distance(a: &VoicedChord, b: &VoicedChord) -> u32` — sum of absolute pitch differences: Σ|aᵢ - bᵢ|
   - `fiber_class(chord: &PcChord, space: &BaseSpace) -> FiberClass` — determine whether 1 or 2 inversions re-enter [6,8]
@@ -309,11 +328,13 @@ The project is divided into **4 phases**, each containing **2–4 milestones** s
 > **Universal L1 Law:** For EVERY chord in B, the L1 distances between consecutive inversions in the Tymoczko cycle follow the pattern [12, 12, 12, 36]. The first three steps each cost 12 semitones; the "closing" step (from 3rd inversion back to root one octave higher) costs 36. Total cycle cost: 12+12+12+36 = 72 = 6×12. This holds universally across all 14 orbits.
 >
 > **Fiber classification:**
+>
 > - Class A (10 orbits): exactly 1 of 4 inversions satisfies [6,8] — the root position
 > - Class B (3 orbits: [d5,P5,d5], [d5,A5,d5], [d5,A5,A5]): exactly 2 of 4 inversions satisfy [6,8]
 > - Class B orbits have chord-scale step sequences with period-2 or palindromic symmetry
 
 **Tests:**
+
 - L1 distance is symmetric and satisfies triangle inequality
 - Universal L1 Law verified for ALL 228 chords (no exceptions)
 - L1 between root and 1st inversion of C-G-D-A is 12
@@ -331,6 +352,7 @@ The project is divided into **4 phases**, each containing **2–4 milestones** s
 **Scope:** Formalize and verify the duality theorem.
 
 **Deliverables:**
+
 - `duality.rs`:
   - `quartal_reading(chord: &VoicedChord) -> IntervalStructure` — read intervals top-to-bottom (fourths perspective)
   - `quintal_reading(chord: &VoicedChord) -> IntervalStructure` — read intervals bottom-to-top (fifths perspective)
@@ -350,6 +372,7 @@ The project is divided into **4 phases**, each containing **2–4 milestones** s
 > **ℤ₂ symmetry:** The fiber ℤ₄ has a natural ℤ₂ action (orientation reversal: k ↦ −k mod 4). This ℤ₂ is the quartal/quintal duality.
 
 **Tests:**
+
 - For C-G-D-A: quintal reading (7,7,7), quartal reading from A-D-G-C gives (5,5,5) = complementary fourths
 - t₋₁ cycle visits same 4 chords as t₁ cycle in reverse order
 - All 14 orbits are self-dual
@@ -369,6 +392,7 @@ The project is divided into **4 phases**, each containing **2–4 milestones** s
 **Scope:** Given a voiced chord, return its complete inversion cycle with all metadata.
 
 **Deliverables:**
+
 - New tool registration in the MCP server's tool registry
 - Tool implementation that:
   1. Parses input voiced chord (MIDI pitches or note names)
@@ -380,6 +404,7 @@ The project is divided into **4 phases**, each containing **2–4 milestones** s
 **Input format:** `{ "chord": [48, 55, 62, 69] }` or `{ "chord": "C3-G3-D4-A4" }`
 
 **Output format:**
+
 ```json
 {
   "pc_chord": [0, 2, 7, 9],
@@ -397,6 +422,7 @@ The project is divided into **4 phases**, each containing **2–4 milestones** s
 ```
 
 **Tests:**
+
 - Paper example C3-G3-D4-A4 returns exact values from §20
 - Crossroads chord returns fiber_class "B" with 2 inversions in_base
 - Invalid chord (intervals outside [6,8]) returns appropriate error
@@ -411,6 +437,7 @@ The project is divided into **4 phases**, each containing **2–4 milestones** s
 **Scope:** Given two voiced chords, find shortest paths in B between their root-position projections, then show how inversion position evolves along the path.
 
 **Deliverables:**
+
 - Tool implementation that:
   1. Projects both voiced chords to B via π
   2. Computes geodesics between the two pc chords in B
@@ -420,6 +447,7 @@ The project is divided into **4 phases**, each containing **2–4 milestones** s
 **Input format:** `{ "source": [48,55,62,69], "target": [56,63,70,77] }`
 
 **Output format:**
+
 ```json
 {
   "source_projection": [0,2,7,9],
@@ -439,6 +467,7 @@ The project is divided into **4 phases**, each containing **2–4 milestones** s
 ```
 
 **Tests:**
+
 - C-G-D-A to A♭-E♭-B♭-F: distance 7, 298 geodesics
 - Adjacent chords: distance 1, 1 geodesic
 - Same chord projected from different inversions: distance 0
@@ -452,6 +481,7 @@ The project is divided into **4 phases**, each containing **2–4 milestones** s
 **Scope:** Given source and target voiced chords, enumerate passing chords in both B and E.
 
 **Deliverables:**
+
 - Tool implementation that:
   1. Computes passing chords in B (chords on geodesics between projections)
   2. For each passing chord in B, computes its full inversion cycle to show E-space passing options
@@ -461,6 +491,7 @@ The project is divided into **4 phases**, each containing **2–4 milestones** s
 **Input format:** `{ "source": [48,55,62,69], "target": [53,60,67,74] }`
 
 **Output format:**
+
 ```json
 {
   "base_space_passing": {
@@ -484,6 +515,7 @@ The project is divided into **4 phases**, each containing **2–4 milestones** s
 ```
 
 **Tests:**
+
 - Paper example from §9: C-G-D-A to F-C-G-D, verify passing chords match
 - Paper example: C-G-D-A to C-E♭-G-B♭ (distance 2), verify 2 passing chords
 - Extended passing chords include inversions not in [6,8]
@@ -523,6 +555,7 @@ This section maps each milestone to the concept cards Claude Code should read fr
 ### Phase 4 Cards (MCP Tools)
 
 All Phase 1–3 cards are potentially relevant. Additionally:
+
 - `voicing-as-set-class` (tonality-owners-manual)
 - `triads-in-chromatic-space` (audacious-euphony)
 
