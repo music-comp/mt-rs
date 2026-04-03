@@ -10,7 +10,7 @@
 
 *A comprehensive music theory library and CLI for Rust*
 
-This library covers music-theoretic fundamentals through graduate-level theory: notes, intervals, chords, scales, harmony analysis, voice leading, neo-Riemannian transformations, pitch-class set theory, counterpoint, and figured bass.
+This library covers music-theoretic fundamentals through graduate-level theory: notes, intervals, chords, scales, harmony analysis, voice leading, neo-Riemannian transformations, pitch-class set theory, counterpoint, figured bass, and a complete quintal/quartal voice-leading geometry based on the fiber bundle framework.
 
 Every music theory fact in the library has been verified against 4,315 concept cards from 14 authoritative textbooks.
 
@@ -128,6 +128,23 @@ $ ./bin/mt chord list
 | `counterpoint` | First-species rule checking (parallel 5ths/8ves, consonance, voice crossing) |
 | `figured_bass` | Realize figured bass symbols into chord voicings |
 
+### Quintal/Quartal Voice-Leading Geometry
+
+| Module | Description |
+|--------|-------------|
+| `quintal` | Complete fiber bundle framework for quintal harmony |
+
+The quintal module implements the voice-leading geometry from *"Quintal Harmony as a Fiber Bundle"*:
+
+- **228-chord base space B** — all four-note pitch-class sets with intervals in {d5, P5, A5}, with full adjacency graph (600 edges, degree distribution {4:90, 5:48, 6:60, 8:30})
+- **14 T/I orbits** — classification under the 24-element T/I group, with orbit sizes 6/12/24 and structural analogies to major/minor/augmented/diminished
+- **Metric space** — BFS shortest-path distance (diameter 8), eccentricity (range 7-8), 54-chord center, geodesic enumeration (up to 298 shortest paths), passing chords
+- **Betweenness centrality** — Brandes' algorithm identifies 6 crossroads chords (Q686 orbit) as the most structurally important
+- **Tymoczko inversion operators** — chord-scale construction, t1/t-1 interscalar transposition, inversion cycles
+- **Universal L1 Law** — consecutive inversions always cost [12, 12, 12, 36] semitones, verified across all 228 chords
+- **Fiber classification** — 11 Class A orbits (1 inversion in [6,8]) and 3 Class B orbits (2 inversions in [6,8])
+- **Quartal/quintal duality** — proven as orientation reversal on the Z4 fiber; all 14 orbits are self-dual
+
 ## Feature Flags
 
 | Flag | Description |
@@ -206,12 +223,55 @@ let transposed = major_triad.transpose(5);  // T_5
 let inverted = major_triad.invert(0);       // I_0
 ```
 
+### Quintal Voice-Leading Geometry
+
+```rust
+use music_comp_mt::quintal::{
+    BaseSpace, PcChord, VoicedChord, Orbit,
+    enumerate_all, classify_orbit, distance, diameter, center,
+    crossroads_chords, count_geodesics,
+    chord_scale, inversion_cycle, l1_distance, t1,
+    verify_universal_l1_law, verify_all_orbits_self_dual,
+};
+
+// The 228-chord base space
+let space = BaseSpace::new();
+assert_eq!(space.len(), 228);
+assert_eq!(diameter(&space), 8);
+assert_eq!(center(&space).len(), 54);
+
+// Orbit classification
+let cgda = PcChord::new([0, 2, 7, 9]).unwrap();  // C-G-D-A
+assert_eq!(classify_orbit(&cgda), Some(Orbit::Q777));   // "major analogue"
+
+// Geodesic distances
+let crossroads = PcChord::new([0, 2, 6, 8]).unwrap();
+assert_eq!(distance(&space, &cgda, &crossroads), Some(2));
+
+// 6 crossroads chords with highest betweenness centrality
+assert_eq!(crossroads_chords(&space).len(), 6);
+
+// Tymoczko inversion cycle: C3-G3-D4-A4
+let root = VoicedChord::new([48, 55, 62, 69]).unwrap();
+let cs = chord_scale(&root);
+assert_eq!(cs.steps, [2, 5, 2, 3]);  // chord-scale step sizes
+
+let cycle = inversion_cycle(&root);
+assert_eq!(cycle[1].pitches, [50, 57, 67, 72]);  // 1st inversion
+
+// Universal L1 Law: [12, 12, 12, 36] for every chord
+assert!(verify_universal_l1_law(&space).is_ok());
+
+// All 14 orbits are self-dual under quartal/quintal duality
+assert!(verify_all_orbits_self_dual(&space));
+```
+
 ## Building From Source
 
 ```sh
 git clone https://github.com/music-comp/mt-rs && cd mt-rs
 make build        # Build library + CLI
-make test         # Run all 349 tests
+make test         # Run all 530+ tests
 make lint         # Clippy + fmt (same checks as CI)
 make coverage     # Generate coverage report (96%+)
 make docs         # Build rustdoc (warnings as errors)
@@ -228,6 +288,7 @@ mt/                     library crate (music-comp-mt)
     note/, interval/, chord/, scale/
     harmony/, analysis/, voice_leading/
     neo_riemannian/, set_class/, counterpoint/, figured_bass/
+    quintal/                    fiber bundle voice-leading geometry
   tests/
 mt-cli/                 binary crate (music-comp-mt-cli)
   src/
