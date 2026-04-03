@@ -5,8 +5,8 @@ author: "Ozan Kasikci"
 component: All
 tags: [change-me]
 created: 2026-03-20
-updated: 2026-03-20
-state: Under Review
+updated: 2026-04-02
+state: Final
 supersedes: null
 superseded-by: null
 version: 1.0
