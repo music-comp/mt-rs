@@ -120,6 +120,18 @@ impl BaseSpace {
             .map(|i| self.adjacency[i].as_slice())
     }
 
+    /// Returns the neighbor indices for a chord given by its index.
+    ///
+    /// This is a crate-internal method used by the distance module for
+    /// efficient index-based BFS without repeated binary searches.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `idx` is out of bounds.
+    pub(crate) fn neighbors_by_index(&self, idx: usize) -> &[usize] {
+        &self.adjacency[idx]
+    }
+
     /// Returns the degree (number of neighbors) of the given chord, or
     /// `None` if the chord is not in the base space.
     pub fn degree(&self, chord: &PcChord) -> Option<usize> {
