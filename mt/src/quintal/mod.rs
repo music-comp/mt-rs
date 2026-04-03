@@ -3,6 +3,7 @@
 mod base_space;
 mod centrality;
 mod distance;
+mod duality;
 mod error;
 mod fiber;
 mod geodesics;
@@ -14,6 +15,10 @@ mod verification;
 pub use base_space::{enumerate_all, is_adjacent, BaseSpace};
 pub use centrality::{betweenness_centrality, crossroads_chords};
 pub use distance::{all_distances_from, center, diameter, distance, eccentricity};
+pub use duality::{
+    orbit_self_duality, quartal_reading, quintal_reading, reverse_interval_structure,
+    t1_reversal_equivalence, verify_all_orbits_self_dual,
+};
 pub use error::QuintalError;
 pub use fiber::{chord_scale, inversion_cycle, l1_distance, project, t1, t_minus1, ChordScale};
 pub use geodesics::{count_geodesics, geodesics, passing_chords};
