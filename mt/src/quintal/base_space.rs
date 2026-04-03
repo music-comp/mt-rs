@@ -3,7 +3,7 @@ use std::collections::{BTreeMap, VecDeque};
 use super::PcChord;
 
 /// Enumerate all C(12,4) = 495 four-note pitch-class sets and filter
-/// by the [6,8] legality constraint. Produces exactly 228 chords.
+/// by the \[6,8\] legality constraint. Produces exactly 228 chords.
 ///
 /// Chords are returned in lexicographic order of their pitch-class arrays.
 pub fn enumerate_all() -> Vec<PcChord> {
