@@ -132,18 +132,20 @@ $ ./bin/mt chord list
 
 | Module | Description |
 |--------|-------------|
-| `quintal` | Complete fiber bundle framework for quintal harmony |
+| `quintal` | Complete fiber bundle framework for quintal harmony (fifths perspective) |
+| `quartal` | Dual quartal perspective on the same 228-chord space (fourths perspective) |
 
-The quintal module implements the voice-leading geometry from *"Quintal Harmony as a Fiber Bundle"*:
+The `quintal` and `quartal` modules implement the voice-leading geometry from *"Quintal Harmony as a Fiber Bundle"*. Both describe the same mathematical structure from dual perspectives — quintal reads intervals bottom-to-top as fifths, quartal reads top-to-bottom as fourths:
 
-- **228-chord base space B** — all four-note pitch-class sets with intervals in {d5, P5, A5}, with full adjacency graph (600 edges, degree distribution {4:90, 5:48, 6:60, 8:30})
-- **14 T/I orbits** — classification under the 24-element T/I group, with orbit sizes 6/12/24 and structural analogies to major/minor/augmented/diminished
+- **228-chord base space B** — all four-note pitch-class sets with intervals in {d5, P5, A5} (quintal) / {d4, P4, A4} (quartal), with full adjacency graph (600 edges, degree distribution {4:90, 5:48, 6:60, 8:30})
+- **14 T/I orbits** — classification under the 24-element T/I group, with dual labeling (quintal Q777 = quartal Q555, etc.) and structural analogies to major/minor/augmented/diminished
 - **Metric space** — BFS shortest-path distance (diameter 8), eccentricity (range 7-8), 54-chord center, geodesic enumeration (up to 298 shortest paths), passing chords
-- **Betweenness centrality** — Brandes' algorithm identifies 6 crossroads chords (Q686 orbit) as the most structurally important
-- **Tymoczko inversion operators** — chord-scale construction, t1/t-1 interscalar transposition, inversion cycles
-- **Universal L1 Law** — consecutive inversions always cost [12, 12, 12, 36] semitones, verified across all 228 chords
+- **Betweenness centrality** — Brandes' algorithm identifies 6 crossroads chords as the most structurally important
+- **Tymoczko inversion operators** — chord-scale construction, t1/t-1 interscalar transposition, inversion cycles in both quintal and quartal traversal directions
+- **Universal L1 Law** — consecutive inversions always cost [12, 12, 12, 36] semitones, verified across all 228 chords in both directions
 - **Fiber classification** — 11 Class A orbits (1 inversion in [6,8]) and 3 Class B orbits (2 inversions in [6,8])
-- **Quartal/quintal duality** — proven as orientation reversal on the Z4 fiber; all 14 orbits are self-dual
+- **Quartal/quintal duality** — proven as orientation reversal on the Z4 fiber; all 14 orbits are self-dual; exhaustive computational verification that both perspectives produce identical results
+- **Quartal-native API** — interval complement bijection (P5 <-> P4), quartal chord constructors (`from_stacked_fourths`, `pure_quartal_stack`), quartal orbit labels, shared base space re-exports
 
 ## Feature Flags
 
@@ -153,7 +155,7 @@ The quintal module implements the voice-leading geometry from *"Quintal Harmony 
 | `serde` | Derives `Serialize`/`Deserialize` on all public types |
 
 ```toml
-music-comp-mt = { version = "0.4", features = ["serde", "midi"] }
+music-comp-mt = { version = "0.5", features = ["serde", "midi"] }
 ```
 
 ## Examples
@@ -266,12 +268,47 @@ assert!(verify_universal_l1_law(&space).is_ok());
 assert!(verify_all_orbits_self_dual(&space));
 ```
 
+### Quartal Perspective (Dual View)
+
+```rust
+use music_comp_mt::quartal::{
+    QuartalVoicedChord, QuartalOrbit, QuartalIntervalStructure,
+    pure_quartal_stack, from_stacked_fourths, to_quartal,
+    quartal_inversion_cycle, quartal_l1_distances,
+    quintal_to_quartal_structure, pc_chord_quartal_intervals,
+    BaseSpace, PcChord,
+};
+use music_comp_mt::quintal::{self, Orbit, VoicedChord};
+
+// Same 228 chords, dual vocabulary
+let space = BaseSpace::new();  // re-exported from quintal
+assert_eq!(space.len(), 228);
+
+// Build chords by stacking fourths: A-D-G-C
+let quartal_a = pure_quartal_stack(9);  // {0, 2, 7, 9}
+// Same chord as quintal C-G-D-A — just different reading!
+assert_eq!(quartal_a.pcs, [0, 2, 7, 9]);
+
+// Quartal interval structure: (5,5,5) = three perfect fourths
+let qis = pc_chord_quartal_intervals(&quartal_a).unwrap();
+assert_eq!(qis, QuartalIntervalStructure(5, 5, 5));
+
+// Quartal orbits biject with quintal orbits
+assert_eq!(QuartalOrbit::Q555.to_quintal(), Orbit::Q777);  // major analogue
+
+// Quartal inversion cycle traverses the fiber in reverse
+let root = VoicedChord::new([48, 55, 62, 69]).unwrap();
+let qvc = to_quartal(&root);
+let q_dists = quartal_l1_distances(&qvc);
+assert_eq!(q_dists, [12, 12, 12, 36]);  // Universal L1 Law, both directions
+```
+
 ## Building From Source
 
 ```sh
 git clone https://github.com/music-comp/mt-rs && cd mt-rs
 make build        # Build library + CLI
-make test         # Run all 530+ tests
+make test         # Run all 600 tests
 make lint         # Clippy + fmt (same checks as CI)
 make coverage     # Generate coverage report (96%+)
 make docs         # Build rustdoc (warnings as errors)
@@ -289,7 +326,8 @@ crates/
       note/, interval/, chord/, scale/
       harmony/, analysis/, voice_leading/
       neo_riemannian/, set_class/, counterpoint/, figured_bass/
-      quintal/                  fiber bundle voice-leading geometry
+      quintal/                  fiber bundle voice-leading geometry (fifths)
+      quartal/                  dual quartal perspective (fourths)
     tests/
   mt-cli/               binary crate (music-comp-mt-cli)
     src/
