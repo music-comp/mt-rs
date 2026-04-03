@@ -2,11 +2,18 @@
 
 ## Context
 
-Implementing Phase 3 of the Quintal Fiber Bundle project from design spec `docs/design/02-under-review/0005-quintal-fiber-bundle-implementation-project-plan.md`, based on the paper `workbench/quintal-harmony-as-a-fiber-bundle.md` (Parts VI and VII).
+You are creating highly detrailed implemention per-milestone plans for Phase 3 of the Quintal Fiber Bundle project from design spec `docs/design/02-under-review/0005-quintal-fiber-bundle-implementation-project-plan.md`, based on the paper `workbench/quintal-harmony-as-a-fiber-bundle.md` (Parts VI and VII).
+
+Each milestone will have its own deliverable: a detailed inplementation plan for that particular milestone (please save the milestone .md files to ./workbench).
 
 This phase implements Tymoczko's interscalar transposition (the t1/t-1 operators), the fiber bundle structure E over B, the Universal L1 Law, and the quartal/quintal duality theorem. This is the mathematical heart of the paper.
 
 **Depends on:** Phase 1 (types, enumeration, orbits). Phase 2 is independent of Phase 3 — they can be done in either order.
+
+Before you start, be sure to brush up on your Rust expertise:
+
+- read `~/lab/oxur/ai-rust-skill/skills/claude/SKILL.md`
+- and then `~/lab/oxur/ai-rust-skill/guides/*`
 
 ## File Structure
 
@@ -57,6 +64,7 @@ pub fn l1_distance(a: &VoicedChord, b: &VoicedChord) -> u32
 ```
 
 **`chord_scale(chord)`:**
+
 1. Extract pitch classes: `pcs[i] = pitches[i] % 12` for each voice
 2. Sort the 4 pitch classes ascending within [0,11]: `cs = sorted unique pcs`
 3. Compute cyclic step sizes: `steps[i] = (cs[(i+1) % 4] - cs[i] + 12) % 12`
@@ -65,6 +73,7 @@ pub fn l1_distance(a: &VoicedChord, b: &VoicedChord) -> u32
 **`t1(chord)` — one step up the inversion cycle:**
 
 Critical algorithm (from paper section 20):
+
 1. Compute chord scale `cs` and step sequence
 2. For each voice `p[i]` with pitch class `pc_i = p[i] % 12`:
    a. Find index `j` in chord scale where `cs.pcs[j] == pc_i`
@@ -76,6 +85,7 @@ Critical algorithm (from paper section 20):
 **`t_minus1(chord)` — one step down:**
 
 Reverse of t1. For each voice:
+
 1. Find index `j` in chord scale where `cs.pcs[j] == pc_i`
 2. Previous degree index = `(j + 3) % 4` (i.e., `j - 1 mod 4`)
 3. Step size down = `cs.steps[(j + 3) % 4]`
@@ -83,13 +93,16 @@ Reverse of t1. For each voice:
 5. Sort ascending, construct VoicedChord
 
 **`inversion_cycle(chord)` — all 4 inversions:**
+
 - `[chord, t1(chord), t1(t1(chord)), t1(t1(t1(chord)))]`
 - The 4th application of t1 yields the original chord transposed up 12 (T12), NOT included
 
 **`project(chord)` — pi: E -> B:**
+
 - Same as `VoicedChord::to_pc_chord()`. Included here for API clarity — the fiber bundle projection.
 
 **`l1_distance(a, b)` — L1 (Manhattan) distance in pitch space:**
+
 - `|a[0]-b[0]| + |a[1]-b[1]| + |a[2]-b[2]| + |a[3]-b[3]|`
 - Uses absolute differences of MIDI pitches (not mod 12)
 - This is NOT the graph distance in B — it measures total voice displacement
@@ -135,21 +148,25 @@ pub fn verify_fiber_classes(space: &BaseSpace) -> BTreeMap<Orbit, FiberClass>
 ```
 
 **`inversions_in_base(chord)`:**
+
 - Compute inversion cycle
 - For each inversion (index 0-3), check if its `interval_structure().is_legal()`
 - Return indices where it's legal
 
 **`inversion_l1_distances(chord)`:**
+
 - Compute inversion cycle: `[inv0, inv1, inv2, inv3]`
 - Compute `t1(inv3)` to get root' (= root + T12)
 - Return `[l1(inv0,inv1), l1(inv1,inv2), l1(inv2,inv3), l1(inv3,root')]`
 
 **`fiber_class(chord)`:**
+
 - Needs a representative VoicedChord for the PcChord. Construct one by placing at a default register (e.g., starting at MIDI 48).
 - Count how many inversions are in [6,8]
 - 1 → ClassA, 2 → ClassB
 
 **`verify_universal_l1_law(space)`:**
+
 - For every chord in B (all 228):
   - Construct a VoicedChord in some default register
   - Compute `inversion_l1_distances`
@@ -157,6 +174,7 @@ pub fn verify_fiber_classes(space: &BaseSpace) -> BTreeMap<Orbit, FiberClass>
 - Return `Ok(())` if all pass, `Err(counterexamples)` otherwise
 
 **`verify_fiber_classes(space)`:**
+
 - For each orbit, pick one representative chord
 - Compute its fiber class
 - Return mapping Orbit -> FiberClass
@@ -192,21 +210,25 @@ pub fn verify_all_orbits_self_dual(space: &BaseSpace) -> bool
 ```
 
 **`quartal_reading(chord)`:** Read intervals top-to-bottom (fourths perspective).
+
 - For ascending pitches `[p0, p1, p2, p3]`, quartal reading is `(p3-p2, p2-p1, p1-p0)` — reversed order.
 - Actually: the quartal reading is the intervals when read from highest to lowest voice. Equivalently, it's the reversal of the quintal (bottom-to-top) intervals.
 
 **`quintal_reading(chord)`:** Read intervals bottom-to-top (fifths perspective).
+
 - Same as `VoicedChord::interval_structure()`: `(p1-p0, p2-p1, p3-p2)`.
 
 **`reverse_interval_structure(is)`:** `(is.2, is.1, is.0)` — swap first and third.
 
 **`t1_reversal_equivalence(chord)`:**
+
 - Compute t1 cycle: `[inv0, inv1, inv2, inv3]`
 - Compute t_minus1 cycle: `[inv0, t_minus1(inv0), t_minus1(t_minus1(inv0)), ...]`
 - Verify t_minus1 cycle visits same 4 pitch-class sets as t1 cycle, in reverse order
 - Specifically: t_minus1 cycle should be `[inv0, inv3, inv2, inv1]` (as pitch-class sets, modulo octave)
 
 **`orbit_self_duality(orbit, space)`:**
+
 - Pick a representative chord from the orbit
 - Compute its interval structure (i1, i2, i3)
 - Compute the reversed interval structure (i3, i2, i1)
@@ -214,6 +236,7 @@ pub fn verify_all_orbits_self_dual(space: &BaseSpace) -> bool
 - Check that both chords are in the same T/I orbit (i.e., inversion maps one to the other)
 
 **`verify_all_orbits_self_dual(space)`:**
+
 - Check `orbit_self_duality` for all 14 orbits
 - Must return true — all 14 are self-dual
 
