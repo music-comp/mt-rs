@@ -6,6 +6,7 @@ mod distance;
 mod duality;
 mod error;
 mod fiber;
+mod modes;
 mod geodesics;
 mod group;
 mod orbit;
@@ -20,6 +21,7 @@ pub use duality::{
     t1_reversal_equivalence, verify_all_orbits_self_dual,
 };
 pub use error::QuintalError;
+pub use modes::ModeError;
 pub use fiber::{chord_scale, inversion_cycle, l1_distance, project, t1, t_minus1, ChordScale};
 pub use geodesics::{count_geodesics, geodesics, passing_chords};
 pub use group::{invert, invert_transpose, orbit, transpose};
