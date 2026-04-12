@@ -6,7 +6,7 @@ mod distance;
 mod duality;
 mod error;
 mod fiber;
-mod modes;
+pub(crate) mod modes;
 mod geodesics;
 mod group;
 mod orbit;

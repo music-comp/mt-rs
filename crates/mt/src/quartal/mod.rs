@@ -11,8 +11,10 @@ mod error;
 mod interval;
 mod orbit;
 mod types;
+mod modes;
 mod voicing;
 
+pub use modes::quartal_orbit_modes;
 pub use constructors::{
     from_stacked_fourths, from_stacked_fourths_voiced, pure_quartal_stack, quartal_neighbors,
 };
