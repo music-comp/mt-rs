@@ -2,7 +2,8 @@ extern crate music_comp_mt as theory;
 
 use theory::quintal::{
     all_modes, modes_by_opening_interval, modes_in_cluster, orbit_modes, orbit_step_sequence,
-    step_size_multiset, step_vocabulary_cluster, Orbit, OthMode, StepVocabularyCluster,
+    step_size_multiset, step_vocabulary_cluster, verify_fiber_mode_connection,
+    verify_multiset_uniqueness, Orbit, OthMode, StepVocabularyCluster,
 };
 
 // ─── OthMode construction and accessors ─────────────────────────────────
@@ -301,6 +302,27 @@ fn test_modes_in_cluster_even_steps_only() {
         assert_eq!(om.step_cluster(), StepVocabularyCluster::EvenStepsOnly);
     }
     assert!(!even.is_empty());
+}
+
+// ─── verification functions ──────────────────────────────────────────────
+
+#[test]
+fn test_multiset_collisions_exist() {
+    // Some orbits share step-size multisets. This is a mathematical fact.
+    // Q777 and Q877 both have multiset [2,2,3,5].
+    let q777_ms = step_size_multiset(&orbit_step_sequence(&Orbit::Q777));
+    let q877_ms = step_size_multiset(&orbit_step_sequence(&Orbit::Q877));
+    assert_eq!(q777_ms, q877_ms, "Q777 and Q877 share step multiset");
+    // verify_multiset_uniqueness correctly detects this
+    assert!(verify_multiset_uniqueness().is_err());
+}
+
+#[test]
+fn test_verify_fiber_mode_connection_passes() {
+    match verify_fiber_mode_connection() {
+        Ok(()) => {}
+        Err(e) => panic!("fiber-mode connection failed: {}", e),
+    }
 }
 
 // ─── OthMode display ────────────────────────────────────────────────────

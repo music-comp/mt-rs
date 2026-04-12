@@ -23,7 +23,8 @@ pub use duality::{
 pub use error::QuintalError;
 pub use modes::{
     all_modes, modes_by_opening_interval, modes_in_cluster, orbit_modes, orbit_step_sequence,
-    step_size_multiset, step_vocabulary_cluster, ModeError, OrbitModes, OthMode, ParentScale,
+    step_size_multiset, step_vocabulary_cluster, verify_fiber_mode_connection,
+    verify_multiset_uniqueness, ModeError, OrbitModes, OthMode, ParentScale,
     StepVocabularyCluster,
 };
 pub use fiber::{chord_scale, inversion_cycle, l1_distance, project, t1, t_minus1, ChordScale};

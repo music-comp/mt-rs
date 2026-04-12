@@ -4,7 +4,7 @@
 use std::error;
 use std::fmt;
 
-use super::{Orbit, PcChord};
+use super::{chord_scale, t1, Orbit, PcChord, VoicedChord};
 use crate::scale::ScaleType;
 use crate::set_class::PitchClassSet;
 
@@ -412,6 +412,72 @@ pub fn modes_by_opening_interval(interval: u8) -> Vec<OthMode> {
         }
     }
     result
+}
+
+// ─── Verification functions ──────────────────────────────────────────────
+
+/// Verify that no two distinct orbits share the same step-size multiset.
+pub fn verify_multiset_uniqueness() -> Result<(), ModeError> {
+    let orbits = Orbit::all();
+    for i in 0..orbits.len() {
+        for j in (i + 1)..orbits.len() {
+            let si = step_size_multiset(&orbit_step_sequence(&orbits[i]));
+            let sj = step_size_multiset(&orbit_step_sequence(&orbits[j]));
+            if si == sj {
+                return Err(ModeError::MultisetCollision {
+                    a: orbits[i],
+                    b: orbits[j],
+                    multiset: si,
+                });
+            }
+        }
+    }
+    Ok(())
+}
+
+/// Verify that mode rotation is the PC-level projection of the t₁ fiber action.
+///
+/// For each orbit: voice the representative in a reference register, apply t₁ k
+/// times, and verify that the step sequence *starting from the lowest voiced pitch*
+/// equals the k-th rotation of the root step sequence.
+///
+/// The key insight: `chord_scale()` always sorts PCs ascending, which erases the
+/// rotation. But the voicing order tracks which PC is the "starting point" — the
+/// lowest MIDI pitch identifies which rotation we're in.
+pub fn verify_fiber_mode_connection() -> Result<(), ModeError> {
+    for orbit in Orbit::all() {
+        let base_steps = orbit_step_sequence(orbit);
+        let repr = representative_pc_chord(orbit);
+        let pcs = repr.pcs;
+
+        let pitches: [u8; 4] = [48 + pcs[0], 48 + pcs[1], 48 + pcs[2], 48 + pcs[3]];
+        let voiced = VoicedChord::new(pitches).expect("orbit representative should be valid");
+
+        let mut current = voiced;
+        for rot in 0..4u8 {
+            // Get the chord scale (PCs sorted ascending)
+            let cs = chord_scale(&current);
+            // Find which rotation matches: the lowest MIDI pitch's PC tells us
+            // which position in the sorted PC set is the "root" of this voicing.
+            let lowest_pc = current.pitches[0] % 12;
+            let root_idx = cs.pcs.iter().position(|&p| p == lowest_pc).unwrap();
+
+            // The step sequence starting from root_idx should be the rotation
+            let actual_steps = rotate_steps(&cs.steps, root_idx);
+            let expected = rotate_steps(&base_steps, rot as usize);
+
+            if actual_steps != expected {
+                return Err(ModeError::FiberModeMismatch {
+                    orbit: *orbit,
+                    rotation: rot,
+                    expected,
+                    actual: actual_steps,
+                });
+            }
+            current = t1(&current);
+        }
+    }
+    Ok(())
 }
 
 /// Get all orbits in a given step-vocabulary cluster.
