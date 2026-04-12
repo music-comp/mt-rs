@@ -61,6 +61,7 @@ impl Scale {
             ScaleType::Blues => Interval::from_semitones(&[3, 2, 1, 1, 3, 2]),
             ScaleType::Chromatic => Interval::from_semitones(&[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]),
             ScaleType::WholeTone => Interval::from_semitones(&[2, 2, 2, 2, 2, 2]),
+            ScaleType::Octatonic => Interval::from_semitones(&[1, 2, 1, 2, 1, 2, 1, 2]),
         }?;
 
         match mode {

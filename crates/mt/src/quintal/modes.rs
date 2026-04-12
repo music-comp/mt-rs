@@ -480,6 +480,78 @@ pub fn verify_fiber_mode_connection() -> Result<(), ModeError> {
     Ok(())
 }
 
+// ─── Parent-scale analysis ───────────────────────────────────────────────
+
+/// Scale patterns as intervals from root (used for subset checking).
+/// Each entry: (ScaleType, interval pattern from root).
+fn scale_library() -> Vec<(ScaleType, Vec<u8>)> {
+    use ScaleType::*;
+    vec![
+        // Pentatonic
+        (PentatonicMajor, vec![0, 2, 4, 7, 9]),
+        (PentatonicMinor, vec![0, 3, 5, 7, 10]),
+        // Diatonic (Ionian mode; other modes covered by transposition)
+        (Diatonic, vec![0, 2, 4, 5, 7, 9, 11]),
+        // Melodic minor (ascending)
+        (MelodicMinor, vec![0, 2, 3, 5, 7, 9, 11]),
+        // Harmonic minor
+        (HarmonicMinor, vec![0, 2, 3, 5, 7, 8, 11]),
+        // Whole-tone
+        (WholeTone, vec![0, 2, 4, 6, 8, 10]),
+        // Blues
+        (Blues, vec![0, 3, 5, 6, 7, 10]),
+        // Octatonic (half-whole)
+        (Octatonic, vec![0, 1, 3, 4, 6, 7, 9, 10]),
+        // Octatonic (whole-half)
+        (Octatonic, vec![0, 2, 3, 5, 6, 8, 9, 11]),
+    ]
+}
+
+/// Identify all traditional scales that contain the given 4-PC set as a subset.
+///
+/// Generates all 12 transpositions of each scale type, checks subset containment,
+/// and returns results sorted by coverage (descending), then by scale_type + root.
+pub fn parent_scales(pcs: &[u8; 4]) -> Vec<ParentScale> {
+    let target: std::collections::BTreeSet<u8> = pcs.iter().copied().collect();
+    let mut results = Vec::new();
+
+    for (scale_type, base_intervals) in &scale_library() {
+        for root in 0..12u8 {
+            let scale_pcs: std::collections::BTreeSet<u8> = base_intervals
+                .iter()
+                .map(|&iv| (root + iv) % 12)
+                .collect();
+
+            if target.is_subset(&scale_pcs) {
+                let pcs_vec: Vec<u8> = scale_pcs.into_iter().collect();
+                results.push(ParentScale::new(*scale_type, root, pcs_vec));
+            }
+        }
+    }
+
+    // Sort by coverage descending, then by scale_type + root for stability
+    results.sort_by(|a, b| {
+        b.coverage()
+            .partial_cmp(&a.coverage())
+            .unwrap_or(std::cmp::Ordering::Equal)
+            .then_with(|| a.scale_type().cmp(&b.scale_type()))
+            .then_with(|| a.root().cmp(&b.root()))
+    });
+
+    results
+}
+
+/// Compute parent scales for all 14 orbits.
+pub fn all_parent_scales() -> Vec<(Orbit, Vec<ParentScale>)> {
+    Orbit::all()
+        .iter()
+        .map(|orbit| {
+            let repr = representative_pc_chord(orbit);
+            (*orbit, parent_scales(&repr.pcs))
+        })
+        .collect()
+}
+
 /// Get all orbits in a given step-vocabulary cluster.
 pub fn modes_in_cluster(cluster: StepVocabularyCluster) -> Vec<OrbitModes> {
     all_modes()

@@ -2,9 +2,10 @@ extern crate music_comp_mt as theory;
 
 use theory::quintal::{
     all_modes, modes_by_opening_interval, modes_in_cluster, orbit_modes, orbit_step_sequence,
-    step_size_multiset, step_vocabulary_cluster, verify_fiber_mode_connection,
+    parent_scales, step_size_multiset, step_vocabulary_cluster, verify_fiber_mode_connection,
     verify_multiset_uniqueness, Orbit, OthMode, StepVocabularyCluster,
 };
+use theory::scale::ScaleType;
 
 // ─── OthMode construction and accessors ─────────────────────────────────
 
@@ -322,6 +323,45 @@ fn test_verify_fiber_mode_connection_passes() {
     match verify_fiber_mode_connection() {
         Ok(()) => {}
         Err(e) => panic!("fiber-mode connection failed: {}", e),
+    }
+}
+
+// ─── parent_scales ──────────────────────────────────────────────────────
+
+#[test]
+fn test_parent_scales_summit_includes_pentatonic() {
+    let scales = parent_scales(&[0, 2, 7, 9]);
+    let pentatonic = scales
+        .iter()
+        .find(|s| s.scale_type() == ScaleType::PentatonicMajor && s.root() == 0);
+    assert!(
+        pentatonic.is_some(),
+        "Summit should be subset of C major pentatonic"
+    );
+    assert_eq!(pentatonic.unwrap().coverage_ratio(), (4, 5));
+}
+
+#[test]
+fn test_parent_scales_crossroads_includes_whole_tone() {
+    let scales = parent_scales(&[0, 2, 6, 8]);
+    let wt = scales
+        .iter()
+        .find(|s| s.scale_type() == ScaleType::WholeTone);
+    assert!(
+        wt.is_some(),
+        "Crossroads should be subset of whole-tone scale"
+    );
+    assert_eq!(wt.unwrap().coverage_ratio(), (4, 6));
+}
+
+#[test]
+fn test_parent_scales_sorted_by_coverage_desc() {
+    let scales = parent_scales(&[0, 2, 7, 9]);
+    for pair in scales.windows(2) {
+        assert!(
+            pair[0].coverage() >= pair[1].coverage(),
+            "parent scales should be sorted by coverage descending"
+        );
     }
 }
 

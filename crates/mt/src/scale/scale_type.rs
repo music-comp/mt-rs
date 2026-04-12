@@ -2,7 +2,7 @@ use crate::scale::{Mode, Mode::*};
 use strum_macros::{Display, EnumIter};
 
 /// The type of a scale.
-#[derive(Display, Debug, Clone, Copy, EnumIter, PartialEq, Eq, Hash)]
+#[derive(Display, Debug, Clone, Copy, EnumIter, PartialEq, Eq, Hash, PartialOrd, Ord)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum ScaleType {
     Diatonic,
@@ -13,6 +13,7 @@ pub enum ScaleType {
     Blues,
     Chromatic,
     WholeTone,
+    Octatonic,
 }
 
 impl ScaleType {
