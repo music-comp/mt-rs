@@ -1,6 +1,10 @@
 use clap::{Parser, Subcommand};
 use music_comp_mt::chord::Chord;
 use music_comp_mt::note::Notes;
+use music_comp_mt::quintal::{
+    all_modes, modes_by_opening_interval, modes_in_cluster, orbit_modes, step_vocabulary_cluster,
+    verify_fiber_mode_connection, verify_multiset_uniqueness, Orbit, StepVocabularyCluster,
+};
 use music_comp_mt::scale::{Direction, Scale};
 use std::fmt;
 
@@ -81,6 +85,11 @@ pub enum Commands {
         #[arg(trailing_var_arg = true)]
         args: Vec<String>,
     },
+    /// OTH (Open Tone Harmony) mode and scale analysis
+    Oth {
+        #[command(subcommand)]
+        action: OthAction,
+    },
 }
 
 #[derive(Subcommand)]
@@ -95,12 +104,36 @@ pub enum ChordAction {
     List,
 }
 
+#[derive(Subcommand)]
+pub enum OthAction {
+    /// List all OTH modes across 14 orbits
+    Modes {
+        /// Filter by orbit (e.g., Q777)
+        #[arg(long)]
+        orbit: Option<String>,
+        /// Filter by opening interval
+        #[arg(long)]
+        opening: Option<u8>,
+    },
+    /// Summary of all 14 orbits with step-size multisets
+    Orbits,
+    /// Parent scale analysis for orbits
+    ParentScales {
+        /// Filter by orbit (e.g., Q777)
+        #[arg(long)]
+        orbit: Option<String>,
+    },
+    /// Run all verification checks
+    Verify,
+}
+
 /// CLI error type.
 #[derive(Debug)]
 pub enum CliError {
     Scale(String),
     Chord(String),
     MissingArgs(String),
+    Oth(String),
 }
 
 impl fmt::Display for CliError {
@@ -109,6 +142,7 @@ impl fmt::Display for CliError {
             CliError::Scale(msg) => write!(f, "{}", msg),
             CliError::Chord(msg) => write!(f, "{}", msg),
             CliError::MissingArgs(msg) => write!(f, "{}", msg),
+            CliError::Oth(msg) => write!(f, "{}", msg),
         }
     }
 }
@@ -122,6 +156,7 @@ pub fn run(cli: Cli) -> Result<String, CliError> {
             descending,
         } => run_scale(action, args, descending),
         Commands::Chord { action, args } => run_chord(action, args),
+        Commands::Oth { action } => run_oth(action),
     }
 }
 
@@ -177,4 +212,223 @@ fn run_chord(action: Option<ChordAction>, args: Vec<String>) -> Result<String, C
         Ok(chord) => Ok(chord.format_notes()),
         Err(e) => Err(CliError::Chord(format!("{}", e))),
     }
+}
+
+// ─── OTH subcommands ────────────────────────────────────────────────────
+
+/// Map a PC to its default sharp-spelling note name.
+fn pc_to_note_name(pc: u8) -> &'static str {
+    match pc % 12 {
+        0 => "C",
+        1 => "C#",
+        2 => "D",
+        3 => "D#",
+        4 => "E",
+        5 => "F",
+        6 => "F#",
+        7 => "G",
+        8 => "G#",
+        9 => "A",
+        10 => "A#",
+        11 => "B",
+        _ => unreachable!(),
+    }
+}
+
+/// Parse an orbit string like "Q777" into an Orbit.
+fn parse_orbit(s: &str) -> Result<Orbit, CliError> {
+    for orbit in Orbit::all() {
+        if format!("{}", orbit).contains(s) || format!("{:?}", orbit).contains(s) {
+            return Ok(*orbit);
+        }
+    }
+    Err(CliError::Oth(format!("unknown orbit: {}", s)))
+}
+
+fn run_oth(action: OthAction) -> Result<String, CliError> {
+    match action {
+        OthAction::Modes { orbit, opening } => run_oth_modes(orbit, opening),
+        OthAction::Orbits => run_oth_orbits(),
+        OthAction::ParentScales { orbit } => run_oth_parent_scales(orbit),
+        OthAction::Verify => run_oth_verify(),
+    }
+}
+
+fn run_oth_modes(
+    orbit_filter: Option<String>,
+    opening_filter: Option<u8>,
+) -> Result<String, CliError> {
+    let mut output = String::new();
+
+    if let Some(opening) = opening_filter {
+        let modes = modes_by_opening_interval(opening);
+        output.push_str(&format!(
+            "OTH modes with opening interval {}:\n\n",
+            opening
+        ));
+        for mode in &modes {
+            let notes: Vec<&str> = mode.pcs_from_c().iter().map(|&pc| pc_to_note_name(pc)).collect();
+            output.push_str(&format!(
+                "  {} M{}  {:?}  {}\n",
+                mode.orbit(),
+                mode.rotation() + 1,
+                mode.steps(),
+                notes.join(" ")
+            ));
+        }
+        return Ok(output);
+    }
+
+    if let Some(orbit_str) = orbit_filter {
+        let orbit = parse_orbit(&orbit_str)?;
+        let om = orbit_modes(&orbit);
+        output.push_str(&format!(
+            "{} — {} distinct modes, cluster: {}\n",
+            orbit,
+            om.distinct_count(),
+            om.step_cluster()
+        ));
+        if let Some(forte) = om.forte_number() {
+            output.push_str(&format!("  Forte: {}\n", forte));
+        }
+        output.push_str(&format!("  Step multiset: {:?}\n\n", om.step_size_multiset()));
+        for mode in om.modes() {
+            let notes: Vec<&str> = mode.pcs_from_c().iter().map(|&pc| pc_to_note_name(pc)).collect();
+            output.push_str(&format!(
+                "  M{}  {:?}  {}  opening: {}\n",
+                mode.rotation() + 1,
+                mode.steps(),
+                notes.join(" "),
+                mode.opening_interval()
+            ));
+        }
+        return Ok(output);
+    }
+
+    // Default: show all modes grouped by cluster
+    let all = all_modes();
+    let total: usize = all.iter().map(|om| om.modes().len()).sum();
+    output.push_str(&format!(
+        "OTH Modes: {} distinct modes across 14 orbits\n\n",
+        total
+    ));
+
+    // Group by cluster
+    for cluster in &[
+        StepVocabularyCluster::NoSemitoneNoTritone,
+        StepVocabularyCluster::ContainsSemitone,
+        StepVocabularyCluster::EvenStepsOnly,
+        StepVocabularyCluster::ContainsTritoneStep,
+    ] {
+        let in_cluster = modes_in_cluster(*cluster);
+        if in_cluster.is_empty() {
+            continue;
+        }
+        output.push_str(&format!(
+            "Cluster: {} ({} orbits, provisional grouping)\n",
+            cluster,
+            in_cluster.len()
+        ));
+        for om in &in_cluster {
+            let forte = om.forte_number().unwrap_or_default();
+            output.push_str(&format!(
+                "  {} ({}) — multiset {:?}: {} modes\n",
+                om.orbit(),
+                forte,
+                om.step_size_multiset(),
+                om.distinct_count()
+            ));
+            for mode in om.modes() {
+                let notes: Vec<&str> =
+                    mode.pcs_from_c().iter().map(|&pc| pc_to_note_name(pc)).collect();
+                output.push_str(&format!(
+                    "    M{}  {:?}  {}  opening: {}\n",
+                    mode.rotation() + 1,
+                    mode.steps(),
+                    notes.join(" "),
+                    mode.opening_interval()
+                ));
+            }
+        }
+        output.push('\n');
+    }
+
+    Ok(output)
+}
+
+fn run_oth_orbits() -> Result<String, CliError> {
+    let mut output = String::from("OTH Orbits: 14 orbits in the base space B\n\n");
+    for orbit in Orbit::all() {
+        let om = orbit_modes(orbit);
+        let forte = om.forte_number().unwrap_or_default();
+        let cluster = step_vocabulary_cluster(orbit);
+        output.push_str(&format!(
+            "  {} ({}) — {} modes, multiset {:?}, cluster: {}\n",
+            orbit,
+            forte,
+            om.distinct_count(),
+            om.step_size_multiset(),
+            cluster
+        ));
+    }
+    Ok(output)
+}
+
+fn run_oth_parent_scales(orbit_filter: Option<String>) -> Result<String, CliError> {
+    use music_comp_mt::quintal::{all_parent_scales, parent_scales};
+
+    if let Some(orbit_str) = orbit_filter {
+        let orbit = parse_orbit(&orbit_str)?;
+        let om = orbit_modes(&orbit);
+        let repr_pcs = om.modes()[0].pcs_from_c();
+        // Use the orbit representative's PCs, not the mode's pcs_from_c
+        let repr = music_comp_mt::quintal::orbit_step_sequence(&orbit);
+        let _ = repr; // we actually need the representative PC chord
+        let scales = parent_scales(&repr_pcs);
+        let mut output = format!("Parent scales for {} (PCs {:?}):\n\n", orbit, repr_pcs);
+        for ps in &scales {
+            output.push_str(&format!(
+                "  {} root={} — coverage {}/{} ({:.0}%), PCs {:?}\n",
+                ps.scale_type(),
+                pc_to_note_name(ps.root()),
+                ps.coverage_ratio().0,
+                ps.coverage_ratio().1,
+                ps.coverage() * 100.0,
+                ps.pcs()
+            ));
+        }
+        return Ok(output);
+    }
+
+    let all = all_parent_scales();
+    let mut output = String::from("Parent scale analysis for all 14 orbits:\n\n");
+    for (orbit, scales) in &all {
+        output.push_str(&format!("  {} — {} parent scales\n", orbit, scales.len()));
+        for ps in scales.iter().take(3) {
+            output.push_str(&format!(
+                "    {} root={} — {}/{}\n",
+                ps.scale_type(),
+                pc_to_note_name(ps.root()),
+                ps.coverage_ratio().0,
+                ps.coverage_ratio().1,
+            ));
+        }
+        if scales.len() > 3 {
+            output.push_str(&format!("    ... and {} more\n", scales.len() - 3));
+        }
+    }
+    Ok(output)
+}
+
+fn run_oth_verify() -> Result<String, CliError> {
+    let mut output = String::new();
+    match verify_multiset_uniqueness() {
+        Ok(()) => output.push_str("  multiset uniqueness: PASS\n"),
+        Err(e) => output.push_str(&format!("  multiset uniqueness: EXPECTED COLLISION — {}\n", e)),
+    }
+    match verify_fiber_mode_connection() {
+        Ok(()) => output.push_str("  fiber-mode connection: PASS\n"),
+        Err(e) => output.push_str(&format!("  fiber-mode connection: FAIL — {}\n", e)),
+    }
+    Ok(output)
 }

@@ -346,10 +346,6 @@ impl OrbitModes {
         &self.parent_scales
     }
 
-    /// Set the parent scales (used by parent_scales() computation).
-    pub(crate) fn set_parent_scales(&mut self, scales: Vec<ParentScale>) {
-        self.parent_scales = scales;
-    }
 }
 
 // ─── orbit_modes ────────────────────────────────────────────────────────
