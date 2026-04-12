@@ -21,7 +21,10 @@ pub use duality::{
     t1_reversal_equivalence, verify_all_orbits_self_dual,
 };
 pub use error::QuintalError;
-pub use modes::{orbit_step_sequence, step_size_multiset, ModeError, OthMode, StepVocabularyCluster};
+pub use modes::{
+    orbit_modes, orbit_step_sequence, step_size_multiset, ModeError, OrbitModes, OthMode,
+    ParentScale, StepVocabularyCluster,
+};
 pub use fiber::{chord_scale, inversion_cycle, l1_distance, project, t1, t_minus1, ChordScale};
 pub use geodesics::{count_geodesics, geodesics, passing_chords};
 pub use group::{invert, invert_transpose, orbit, transpose};

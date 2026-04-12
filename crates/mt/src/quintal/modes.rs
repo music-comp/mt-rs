@@ -5,6 +5,8 @@ use std::error;
 use std::fmt;
 
 use super::{Orbit, PcChord};
+use crate::scale::ScaleType;
+use crate::set_class::PitchClassSet;
 
 /// An error arising from OTH mode computation or verification.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -221,5 +223,157 @@ fn step_vocabulary_cluster_from_multiset(multiset: &[u8; 4]) -> StepVocabularyCl
         StepVocabularyCluster::ContainsSemitone
     } else {
         StepVocabularyCluster::NoSemitoneNoTritone
+    }
+}
+
+// ─── ParentScale ────────────────────────────────────────────────────────
+
+/// A traditional scale that contains an orbit's PC set.
+///
+/// Uses structured types instead of stringly-typed fields.
+/// Coverage stored as exact integer ratio to avoid f32 imprecision.
+#[derive(Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub struct ParentScale {
+    scale_type: ScaleType,
+    root: u8,
+    cardinality: u8,
+    pcs: Vec<u8>,
+    coverage_num: u8,
+    coverage_den: u8,
+}
+
+impl ParentScale {
+    /// Create a new parent scale. Coverage is computed as `4 / cardinality`.
+    pub fn new(scale_type: ScaleType, root: u8, pcs: Vec<u8>) -> Self {
+        let cardinality = pcs.len() as u8;
+        Self {
+            scale_type,
+            root,
+            cardinality,
+            pcs,
+            coverage_num: 4,
+            coverage_den: cardinality,
+        }
+    }
+
+    pub fn scale_type(&self) -> ScaleType {
+        self.scale_type
+    }
+
+    pub fn root(&self) -> u8 {
+        self.root
+    }
+
+    pub fn cardinality(&self) -> u8 {
+        self.cardinality
+    }
+
+    pub fn pcs(&self) -> &[u8] {
+        &self.pcs
+    }
+
+    /// Coverage as a float ratio (e.g. 4/5 = 0.8). For display only.
+    pub fn coverage(&self) -> f32 {
+        self.coverage_num as f32 / self.coverage_den as f32
+    }
+
+    /// Coverage as exact integer ratio (numerator, denominator).
+    pub fn coverage_ratio(&self) -> (u8, u8) {
+        (self.coverage_num, self.coverage_den)
+    }
+}
+
+// ─── OrbitModes ─────────────────────────────────────────────────────────
+
+/// Complete mode data for one orbit.
+///
+/// Cannot derive `Copy` because of `Vec` fields.
+#[derive(Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub struct OrbitModes {
+    orbit: Orbit,
+    step_size_multiset: [u8; 4],
+    step_cluster: StepVocabularyCluster,
+    modes: Vec<OthMode>,
+    parent_scales: Vec<ParentScale>,
+}
+
+impl OrbitModes {
+    pub fn orbit(&self) -> Orbit {
+        self.orbit
+    }
+
+    /// Forte number computed on demand via existing set_class infrastructure.
+    pub fn forte_number(&self) -> Option<String> {
+        let repr = representative_pc_chord(&self.orbit);
+        let pcs_set = PitchClassSet::new(&repr.pcs);
+        pcs_set.forte_number()
+    }
+
+    pub fn step_size_multiset(&self) -> [u8; 4] {
+        self.step_size_multiset
+    }
+
+    pub fn step_cluster(&self) -> StepVocabularyCluster {
+        self.step_cluster
+    }
+
+    pub fn modes(&self) -> &[OthMode] {
+        &self.modes
+    }
+
+    /// Number of distinct modes: 2 for T₆-symmetric orbits, 4 otherwise.
+    pub fn distinct_count(&self) -> u8 {
+        self.modes.len() as u8
+    }
+
+    pub fn parent_scales(&self) -> &[ParentScale] {
+        &self.parent_scales
+    }
+
+    /// Set the parent scales (used by parent_scales() computation).
+    pub(crate) fn set_parent_scales(&mut self, scales: Vec<ParentScale>) {
+        self.parent_scales = scales;
+    }
+}
+
+// ─── orbit_modes ────────────────────────────────────────────────────────
+
+/// Compute all distinct modes for an orbit.
+///
+/// Generates all 4 cyclic rotations of the step sequence, deduplicates
+/// (T₆-symmetric orbits produce only 2 distinct modes), and computes
+/// pitch classes transposed to start on C (pc 0).
+pub fn orbit_modes(orbit: &Orbit) -> OrbitModes {
+    let base_steps = orbit_step_sequence(orbit);
+    let multiset = step_size_multiset(&base_steps);
+    let cluster = step_vocabulary_cluster_from_multiset(&multiset);
+
+    let mut modes = Vec::with_capacity(4);
+    let mut seen_steps: Vec<[u8; 4]> = Vec::with_capacity(4);
+
+    for rot in 0..4u8 {
+        let steps = rotate_steps(&base_steps, rot as usize);
+        if seen_steps.contains(&steps) {
+            continue;
+        }
+        seen_steps.push(steps);
+
+        // Compute pcs_from_c by cumulative sum from 0
+        let mut pcs = [0u8; 4];
+        for i in 1..4 {
+            pcs[i] = pcs[i - 1] + steps[i - 1];
+        }
+
+        modes.push(OthMode::new(*orbit, rot, steps, pcs));
+    }
+
+    OrbitModes {
+        orbit: *orbit,
+        step_size_multiset: multiset,
+        step_cluster: cluster,
+        modes,
+        parent_scales: Vec::new(),
     }
 }
