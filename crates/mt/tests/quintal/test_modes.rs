@@ -1,8 +1,8 @@
 extern crate music_comp_mt as theory;
 
 use theory::quintal::{
-    orbit_modes, orbit_step_sequence, step_size_multiset, step_vocabulary_cluster, Orbit, OthMode,
-    StepVocabularyCluster,
+    all_modes, modes_by_opening_interval, modes_in_cluster, orbit_modes, orbit_step_sequence,
+    step_size_multiset, step_vocabulary_cluster, Orbit, OthMode, StepVocabularyCluster,
 };
 
 // ─── OthMode construction and accessors ─────────────────────────────────
@@ -270,6 +270,37 @@ fn test_cluster_matches_orbit_modes_step_cluster() {
             orbit
         );
     }
+}
+
+// ─── all_modes, modes_by_opening_interval, modes_in_cluster ─────────────
+
+#[test]
+fn test_all_modes_returns_14_orbits() {
+    assert_eq!(all_modes().len(), 14);
+}
+
+#[test]
+fn test_all_modes_52_total() {
+    let total: usize = all_modes().iter().map(|om| om.modes().len()).sum();
+    assert_eq!(total, 52);
+}
+
+#[test]
+fn test_modes_by_opening_interval_all_match() {
+    let semitone_modes = modes_by_opening_interval(1);
+    for mode in &semitone_modes {
+        assert_eq!(mode.opening_interval(), 1);
+    }
+    assert!(!semitone_modes.is_empty(), "should have modes with opening interval 1");
+}
+
+#[test]
+fn test_modes_in_cluster_even_steps_only() {
+    let even = modes_in_cluster(StepVocabularyCluster::EvenStepsOnly);
+    for om in &even {
+        assert_eq!(om.step_cluster(), StepVocabularyCluster::EvenStepsOnly);
+    }
+    assert!(!even.is_empty());
 }
 
 // ─── OthMode display ────────────────────────────────────────────────────

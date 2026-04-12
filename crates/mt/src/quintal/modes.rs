@@ -391,3 +391,33 @@ pub fn orbit_modes(orbit: &Orbit) -> OrbitModes {
         parent_scales: Vec::new(),
     }
 }
+
+// ─── Collection / filter functions ──────────────────────────────────────
+
+/// Get all modes across all 14 orbits.
+pub fn all_modes() -> Vec<OrbitModes> {
+    Orbit::all().iter().map(|o| orbit_modes(o)).collect()
+}
+
+/// Get all modes with a given opening interval size.
+/// Returns owned OthMode values (OthMode is Copy).
+pub fn modes_by_opening_interval(interval: u8) -> Vec<OthMode> {
+    let mut result = Vec::new();
+    for orbit in Orbit::all() {
+        let om = orbit_modes(orbit);
+        for mode in om.modes() {
+            if mode.opening_interval() == interval {
+                result.push(*mode);
+            }
+        }
+    }
+    result
+}
+
+/// Get all orbits in a given step-vocabulary cluster.
+pub fn modes_in_cluster(cluster: StepVocabularyCluster) -> Vec<OrbitModes> {
+    all_modes()
+        .into_iter()
+        .filter(|om| om.step_cluster() == cluster)
+        .collect()
+}
