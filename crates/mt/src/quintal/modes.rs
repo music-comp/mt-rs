@@ -64,3 +64,58 @@ impl fmt::Display for ModeError {
 }
 
 impl error::Error for ModeError {}
+
+// ─── OthMode ────────────────────────────────────────────────────────────
+
+/// A mode of an OTH orbit: a cyclic rotation of the chord-scale step sequence.
+///
+/// `rotation` is 0-3, indicating which PC of the representative chord-scale
+/// is treated as the starting note. The opening interval is derived from
+/// `steps[0]` and is not independently settable.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub struct OthMode {
+    orbit: Orbit,
+    rotation: u8,
+    steps: [u8; 4],
+    pcs_from_c: [u8; 4],
+}
+
+impl OthMode {
+    /// Create a new OTH mode.
+    pub fn new(orbit: Orbit, rotation: u8, steps: [u8; 4], pcs_from_c: [u8; 4]) -> Self {
+        Self {
+            orbit,
+            rotation,
+            steps,
+            pcs_from_c,
+        }
+    }
+
+    pub fn orbit(&self) -> Orbit {
+        self.orbit
+    }
+
+    pub fn rotation(&self) -> u8 {
+        self.rotation
+    }
+
+    pub fn steps(&self) -> [u8; 4] {
+        self.steps
+    }
+
+    pub fn pcs_from_c(&self) -> [u8; 4] {
+        self.pcs_from_c
+    }
+
+    /// Opening interval (first step) — derived, not stored.
+    pub fn opening_interval(&self) -> u8 {
+        self.steps[0]
+    }
+}
+
+impl fmt::Display for OthMode {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{} M{} {:?}", self.orbit, self.rotation + 1, self.steps)
+    }
+}
