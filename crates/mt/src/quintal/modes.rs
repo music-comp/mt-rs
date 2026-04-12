@@ -4,7 +4,7 @@
 use std::error;
 use std::fmt;
 
-use super::Orbit;
+use super::{Orbit, PcChord};
 
 /// An error arising from OTH mode computation or verification.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -154,5 +154,72 @@ impl OthMode {
 impl fmt::Display for OthMode {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{} M{} {:?}", self.orbit, self.rotation + 1, self.steps)
+    }
+}
+
+// ─── Core computation functions ─────────────────────────────────────────
+
+/// Build the representative `PcChord` for an orbit by stacking its interval
+/// structure forward from pitch class 0.
+fn representative_pc_chord(orbit: &Orbit) -> PcChord {
+    let is = orbit.representative();
+    let intervals = is.intervals();
+    let p0: u8 = 0;
+    let p1 = (p0 + intervals[0]) % 12;
+    let p2 = (p1 + intervals[1]) % 12;
+    let p3 = (p2 + intervals[2]) % 12;
+    PcChord::new([p0, p1, p2, p3]).expect("orbit representative is always valid")
+}
+
+/// Compute the chord-scale step sequence for any PcChord (4 PCs in ascending order).
+pub fn pc_chord_step_sequence(chord: &PcChord) -> [u8; 4] {
+    let pcs = chord.pcs;
+    let mut steps = [0u8; 4];
+    for i in 0..3 {
+        steps[i] = pcs[i + 1] - pcs[i];
+    }
+    steps[3] = pcs[0] + 12 - pcs[3];
+    steps
+}
+
+/// Compute the chord-scale step sequence for an orbit from its representative PcChord.
+/// Works entirely in pitch-class space — no VoicedChord needed.
+pub fn orbit_step_sequence(orbit: &Orbit) -> [u8; 4] {
+    let repr = representative_pc_chord(orbit);
+    pc_chord_step_sequence(&repr)
+}
+
+/// Compute the step-size multiset for a step sequence (sorted, rotation-invariant).
+/// Returns a fixed-size array — OTH chords are always 4-note.
+pub fn step_size_multiset(steps: &[u8; 4]) -> [u8; 4] {
+    let mut sorted = *steps;
+    sorted.sort();
+    sorted
+}
+
+/// Rotate a step sequence by `n` positions to the left.
+fn rotate_steps(steps: &[u8; 4], n: usize) -> [u8; 4] {
+    let n = n % 4;
+    let mut result = [0u8; 4];
+    for i in 0..4 {
+        result[i] = steps[(i + n) % 4];
+    }
+    result
+}
+
+/// Classify a sorted step multiset into a StepVocabularyCluster.
+fn step_vocabulary_cluster_from_multiset(multiset: &[u8; 4]) -> StepVocabularyCluster {
+    let has_tritone_step = multiset.contains(&6);
+    let has_semitone = multiset.contains(&1);
+    let all_even = multiset.iter().all(|&s| s % 2 == 0);
+
+    if has_tritone_step {
+        StepVocabularyCluster::ContainsTritoneStep
+    } else if all_even {
+        StepVocabularyCluster::EvenStepsOnly
+    } else if has_semitone {
+        StepVocabularyCluster::ContainsSemitone
+    } else {
+        StepVocabularyCluster::NoSemitoneNoTritone
     }
 }
