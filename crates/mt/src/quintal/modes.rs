@@ -226,6 +226,20 @@ fn step_vocabulary_cluster_from_multiset(multiset: &[u8; 4]) -> StepVocabularyCl
     }
 }
 
+/// Assign a step-vocabulary cluster to an orbit based on its step-size multiset.
+///
+/// This is a PROVISIONAL classification — see [`StepVocabularyCluster`] docs.
+/// Rules (applied in order — first match wins):
+/// 1. If step vocabulary includes 6 → ContainsTritoneStep
+/// 2. If step vocabulary ⊆ {2, 4} → EvenStepsOnly
+/// 3. If step vocabulary includes 1 → ContainsSemitone
+/// 4. Otherwise → NoSemitoneNoTritone
+pub fn step_vocabulary_cluster(orbit: &Orbit) -> StepVocabularyCluster {
+    let steps = orbit_step_sequence(orbit);
+    let multiset = step_size_multiset(&steps);
+    step_vocabulary_cluster_from_multiset(&multiset)
+}
+
 // ─── ParentScale ────────────────────────────────────────────────────────
 
 /// A traditional scale that contains an orbit's PC set.

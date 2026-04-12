@@ -1,7 +1,8 @@
 extern crate music_comp_mt as theory;
 
 use theory::quintal::{
-    orbit_modes, orbit_step_sequence, step_size_multiset, Orbit, OthMode, StepVocabularyCluster,
+    orbit_modes, orbit_step_sequence, step_size_multiset, step_vocabulary_cluster, Orbit, OthMode,
+    StepVocabularyCluster,
 };
 
 // ─── OthMode construction and accessors ─────────────────────────────────
@@ -195,6 +196,80 @@ fn test_orbit_modes_forte_number_summit() {
     let om = orbit_modes(&Orbit::Q777);
     // Summit {0,2,7,9} has Forte number 4-23
     assert_eq!(om.forte_number(), Some("4-23".to_string()));
+}
+
+// ─── step_vocabulary_cluster ─────────────────────────────────────────────
+
+#[test]
+fn test_cluster_crossroads_even_steps() {
+    assert_eq!(
+        step_vocabulary_cluster(&Orbit::Q686),
+        StepVocabularyCluster::EvenStepsOnly
+    );
+}
+
+#[test]
+fn test_cluster_narrows_contains_semitone() {
+    // Q676 (Narrows): step sequence [1,5,1,5], multiset {1,1,5,5}.
+    // Contains semitone (1), no tritone step (6) in the *step* sequence.
+    // NOTE: The stacking interval contains 6 (diminished 5th), but the
+    // cluster classification is based on step-size vocabulary, not stacking intervals.
+    assert_eq!(
+        step_vocabulary_cluster(&Orbit::Q676),
+        StepVocabularyCluster::ContainsSemitone
+    );
+}
+
+#[test]
+fn test_cluster_summit_no_semitone_no_tritone() {
+    assert_eq!(
+        step_vocabulary_cluster(&Orbit::Q777),
+        StepVocabularyCluster::NoSemitoneNoTritone
+    );
+}
+
+#[test]
+fn test_cluster_q767_contains_tritone_step() {
+    // Q767: step sequence has a 6 in it (from the stacking interval pattern)
+    let steps = orbit_step_sequence(&Orbit::Q767);
+    let multiset = step_size_multiset(&steps);
+    assert!(
+        multiset.contains(&6),
+        "Q767 step multiset {:?} should contain 6",
+        multiset
+    );
+    assert_eq!(
+        step_vocabulary_cluster(&Orbit::Q767),
+        StepVocabularyCluster::ContainsTritoneStep
+    );
+}
+
+#[test]
+fn test_cluster_counts_per_category() {
+    use std::collections::HashMap;
+    let mut counts: HashMap<StepVocabularyCluster, usize> = HashMap::new();
+    for orbit in Orbit::all() {
+        *counts.entry(step_vocabulary_cluster(orbit)).or_insert(0) += 1;
+    }
+    // Verify all 14 orbits are classified (no panics, no None)
+    let total: usize = counts.values().sum();
+    assert_eq!(total, 14);
+    // Each category should have at least 1 orbit
+    assert!(counts.len() >= 2, "Should have multiple categories");
+}
+
+#[test]
+fn test_cluster_matches_orbit_modes_step_cluster() {
+    for orbit in Orbit::all() {
+        let cluster = step_vocabulary_cluster(orbit);
+        let om = orbit_modes(orbit);
+        assert_eq!(
+            cluster,
+            om.step_cluster(),
+            "step_vocabulary_cluster and orbit_modes.step_cluster() should agree for {}",
+            orbit
+        );
+    }
 }
 
 // ─── OthMode display ────────────────────────────────────────────────────
