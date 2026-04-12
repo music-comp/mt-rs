@@ -65,6 +65,43 @@ impl fmt::Display for ModeError {
 
 impl error::Error for ModeError {}
 
+// ─── StepVocabularyCluster ───────────────────────────────────────────────
+
+/// Provisional step-vocabulary cluster for an orbit.
+///
+/// IMPORTANT: These clusters are descriptive groupings based on which step sizes
+/// appear in the orbit's step-size multiset. They are NOT proven theoretical
+/// categories. The only established scalar relationship is:
+///   - Summit \[7,7,7\] → pentatonic major
+///
+/// All other cluster assignments are observations awaiting formal justification.
+/// The classification rules are purely mechanical (based on step-size membership)
+/// and do not account for harmonic connections between orbits in B.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[non_exhaustive]
+pub enum StepVocabularyCluster {
+    /// Steps from {2, 3, 4, 5}, no semitone (1) or tritone step (6).
+    NoSemitoneNoTritone,
+    /// Step vocabulary includes 1 (semitone) but not 6 (tritone step).
+    ContainsSemitone,
+    /// Step vocabulary ⊆ {2, 4} — all steps are even, no semitones.
+    EvenStepsOnly,
+    /// Step vocabulary includes 6 (tritone step).
+    ContainsTritoneStep,
+}
+
+impl fmt::Display for StepVocabularyCluster {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            StepVocabularyCluster::NoSemitoneNoTritone => write!(f, "No Semitone, No Tritone"),
+            StepVocabularyCluster::ContainsSemitone => write!(f, "Contains Semitone"),
+            StepVocabularyCluster::EvenStepsOnly => write!(f, "Even Steps Only"),
+            StepVocabularyCluster::ContainsTritoneStep => write!(f, "Contains Tritone Step"),
+        }
+    }
+}
+
 // ─── OthMode ────────────────────────────────────────────────────────────
 
 /// A mode of an OTH orbit: a cyclic rotation of the chord-scale step sequence.

@@ -1,6 +1,6 @@
 extern crate music_comp_mt as theory;
 
-use theory::quintal::{Orbit, OthMode};
+use theory::quintal::{Orbit, OthMode, StepVocabularyCluster};
 
 // ─── OthMode construction and accessors ─────────────────────────────────
 
@@ -30,6 +30,43 @@ fn test_oth_mode_is_copy() {
     let copy = mode;
     assert_eq!(mode, copy);
 }
+
+// ─── StepVocabularyCluster ───────────────────────────────────────────────
+
+#[test]
+fn test_step_vocabulary_cluster_display() {
+    assert_eq!(
+        format!("{}", StepVocabularyCluster::NoSemitoneNoTritone),
+        "No Semitone, No Tritone"
+    );
+    assert_eq!(
+        format!("{}", StepVocabularyCluster::ContainsSemitone),
+        "Contains Semitone"
+    );
+    assert_eq!(
+        format!("{}", StepVocabularyCluster::EvenStepsOnly),
+        "Even Steps Only"
+    );
+    assert_eq!(
+        format!("{}", StepVocabularyCluster::ContainsTritoneStep),
+        "Contains Tritone Step"
+    );
+}
+
+#[test]
+fn test_step_vocabulary_cluster_is_copy_and_ord() {
+    let a = StepVocabularyCluster::NoSemitoneNoTritone;
+    let b = a;
+    assert_eq!(a, b);
+    let mut v = vec![
+        StepVocabularyCluster::ContainsTritoneStep,
+        StepVocabularyCluster::NoSemitoneNoTritone,
+    ];
+    v.sort();
+    assert_eq!(v[0], StepVocabularyCluster::NoSemitoneNoTritone);
+}
+
+// ─── OthMode display ────────────────────────────────────────────────────
 
 #[test]
 fn test_oth_mode_display() {
