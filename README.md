@@ -146,7 +146,7 @@ The `quintal` and `quartal` modules implement the voice-leading geometry from *"
 - **Fiber classification** — 11 Class A orbits (1 inversion in [6,8]) and 3 Class B orbits (2 inversions in [6,8])
 - **Quartal/quintal duality** — proven as orientation reversal on the Z4 fiber; all 14 orbits are self-dual; exhaustive computational verification that both perspectives produce identical results
 - **Quartal-native API** — interval complement bijection (P5 <-> P4), quartal chord constructors (`from_stacked_fourths`, `pure_quartal_stack`), quartal orbit labels, shared base space re-exports
-- **OTH mode analysis** — step sequences, cyclic rotations (52 distinct modes across 14 orbits), step-vocabulary clusters (4 provisional categories), parent-scale identification (pentatonic, diatonic, whole-tone, octatonic, etc.), and fiber-mode connection verification
+- **OTH mode analysis** — Open Tone Harmony (quartal/quintal music system) step sequences, cyclic rotations (52 distinct modes across 14 orbits), step-vocabulary clusters (4 provisional categories), parent-scale identification (pentatonic, diatonic, whole-tone, octatonic, etc.), and fiber-mode connection verification
 
 ## Feature Flags
 
@@ -304,7 +304,7 @@ let q_dists = quartal_l1_distances(&qvc);
 assert_eq!(q_dists, [12, 12, 12, 36]);  // Universal L1 Law, both directions
 ```
 
-### OTH Mode Analysis
+### Open Tone Harmony Mode Analysis
 
 ```rust
 use music_comp_mt::quintal::{
@@ -346,7 +346,7 @@ assert_eq!(pentatonic.unwrap().coverage_ratio(), (4, 5));  // 4 of 5 notes
 assert!(verify_fiber_mode_connection().is_ok());
 ```
 
-### OTH CLI Commands
+### Open Tone Harmony CLI Commands
 
 ```sh
 mt oth modes                      # List all 52 distinct modes
@@ -383,7 +383,7 @@ crates/
       harmony/, analysis/, voice_leading/
       neo_riemannian/, set_class/, counterpoint/, figured_bass/
       quintal/                  fiber bundle voice-leading geometry (fifths)
-        modes.rs                OTH mode analysis (step sequences, clusters, parent scales)
+        modes.rs                Open Tone Harmony mode analysis (step sequences, clusters, parent scales)
       quartal/                  dual quartal perspective (fourths)
         modes.rs                quartal-native mode computation (delegates to quintal)
     tests/
