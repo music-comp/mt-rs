@@ -125,6 +125,8 @@ pub enum OthAction {
     },
     /// Run all verification checks
     Verify,
+    /// Full JSON export of all mode data
+    Export,
 }
 
 /// CLI error type.
@@ -251,6 +253,7 @@ fn run_oth(action: OthAction) -> Result<String, CliError> {
         OthAction::Orbits => run_oth_orbits(),
         OthAction::ParentScales { orbit } => run_oth_parent_scales(orbit),
         OthAction::Verify => run_oth_verify(),
+        OthAction::Export => run_oth_export(),
     }
 }
 
@@ -418,6 +421,159 @@ fn run_oth_parent_scales(orbit_filter: Option<String>) -> Result<String, CliErro
         }
     }
     Ok(output)
+}
+
+fn run_oth_export() -> Result<String, CliError> {
+    use music_comp_mt::quintal::parent_scales;
+    use serde::Serialize;
+
+    #[derive(Serialize)]
+    struct ExportRoot {
+        meta: ExportMeta,
+        clusters: Vec<ExportCluster>,
+    }
+
+    #[derive(Serialize)]
+    struct ExportMeta {
+        total_modes: u32,
+        total_orbits: u32,
+        generated_by: String,
+        version: String,
+    }
+
+    #[derive(Serialize)]
+    struct ExportCluster {
+        id: String,
+        label: String,
+        description: String,
+        provisional_note: String,
+        orbits: Vec<ExportOrbit>,
+    }
+
+    #[derive(Serialize)]
+    struct ExportOrbit {
+        quintal_label: String,
+        forte: String,
+        prime_form: [u8; 4],
+        step_size_multiset: [u8; 4],
+        step_cluster: String,
+        parent_scales: Vec<ExportParentScale>,
+        modes: Vec<ExportMode>,
+    }
+
+    #[derive(Serialize)]
+    struct ExportParentScale {
+        scale_type: String,
+        root: u8,
+        pcs: Vec<u8>,
+        coverage_ratio: (u8, u8),
+    }
+
+    #[derive(Serialize)]
+    struct ExportMode {
+        rotation: u8,
+        steps: [u8; 4],
+        pcs_from_c: [u8; 4],
+        spelled_from_c: Vec<String>,
+        opening_interval: u8,
+    }
+
+    let cluster_info: Vec<(StepVocabularyCluster, &str, &str)> = vec![
+        (
+            StepVocabularyCluster::NoSemitoneNoTritone,
+            "no_semitone_no_tritone",
+            "Steps from {2,3,4,5} — no semitone or tritone step",
+        ),
+        (
+            StepVocabularyCluster::ContainsSemitone,
+            "contains_semitone",
+            "Step vocabulary includes semitone (1) but not tritone step (6)",
+        ),
+        (
+            StepVocabularyCluster::EvenStepsOnly,
+            "even_steps_only",
+            "Step vocabulary ⊆ {2,4} — all steps are even",
+        ),
+        (
+            StepVocabularyCluster::ContainsTritoneStep,
+            "contains_tritone_step",
+            "Step vocabulary includes tritone step (6)",
+        ),
+    ];
+
+    let all = all_modes();
+    let total_modes: u32 = all.iter().map(|om| om.distinct_count() as u32).sum();
+
+    let mut clusters = Vec::new();
+    for (cluster, id, desc) in &cluster_info {
+        let in_cluster: Vec<_> = all.iter().filter(|om| om.step_cluster() == *cluster).collect();
+        if in_cluster.is_empty() {
+            continue;
+        }
+
+        let mut orbits = Vec::new();
+        for om in &in_cluster {
+            let repr_pcs = om.modes()[0].pcs_from_c();
+            let scales = parent_scales(&repr_pcs);
+
+            let export_scales: Vec<ExportParentScale> = scales
+                .iter()
+                .map(|ps| ExportParentScale {
+                    scale_type: format!("{}", ps.scale_type()),
+                    root: ps.root(),
+                    pcs: ps.pcs().to_vec(),
+                    coverage_ratio: ps.coverage_ratio(),
+                })
+                .collect();
+
+            let export_modes: Vec<ExportMode> = om
+                .modes()
+                .iter()
+                .map(|m| ExportMode {
+                    rotation: m.rotation(),
+                    steps: m.steps(),
+                    pcs_from_c: m.pcs_from_c(),
+                    spelled_from_c: m
+                        .pcs_from_c()
+                        .iter()
+                        .map(|&pc| pc_to_note_name(pc).to_string())
+                        .collect(),
+                    opening_interval: m.opening_interval(),
+                })
+                .collect();
+
+            orbits.push(ExportOrbit {
+                quintal_label: format!("{:?}", om.orbit()),
+                forte: om.forte_number().unwrap_or_default(),
+                prime_form: repr_pcs,
+                step_size_multiset: om.step_size_multiset(),
+                step_cluster: id.to_string(),
+                parent_scales: export_scales,
+                modes: export_modes,
+            });
+        }
+
+        clusters.push(ExportCluster {
+            id: id.to_string(),
+            label: format!("{}", cluster),
+            description: desc.to_string(),
+            provisional_note: "Grouping by step vocabulary only — not a proven theoretical category."
+                .to_string(),
+            orbits,
+        });
+    }
+
+    let root = ExportRoot {
+        meta: ExportMeta {
+            total_modes,
+            total_orbits: 14,
+            generated_by: "mt-cli oth export".to_string(),
+            version: env!("CARGO_PKG_VERSION").to_string(),
+        },
+        clusters,
+    };
+
+    serde_json::to_string_pretty(&root).map_err(|e| CliError::Oth(format!("JSON error: {}", e)))
 }
 
 fn run_oth_verify() -> Result<String, CliError> {
