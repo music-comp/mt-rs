@@ -1,10 +1,10 @@
 mod test_base_space;
-mod test_modes;
 mod test_centrality;
 mod test_distance;
 mod test_duality;
 mod test_fiber;
 mod test_geodesics;
+mod test_modes;
 mod test_orbit;
 mod test_types;
 mod test_verification;

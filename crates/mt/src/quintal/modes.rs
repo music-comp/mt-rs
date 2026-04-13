@@ -345,7 +345,6 @@ impl OrbitModes {
     pub fn parent_scales(&self) -> &[ParentScale] {
         &self.parent_scales
     }
-
 }
 
 // ─── orbit_modes ────────────────────────────────────────────────────────
@@ -392,7 +391,7 @@ pub fn orbit_modes(orbit: &Orbit) -> OrbitModes {
 
 /// Get all modes across all 14 orbits.
 pub fn all_modes() -> Vec<OrbitModes> {
-    Orbit::all().iter().map(|o| orbit_modes(o)).collect()
+    Orbit::all().iter().map(orbit_modes).collect()
 }
 
 /// Get all modes with a given opening interval size.
@@ -513,10 +512,8 @@ pub fn parent_scales(pcs: &[u8; 4]) -> Vec<ParentScale> {
 
     for (scale_type, base_intervals) in &scale_library() {
         for root in 0..12u8 {
-            let scale_pcs: std::collections::BTreeSet<u8> = base_intervals
-                .iter()
-                .map(|&iv| (root + iv) % 12)
-                .collect();
+            let scale_pcs: std::collections::BTreeSet<u8> =
+                base_intervals.iter().map(|&iv| (root + iv) % 12).collect();
 
             if target.is_subset(&scale_pcs) {
                 let pcs_vec: Vec<u8> = scale_pcs.into_iter().collect();

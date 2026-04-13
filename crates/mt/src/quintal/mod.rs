@@ -6,9 +6,9 @@ mod distance;
 mod duality;
 mod error;
 mod fiber;
-pub(crate) mod modes;
 mod geodesics;
 mod group;
+pub(crate) mod modes;
 mod orbit;
 mod types;
 mod verification;
@@ -21,15 +21,15 @@ pub use duality::{
     t1_reversal_equivalence, verify_all_orbits_self_dual,
 };
 pub use error::QuintalError;
+pub use fiber::{chord_scale, inversion_cycle, l1_distance, project, t1, t_minus1, ChordScale};
+pub use geodesics::{count_geodesics, geodesics, passing_chords};
+pub use group::{invert, invert_transpose, orbit, transpose};
 pub use modes::{
     all_modes, all_parent_scales, modes_by_opening_interval, modes_in_cluster, orbit_modes,
     orbit_step_sequence, parent_scales, step_size_multiset, step_vocabulary_cluster,
     verify_fiber_mode_connection, verify_multiset_uniqueness, ModeError, OrbitModes, OthMode,
     ParentScale, StepVocabularyCluster,
 };
-pub use fiber::{chord_scale, inversion_cycle, l1_distance, project, t1, t_minus1, ChordScale};
-pub use geodesics::{count_geodesics, geodesics, passing_chords};
-pub use group::{invert, invert_transpose, orbit, transpose};
 pub use orbit::{classify_all, classify_orbit, Orbit};
 pub use types::{FiberClass, IntervalStructure, PcChord, VoicedChord};
 pub use verification::{

@@ -265,12 +265,13 @@ fn run_oth_modes(
 
     if let Some(opening) = opening_filter {
         let modes = modes_by_opening_interval(opening);
-        output.push_str(&format!(
-            "OTH modes with opening interval {}:\n\n",
-            opening
-        ));
+        output.push_str(&format!("OTH modes with opening interval {}:\n\n", opening));
         for mode in &modes {
-            let notes: Vec<&str> = mode.pcs_from_c().iter().map(|&pc| pc_to_note_name(pc)).collect();
+            let notes: Vec<&str> = mode
+                .pcs_from_c()
+                .iter()
+                .map(|&pc| pc_to_note_name(pc))
+                .collect();
             output.push_str(&format!(
                 "  {} M{}  {:?}  {}\n",
                 mode.orbit(),
@@ -294,9 +295,16 @@ fn run_oth_modes(
         if let Some(forte) = om.forte_number() {
             output.push_str(&format!("  Forte: {}\n", forte));
         }
-        output.push_str(&format!("  Step multiset: {:?}\n\n", om.step_size_multiset()));
+        output.push_str(&format!(
+            "  Step multiset: {:?}\n\n",
+            om.step_size_multiset()
+        ));
         for mode in om.modes() {
-            let notes: Vec<&str> = mode.pcs_from_c().iter().map(|&pc| pc_to_note_name(pc)).collect();
+            let notes: Vec<&str> = mode
+                .pcs_from_c()
+                .iter()
+                .map(|&pc| pc_to_note_name(pc))
+                .collect();
             output.push_str(&format!(
                 "  M{}  {:?}  {}  opening: {}\n",
                 mode.rotation() + 1,
@@ -342,8 +350,11 @@ fn run_oth_modes(
                 om.distinct_count()
             ));
             for mode in om.modes() {
-                let notes: Vec<&str> =
-                    mode.pcs_from_c().iter().map(|&pc| pc_to_note_name(pc)).collect();
+                let notes: Vec<&str> = mode
+                    .pcs_from_c()
+                    .iter()
+                    .map(|&pc| pc_to_note_name(pc))
+                    .collect();
                 output.push_str(&format!(
                     "    M{}  {:?}  {}  opening: {}\n",
                     mode.rotation() + 1,
@@ -506,7 +517,10 @@ fn run_oth_export() -> Result<String, CliError> {
 
     let mut clusters = Vec::new();
     for (cluster, id, desc) in &cluster_info {
-        let in_cluster: Vec<_> = all.iter().filter(|om| om.step_cluster() == *cluster).collect();
+        let in_cluster: Vec<_> = all
+            .iter()
+            .filter(|om| om.step_cluster() == *cluster)
+            .collect();
         if in_cluster.is_empty() {
             continue;
         }
@@ -557,8 +571,8 @@ fn run_oth_export() -> Result<String, CliError> {
             id: id.to_string(),
             label: format!("{}", cluster),
             description: desc.to_string(),
-            provisional_note: "Grouping by step vocabulary only — not a proven theoretical category."
-                .to_string(),
+            provisional_note:
+                "Grouping by step vocabulary only — not a proven theoretical category.".to_string(),
             orbits,
         });
     }
@@ -580,7 +594,10 @@ fn run_oth_verify() -> Result<String, CliError> {
     let mut output = String::new();
     match verify_multiset_uniqueness() {
         Ok(()) => output.push_str("  multiset uniqueness: PASS\n"),
-        Err(e) => output.push_str(&format!("  multiset uniqueness: EXPECTED COLLISION — {}\n", e)),
+        Err(e) => output.push_str(&format!(
+            "  multiset uniqueness: EXPECTED COLLISION — {}\n",
+            e
+        )),
     }
     match verify_fiber_mode_connection() {
         Ok(()) => output.push_str("  fiber-mode connection: PASS\n"),

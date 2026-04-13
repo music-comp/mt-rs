@@ -166,7 +166,8 @@ fn test_all_mode_steps_sum_to_12() {
         for mode in om.modes() {
             let sum: u8 = mode.steps().iter().sum();
             assert_eq!(
-                sum, 12,
+                sum,
+                12,
                 "{} mode {} steps {:?} sum to {}",
                 orbit,
                 mode.rotation(),
@@ -293,7 +294,10 @@ fn test_modes_by_opening_interval_all_match() {
     for mode in &semitone_modes {
         assert_eq!(mode.opening_interval(), 1);
     }
-    assert!(!semitone_modes.is_empty(), "should have modes with opening interval 1");
+    assert!(
+        !semitone_modes.is_empty(),
+        "should have modes with opening interval 1"
+    );
 }
 
 #[test]
