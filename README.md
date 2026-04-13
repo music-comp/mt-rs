@@ -146,6 +146,7 @@ The `quintal` and `quartal` modules implement the voice-leading geometry from *"
 - **Fiber classification** — 11 Class A orbits (1 inversion in [6,8]) and 3 Class B orbits (2 inversions in [6,8])
 - **Quartal/quintal duality** — proven as orientation reversal on the Z4 fiber; all 14 orbits are self-dual; exhaustive computational verification that both perspectives produce identical results
 - **Quartal-native API** — interval complement bijection (P5 <-> P4), quartal chord constructors (`from_stacked_fourths`, `pure_quartal_stack`), quartal orbit labels, shared base space re-exports
+- **OTH mode analysis** — step sequences, cyclic rotations (52 distinct modes across 14 orbits), step-vocabulary clusters (4 provisional categories), parent-scale identification (pentatonic, diatonic, whole-tone, octatonic, etc.), and fiber-mode connection verification
 
 ## Feature Flags
 
@@ -303,6 +304,61 @@ let q_dists = quartal_l1_distances(&qvc);
 assert_eq!(q_dists, [12, 12, 12, 36]);  // Universal L1 Law, both directions
 ```
 
+### OTH Mode Analysis
+
+```rust
+use music_comp_mt::quintal::{
+    orbit_modes, orbit_step_sequence, step_vocabulary_cluster,
+    all_modes, parent_scales, verify_fiber_mode_connection,
+    Orbit, StepVocabularyCluster,
+};
+
+// Step sequence: chromatic intervals between sorted PCs of orbit representative
+let summit_steps = orbit_step_sequence(&Orbit::Q777);
+assert_eq!(summit_steps, [2, 5, 2, 3]);  // from {C, D, G, A}
+
+// Modes: cyclic rotations of the step sequence
+let om = orbit_modes(&Orbit::Q777);
+assert_eq!(om.distinct_count(), 4);   // 4 distinct rotations
+assert_eq!(om.modes()[0].steps(), [2, 5, 2, 3]);  // M1
+assert_eq!(om.modes()[1].steps(), [5, 2, 3, 2]);  // M2
+
+// Step-vocabulary clusters (provisional grouping by step-size membership)
+assert_eq!(
+    step_vocabulary_cluster(&Orbit::Q777),
+    StepVocabularyCluster::NoSemitoneNoTritone
+);
+
+// 52 total distinct modes across all 14 orbits
+// (2 T₆-symmetric orbits have 2 modes each, rest have 4)
+let total: usize = all_modes().iter().map(|om| om.modes().len()).sum();
+assert_eq!(total, 52);
+
+// Parent-scale analysis: which traditional scales contain the orbit's PC set?
+let scales = parent_scales(&[0, 2, 7, 9]);  // Summit PCs
+let pentatonic = scales.iter().find(|s| {
+    s.scale_type() == music_comp_mt::scale::ScaleType::PentatonicMajor && s.root() == 0
+});
+assert!(pentatonic.is_some());
+assert_eq!(pentatonic.unwrap().coverage_ratio(), (4, 5));  // 4 of 5 notes
+
+// Fiber-mode connection: mode rotation = projection of t₁ fiber action
+assert!(verify_fiber_mode_connection().is_ok());
+```
+
+### OTH CLI Commands
+
+```sh
+mt oth modes                      # List all 52 distinct modes
+mt oth modes --orbit Q777         # Modes for a specific orbit
+mt oth modes --opening 1          # Modes with semitone opening interval
+mt oth orbits                     # Summary of all 14 orbits
+mt oth parent-scales              # Parent scale analysis
+mt oth parent-scales --orbit Q686 # Parent scales for a specific orbit
+mt oth verify                     # Run verification checks
+mt oth export                     # Full JSON export
+```
+
 ## Building From Source
 
 ```sh
@@ -327,7 +383,9 @@ crates/
       harmony/, analysis/, voice_leading/
       neo_riemannian/, set_class/, counterpoint/, figured_bass/
       quintal/                  fiber bundle voice-leading geometry (fifths)
+        modes.rs                OTH mode analysis (step sequences, clusters, parent scales)
       quartal/                  dual quartal perspective (fourths)
+        modes.rs                quartal-native mode computation (delegates to quintal)
     tests/
   mt-cli/               binary crate (music-comp-mt-cli)
     src/
