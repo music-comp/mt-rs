@@ -63,7 +63,7 @@ fn test_step_vocabulary_cluster_is_copy_and_ord() {
     let a = StepVocabularyCluster::NoSemitoneNoTritone;
     let b = a;
     assert_eq!(a, b);
-    let mut v = vec![
+    let mut v = [
         StepVocabularyCluster::ContainsTritoneStep,
         StepVocabularyCluster::NoSemitoneNoTritone,
     ];

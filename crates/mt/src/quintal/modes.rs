@@ -552,3 +552,231 @@ pub fn modes_in_cluster(cluster: StepVocabularyCluster) -> Vec<OrbitModes> {
         .filter(|om| om.step_cluster() == cluster)
         .collect()
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // ─── OthMode ────────────────────────────────────────────────────────
+
+    #[test]
+    fn test_oth_mode_new_and_accessors() {
+        let mode = OthMode::new(Orbit::Q777, 0, [2, 5, 2, 3], [0, 2, 7, 9]);
+        assert_eq!(mode.orbit(), Orbit::Q777);
+        assert_eq!(mode.rotation(), 0);
+        assert_eq!(mode.steps(), [2, 5, 2, 3]);
+        assert_eq!(mode.pcs_from_c(), [0, 2, 7, 9]);
+        assert_eq!(mode.opening_interval(), 2);
+    }
+
+    #[test]
+    fn test_oth_mode_display() {
+        let mode = OthMode::new(Orbit::Q777, 0, [2, 5, 2, 3], [0, 2, 7, 9]);
+        let s = format!("{}", mode);
+        assert!(s.contains("M1"));
+    }
+
+    // ─── StepVocabularyCluster display ──────────────────────────────────
+
+    #[test]
+    fn test_cluster_display() {
+        assert_eq!(
+            format!("{}", StepVocabularyCluster::NoSemitoneNoTritone),
+            "No Semitone, No Tritone"
+        );
+        assert_eq!(
+            format!("{}", StepVocabularyCluster::ContainsSemitone),
+            "Contains Semitone"
+        );
+        assert_eq!(
+            format!("{}", StepVocabularyCluster::EvenStepsOnly),
+            "Even Steps Only"
+        );
+        assert_eq!(
+            format!("{}", StepVocabularyCluster::ContainsTritoneStep),
+            "Contains Tritone Step"
+        );
+    }
+
+    // ─── ModeError display ──────────────────────────────────────────────
+
+    #[test]
+    fn test_mode_error_fiber_mismatch_display() {
+        let err = ModeError::FiberModeMismatch {
+            orbit: Orbit::Q777,
+            rotation: 1,
+            expected: [5, 2, 3, 2],
+            actual: [2, 5, 2, 3],
+        };
+        let s = format!("{}", err);
+        assert!(s.contains("fiber-mode mismatch"));
+        assert!(s.contains("rotation 1"));
+    }
+
+    #[test]
+    fn test_mode_error_multiset_collision_display() {
+        let err = ModeError::MultisetCollision {
+            a: Orbit::Q777,
+            b: Orbit::Q877,
+            multiset: [2, 2, 3, 5],
+        };
+        let s = format!("{}", err);
+        assert!(s.contains("multiset collision"));
+    }
+
+    #[test]
+    fn test_mode_error_invalid_step_sum_display() {
+        let err = ModeError::InvalidStepSum {
+            orbit: Orbit::Q777,
+            steps: [2, 5, 2, 4],
+            sum: 13,
+        };
+        let s = format!("{}", err);
+        assert!(s.contains("sums to 13"));
+    }
+
+    #[test]
+    fn test_mode_error_is_error() {
+        let err = ModeError::InvalidStepSum {
+            orbit: Orbit::Q777,
+            steps: [2, 5, 2, 4],
+            sum: 13,
+        };
+        // Verify std::error::Error is implemented
+        let _: &dyn std::error::Error = &err;
+    }
+
+    // ─── ParentScale ────────────────────────────────────────────────────
+
+    #[test]
+    fn test_parent_scale_accessors() {
+        let ps = ParentScale::new(ScaleType::PentatonicMajor, 0, vec![0, 2, 4, 7, 9]);
+        assert_eq!(ps.scale_type(), ScaleType::PentatonicMajor);
+        assert_eq!(ps.root(), 0);
+        assert_eq!(ps.cardinality(), 5);
+        assert_eq!(ps.pcs(), &[0, 2, 4, 7, 9]);
+        assert_eq!(ps.coverage_ratio(), (4, 5));
+        assert!((ps.coverage() - 0.8).abs() < f32::EPSILON);
+    }
+
+    // ─── OrbitModes ─────────────────────────────────────────────────────
+
+    #[test]
+    fn test_orbit_modes_accessors() {
+        let om = orbit_modes(&Orbit::Q777);
+        assert_eq!(om.orbit(), Orbit::Q777);
+        assert_eq!(om.distinct_count(), 4);
+        assert_eq!(
+            om.step_cluster(),
+            StepVocabularyCluster::NoSemitoneNoTritone
+        );
+        assert_eq!(om.step_size_multiset(), [2, 2, 3, 5]);
+        assert!(om.forte_number().is_some());
+        assert!(!om.modes().is_empty());
+        // parent_scales is empty by default (populated separately)
+        assert!(om.parent_scales().is_empty());
+    }
+
+    // ─── Core computation ───────────────────────────────────────────────
+
+    #[test]
+    fn test_orbit_step_sequence_summit() {
+        assert_eq!(orbit_step_sequence(&Orbit::Q777), [2, 5, 2, 3]);
+    }
+
+    #[test]
+    fn test_step_size_multiset_sorts() {
+        assert_eq!(step_size_multiset(&[2, 5, 2, 3]), [2, 2, 3, 5]);
+    }
+
+    #[test]
+    fn test_all_step_sequences_sum_to_12() {
+        for orbit in Orbit::all() {
+            let steps = orbit_step_sequence(orbit);
+            assert_eq!(steps.iter().sum::<u8>(), 12, "{}", orbit);
+        }
+    }
+
+    #[test]
+    fn test_total_distinct_modes_is_52() {
+        let total: u32 = Orbit::all()
+            .iter()
+            .map(|o| orbit_modes(o).distinct_count() as u32)
+            .sum();
+        assert_eq!(total, 52);
+    }
+
+    #[test]
+    fn test_all_modes_returns_14_orbits() {
+        assert_eq!(all_modes().len(), 14);
+    }
+
+    #[test]
+    fn test_modes_by_opening_interval() {
+        let m = modes_by_opening_interval(1);
+        assert!(!m.is_empty());
+        for mode in &m {
+            assert_eq!(mode.opening_interval(), 1);
+        }
+    }
+
+    #[test]
+    fn test_modes_in_cluster_even() {
+        let even = modes_in_cluster(StepVocabularyCluster::EvenStepsOnly);
+        assert!(!even.is_empty());
+        for om in &even {
+            assert_eq!(om.step_cluster(), StepVocabularyCluster::EvenStepsOnly);
+        }
+    }
+
+    #[test]
+    fn test_verify_fiber_mode_connection() {
+        assert!(verify_fiber_mode_connection().is_ok());
+    }
+
+    #[test]
+    fn test_verify_multiset_uniqueness_detects_collisions() {
+        assert!(verify_multiset_uniqueness().is_err());
+    }
+
+    #[test]
+    fn test_parent_scales_summit() {
+        let scales = parent_scales(&[0, 2, 7, 9]);
+        let pent = scales
+            .iter()
+            .find(|s| s.scale_type() == ScaleType::PentatonicMajor && s.root() == 0);
+        assert!(pent.is_some());
+        assert_eq!(pent.unwrap().coverage_ratio(), (4, 5));
+    }
+
+    #[test]
+    fn test_all_parent_scales_covers_14_orbits() {
+        let all = all_parent_scales();
+        assert_eq!(all.len(), 14);
+    }
+
+    #[test]
+    fn test_pc_chord_step_sequence() {
+        let chord = PcChord::new([0, 2, 7, 9]).unwrap();
+        assert_eq!(pc_chord_step_sequence(&chord), [2, 5, 2, 3]);
+    }
+
+    #[test]
+    fn test_rotate_steps() {
+        assert_eq!(rotate_steps(&[2, 5, 2, 3], 0), [2, 5, 2, 3]);
+        assert_eq!(rotate_steps(&[2, 5, 2, 3], 1), [5, 2, 3, 2]);
+        assert_eq!(rotate_steps(&[2, 5, 2, 3], 4), [2, 5, 2, 3]);
+    }
+
+    #[test]
+    fn test_step_vocabulary_cluster_function() {
+        assert_eq!(
+            step_vocabulary_cluster(&Orbit::Q777),
+            StepVocabularyCluster::NoSemitoneNoTritone
+        );
+        assert_eq!(
+            step_vocabulary_cluster(&Orbit::Q686),
+            StepVocabularyCluster::EvenStepsOnly
+        );
+    }
+}
