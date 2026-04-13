@@ -395,9 +395,6 @@ fn run_oth_parent_scales(orbit_filter: Option<String>) -> Result<String, CliErro
         let orbit = parse_orbit(&orbit_str)?;
         let om = orbit_modes(&orbit);
         let repr_pcs = om.modes()[0].pcs_from_c();
-        // Use the orbit representative's PCs, not the mode's pcs_from_c
-        let repr = music_comp_mt::quintal::orbit_step_sequence(&orbit);
-        let _ = repr; // we actually need the representative PC chord
         let scales = parent_scales(&repr_pcs);
         let mut output = format!("Parent scales for {} (PCs {:?}):\n\n", orbit, repr_pcs);
         for ps in &scales {
@@ -604,4 +601,186 @@ fn run_oth_verify() -> Result<String, CliError> {
         Err(e) => output.push_str(&format!("  fiber-mode connection: FAIL — {}\n", e)),
     }
     Ok(output)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // ─── pc_to_note_name ────────────────────────────────────────────────
+
+    #[test]
+    fn test_pc_to_note_name_naturals() {
+        assert_eq!(pc_to_note_name(0), "C");
+        assert_eq!(pc_to_note_name(2), "D");
+        assert_eq!(pc_to_note_name(4), "E");
+        assert_eq!(pc_to_note_name(5), "F");
+        assert_eq!(pc_to_note_name(7), "G");
+        assert_eq!(pc_to_note_name(9), "A");
+        assert_eq!(pc_to_note_name(11), "B");
+    }
+
+    #[test]
+    fn test_pc_to_note_name_sharps() {
+        assert_eq!(pc_to_note_name(1), "C#");
+        assert_eq!(pc_to_note_name(3), "D#");
+        assert_eq!(pc_to_note_name(6), "F#");
+        assert_eq!(pc_to_note_name(8), "G#");
+        assert_eq!(pc_to_note_name(10), "A#");
+    }
+
+    #[test]
+    fn test_pc_to_note_name_wraps_mod_12() {
+        assert_eq!(pc_to_note_name(12), "C");
+        assert_eq!(pc_to_note_name(14), "D");
+    }
+
+    // ─── parse_orbit ────────────────────────────────────────────────────
+
+    #[test]
+    fn test_parse_orbit_q777() {
+        let orbit = parse_orbit("Q777").unwrap();
+        assert_eq!(orbit, Orbit::Q777);
+    }
+
+    #[test]
+    fn test_parse_orbit_q686() {
+        let orbit = parse_orbit("Q686").unwrap();
+        assert_eq!(orbit, Orbit::Q686);
+    }
+
+    #[test]
+    fn test_parse_orbit_unknown() {
+        assert!(parse_orbit("Q999").is_err());
+    }
+
+    // ─── run_oth_verify ─────────────────────────────────────────────────
+
+    #[test]
+    fn test_run_oth_verify_contains_expected_output() {
+        let output = run_oth_verify().unwrap();
+        assert!(output.contains("fiber-mode connection: PASS"));
+        assert!(output.contains("multiset uniqueness: EXPECTED COLLISION"));
+    }
+
+    // ─── run_oth_orbits ─────────────────────────────────────────────────
+
+    #[test]
+    fn test_run_oth_orbits_lists_14() {
+        let output = run_oth_orbits().unwrap();
+        assert!(output.contains("14 orbits"));
+        // Should mention at least the Summit orbit
+        assert!(output.contains("Q(7,7,7)"));
+    }
+
+    // ─── run_oth_modes ──────────────────────────────────────────────────
+
+    #[test]
+    fn test_run_oth_modes_all() {
+        let output = run_oth_modes(None, None).unwrap();
+        assert!(output.contains("52 distinct modes"));
+        assert!(output.contains("No Semitone, No Tritone"));
+    }
+
+    #[test]
+    fn test_run_oth_modes_by_orbit() {
+        let output = run_oth_modes(Some("Q777".into()), None).unwrap();
+        assert!(output.contains("4 distinct modes"));
+        assert!(output.contains("M1"));
+        assert!(output.contains("M4"));
+    }
+
+    #[test]
+    fn test_run_oth_modes_by_opening_interval() {
+        let output = run_oth_modes(None, Some(1)).unwrap();
+        assert!(output.contains("opening interval 1"));
+        // All listed modes should have opening: 1
+        for line in output.lines() {
+            if line.contains("opening:") {
+                assert!(line.contains("opening: 1"), "unexpected line: {}", line);
+            }
+        }
+    }
+
+    #[test]
+    fn test_run_oth_modes_unknown_orbit() {
+        let result = run_oth_modes(Some("Q999".into()), None);
+        assert!(result.is_err());
+    }
+
+    // ─── run_oth_parent_scales ──────────────────────────────────────────
+
+    #[test]
+    fn test_run_oth_parent_scales_all() {
+        let output = run_oth_parent_scales(None).unwrap();
+        assert!(output.contains("14 orbits"));
+    }
+
+    #[test]
+    fn test_run_oth_parent_scales_by_orbit() {
+        let output = run_oth_parent_scales(Some("Q777".into())).unwrap();
+        assert!(output.contains("Parent scales for"));
+        assert!(output.contains("PentatonicMajor"));
+    }
+
+    // ─── run_oth_export ─────────────────────────────────────────────────
+
+    #[test]
+    fn test_run_oth_export_produces_valid_json() {
+        let output = run_oth_export().unwrap();
+        let parsed: serde_json::Value = serde_json::from_str(&output).unwrap();
+        assert_eq!(parsed["meta"]["total_orbits"], 14);
+        assert_eq!(parsed["meta"]["total_modes"], 52);
+        // Count orbits across all clusters
+        let orbits: usize = parsed["clusters"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|c| c["orbits"].as_array().unwrap().len())
+            .sum();
+        assert_eq!(orbits, 14);
+    }
+
+    #[test]
+    fn test_run_oth_export_modes_sum_to_12() {
+        let output = run_oth_export().unwrap();
+        let parsed: serde_json::Value = serde_json::from_str(&output).unwrap();
+        for cluster in parsed["clusters"].as_array().unwrap() {
+            for orbit in cluster["orbits"].as_array().unwrap() {
+                for mode in orbit["modes"].as_array().unwrap() {
+                    let sum: u64 = mode["steps"]
+                        .as_array()
+                        .unwrap()
+                        .iter()
+                        .map(|s| s.as_u64().unwrap())
+                        .sum();
+                    assert_eq!(sum, 12, "steps {:?} don't sum to 12", mode["steps"]);
+                }
+            }
+        }
+    }
+
+    // ─── run (dispatch) ─────────────────────────────────────────────────
+
+    #[test]
+    fn test_run_oth_dispatch_verify() {
+        let cli = Cli::parse_from(["mt", "oth", "verify"]);
+        let output = run(cli).unwrap();
+        assert!(output.contains("fiber-mode connection: PASS"));
+    }
+
+    #[test]
+    fn test_run_oth_dispatch_orbits() {
+        let cli = Cli::parse_from(["mt", "oth", "orbits"]);
+        let output = run(cli).unwrap();
+        assert!(output.contains("14 orbits"));
+    }
+
+    // ─── CliError display ───────────────────────────────────────────────
+
+    #[test]
+    fn test_cli_error_display() {
+        let err = CliError::Oth("test error".into());
+        assert_eq!(format!("{}", err), "test error");
+    }
 }
