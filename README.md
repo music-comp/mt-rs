@@ -139,7 +139,7 @@ The `quintal` and `quartal` modules implement the voice-leading geometry from *"
 
 - **228-chord base space B** — all four-note pitch-class sets with intervals in {d5, P5, A5} (quintal) / {d4, P4, A4} (quartal), with full adjacency graph (600 edges, degree distribution {4:90, 5:48, 6:60, 8:30})
 - **14 T/I orbits** — classification under the 24-element T/I group, with dual labeling (quintal Q777 = quartal Q555, etc.) and structural analogies to major/minor/augmented/diminished
-- **Metric space** — BFS shortest-path distance (diameter 8), eccentricity (range 7-8), 54-chord center, geodesic enumeration (up to 298 shortest paths), passing chords
+- **Metric space** — BFS shortest-path distance (diameter 8), eccentricity (range 7-8), 54-chord center, geodesic enumeration (up to 298 shortest paths), passing chords, single-source geodesic-distribution profiles (`geodesic_distribution`, `distances_and_geodesic_counts`)
 - **Betweenness centrality** — Brandes' algorithm identifies 6 saddle chords as the most structurally important
 - **Tymoczko inversion operators** — chord-scale construction, t1/t-1 interscalar transposition, inversion cycles in both quintal and quartal traversal directions
 - **Universal L1 Law** — consecutive inversions always cost [12, 12, 12, 36] semitones, verified across all 228 chords in both directions
@@ -232,7 +232,7 @@ let inverted = major_triad.invert(0);       // I_0
 use music_comp_mt::quintal::{
     BaseSpace, PcChord, VoicedChord, Orbit,
     enumerate_all, classify_orbit, distance, diameter, center,
-    saddle_chords, count_geodesics,
+    saddle_chords, count_geodesics, geodesic_distribution,
     chord_scale, inversion_cycle, l1_distance, t1,
     verify_universal_l1_law, verify_all_orbits_self_dual,
 };
@@ -254,6 +254,13 @@ assert_eq!(distance(&space, &cgda, &saddle), Some(2));
 // 6 saddle chords with highest betweenness centrality
 // (legacy `crossroads_chords` is still available as a deprecated alias)
 assert_eq!(saddle_chords(&space).len(), 6);
+
+// Single-source geodesic-distribution profile (one BFS pass)
+let dist = geodesic_distribution(&space, &cgda).unwrap();
+assert_eq!(dist.reachable_chords, 227);                  // |B| − 1
+assert_eq!(dist.eccentricity, 7);
+let bucket_counts: Vec<usize> = dist.buckets.iter().map(|b| b.chords_at_d).collect();
+assert_eq!(bucket_counts, vec![8, 18, 36, 45, 66, 44, 10]);  // §6 paper table
 
 // Tymoczko inversion cycle: C3-G3-D4-A4
 let root = VoicedChord::new([48, 55, 62, 69]).unwrap();
@@ -358,6 +365,12 @@ mt oth parent-scales              # Parent scale analysis
 mt oth parent-scales --orbit Q686 # Parent scales for a specific orbit
 mt oth verify                     # Run verification checks
 mt oth export                     # Full JSON export
+
+# §6 single-source geodesic-distribution profile (default source: C-G-D-A)
+mt oth geodesic-distribution                                # markdown table
+mt oth geodesic-distribution --from "C,G,D,A"               # by note names (Db/Eb flats accepted)
+mt oth geodesic-distribution --from-pcs "0,2,6,8"           # by pitch classes
+mt oth geodesic-distribution --from "C,G,D,A" --format json # machine-readable JSON
 ```
 
 ### Runnable Examples
