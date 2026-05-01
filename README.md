@@ -360,6 +360,32 @@ mt oth verify                     # Run verification checks
 mt oth export                     # Full JSON export
 ```
 
+### Runnable Examples
+
+The `crates/mt/examples/` directory ships exploratory programs that exercise
+the public API end-to-end. They're auto-discovered by Cargo, so the standard
+`cargo run --example` workflow applies:
+
+```sh
+# List the available examples
+cargo run -p music-comp-mt --example
+
+# Print the distance distribution from C-G-D-A across the 228-chord base
+# space, the farthest chords with their geodesic counts, and the 6 saddle
+# chords with their betweenness centrality.
+cargo run -p music-comp-mt --example farthest
+
+# Verification harness for OTH ridge / connector-profile claims:
+# independently re-derives orbit cardinality, summit/ridge identification,
+# and the saddle triple-property from the public quintal API. Use --release
+# — the harness performs work proportional to ~228 BFS passes and runs much
+# faster optimised.
+cargo run -p music-comp-mt --example oth_ridge_verify --release
+```
+
+The `-p music-comp-mt` selector tells Cargo which workspace member owns the
+example; without it Cargo asks you to disambiguate.
+
 ## Building From Source
 
 ```sh
