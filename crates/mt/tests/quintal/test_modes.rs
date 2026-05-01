@@ -79,7 +79,7 @@ fn test_orbit_step_sequence_summit() {
 }
 
 #[test]
-fn test_orbit_step_sequence_crossroads() {
+fn test_orbit_step_sequence_saddle() {
     assert_eq!(orbit_step_sequence(&Orbit::Q686), [2, 4, 2, 4]);
 }
 
@@ -123,7 +123,7 @@ fn test_orbit_modes_summit_has_4_modes() {
 }
 
 #[test]
-fn test_orbit_modes_crossroads_has_2_modes() {
+fn test_orbit_modes_saddle_has_2_modes() {
     let om = orbit_modes(&Orbit::Q686);
     assert_eq!(om.distinct_count(), 2);
 }
@@ -204,7 +204,7 @@ fn test_orbit_modes_forte_number_summit() {
 // ─── step_vocabulary_cluster ─────────────────────────────────────────────
 
 #[test]
-fn test_cluster_crossroads_even_steps() {
+fn test_cluster_saddle_even_steps() {
     assert_eq!(
         step_vocabulary_cluster(&Orbit::Q686),
         StepVocabularyCluster::EvenStepsOnly
@@ -346,15 +346,12 @@ fn test_parent_scales_summit_includes_pentatonic() {
 }
 
 #[test]
-fn test_parent_scales_crossroads_includes_whole_tone() {
+fn test_parent_scales_saddle_includes_whole_tone() {
     let scales = parent_scales(&[0, 2, 6, 8]);
     let wt = scales
         .iter()
         .find(|s| s.scale_type() == ScaleType::WholeTone);
-    assert!(
-        wt.is_some(),
-        "Crossroads should be subset of whole-tone scale"
-    );
+    assert!(wt.is_some(), "Saddle should be subset of whole-tone scale");
     assert_eq!(wt.unwrap().coverage_ratio(), (4, 6));
 }
 

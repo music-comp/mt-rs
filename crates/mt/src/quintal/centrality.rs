@@ -1,7 +1,7 @@
 //! Betweenness centrality for the quintal base space graph.
 //!
 //! Implements Brandes' algorithm for betweenness centrality on the
-//! 228-vertex base space, identifying "crossroads" chords that lie on
+//! 228-vertex base space, identifying the "saddle" chords that lie on
 //! the greatest fraction of shortest paths.
 
 use std::collections::{HashMap, VecDeque};
@@ -79,7 +79,7 @@ pub fn betweenness_centrality(space: &BaseSpace) -> HashMap<PcChord, f64> {
     result
 }
 
-/// Return the top 6 chords by betweenness centrality ("crossroads" chords).
+/// Return the top 6 chords by betweenness centrality (the "saddle" chords).
 ///
 /// In the quintal base space these are the chords that act as critical
 /// junctions, lying on the greatest proportion of shortest paths. They
@@ -89,15 +89,25 @@ pub fn betweenness_centrality(space: &BaseSpace) -> HashMap<PcChord, f64> {
 /// # Examples
 ///
 /// ```
-/// use music_comp_mt::quintal::{crossroads_chords, BaseSpace};
+/// use music_comp_mt::quintal::{saddle_chords, BaseSpace};
 ///
 /// let space = BaseSpace::new();
-/// let crossroads = crossroads_chords(&space);
-/// assert_eq!(crossroads.len(), 6);
+/// let saddle = saddle_chords(&space);
+/// assert_eq!(saddle.len(), 6);
 /// ```
-pub fn crossroads_chords(space: &BaseSpace) -> Vec<PcChord> {
+pub fn saddle_chords(space: &BaseSpace) -> Vec<PcChord> {
     let bc = betweenness_centrality(space);
     let mut sorted: Vec<(PcChord, f64)> = bc.into_iter().collect();
     sorted.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap());
     sorted.into_iter().take(6).map(|(chord, _)| chord).collect()
+}
+
+/// Deprecated alias for [`saddle_chords`].
+///
+/// The project terminology has migrated from "Crossroads" to "Saddle"; this
+/// thin wrapper preserves backward compatibility for downstream callers.
+/// New code should call [`saddle_chords`] directly.
+#[deprecated(since = "0.5.2", note = "renamed to `saddle_chords`")]
+pub fn crossroads_chords(space: &BaseSpace) -> Vec<PcChord> {
+    saddle_chords(space)
 }

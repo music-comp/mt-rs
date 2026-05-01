@@ -5,8 +5,8 @@ author: "exactly one"
 component: All
 tags: [change-me]
 created: 2026-04-02
-updated: 2026-04-02
-state: Under Review
+updated: 2026-05-01
+state: Final
 supersedes: null
 superseded-by: null
 version: 1.0
@@ -220,24 +220,24 @@ The project is divided into **4 phases**, each containing **2–4 milestones** s
 
 ### Milestone 2.3: Betweenness Centrality
 
-**Scope:** Compute betweenness centrality for all chords; identify crossroads chords.
+**Scope:** Compute betweenness centrality for all chords; identify the saddle chords (formerly called "crossroads" in earlier drafts of this plan).
 
 **Deliverables:**
 
 - `centrality.rs`:
   - `betweenness_centrality(space: &BaseSpace) -> HashMap<PcChord, f64>` — normalized betweenness centrality using Brandes' algorithm (O(VE) rather than O(V³))
-  - `crossroads_chords(space: &BaseSpace) -> Vec<PcChord>` — the 6 chords with highest betweenness (all [d5,A5,d5] orbit members)
+  - `saddle_chords(space: &BaseSpace) -> Vec<PcChord>` — the 6 chords with highest betweenness (all [d5,A5,d5] orbit members). Also exported as a deprecated alias `crossroads_chords` for backward compatibility.
 
 **Mathematical context for CC:**
 
 > **Betweenness centrality (Brandes' algorithm):** For each vertex s, perform BFS to compute shortest-path distances and counts (σ). Then, traversing vertices in reverse BFS order, accumulate dependency scores δ. The centrality of vertex v is the sum of δ values across all sources, normalized by (n-1)(n-2)/2 for an undirected graph.
 >
-> **Expected result:** The 6 [d5,A5,d5] chords each have ~13.9% betweenness centrality, making them the dominant crossroads of the space.
+> **Expected result:** The 6 [d5,A5,d5] chords each have ~13.9% betweenness centrality, making them the dominant saddle of the space.
 
 **Tests:**
 
 - Top 6 chords by centrality are all [d5,A5,d5] orbit members
-- Each crossroads chord has approximately 13.9% betweenness
+- Each saddle chord has approximately 13.9% betweenness
 - Centrality values sum correctly (normalization check)
 - Centrality is invariant under transposition: T₁(C) has same centrality as C
 
@@ -299,7 +299,7 @@ The project is divided into **4 phases**, each containing **2–4 milestones** s
 - t₋₁ reverses t₁: t₋₁(t₁(C)) has same pc set as C (shifted by one inversion position)
 - `project` maps all 4 inversions of any chord to the same PcChord
 - Chord scale of {C,D,G,A} is [2,5,2,3]
-- Crossroads chord C-F♯-D-A♭ inversion cycle: root (6,8,6)✓, 1st (6,10,6)✗, 2nd (6,8,6)✓, 3rd (6,10,6)✗
+- Saddle chord C-F♯-D-A♭ inversion cycle: root (6,8,6)✓, 1st (6,10,6)✗, 2nd (6,8,6)✓, 3rd (6,10,6)✗
 
 **Estimated session size:** ~400 lines of Rust + ~350 lines of tests
 
@@ -340,7 +340,7 @@ The project is divided into **4 phases**, each containing **2–4 milestones** s
 - L1 between root and 1st inversion of C-G-D-A is 12
 - Fiber class of [P5,P5,P5] orbit is ClassA
 - Fiber class of [d5,A5,d5] orbit is ClassB
-- Crossroads chord has exactly 2 inversions in [6,8] (indices 0 and 2)
+- Saddle chord has exactly 2 inversions in [6,8] (indices 0 and 2)
 - Total cycle cost is 72 for every chord
 
 **Estimated session size:** ~300 lines of Rust + ~300 lines of tests
@@ -424,7 +424,7 @@ The project is divided into **4 phases**, each containing **2–4 milestones** s
 **Tests:**
 
 - Paper example C3-G3-D4-A4 returns exact values from §20
-- Crossroads chord returns fiber_class "B" with 2 inversions in_base
+- Saddle chord returns fiber_class "B" with 2 inversions in_base
 - Invalid chord (intervals outside [6,8]) returns appropriate error
 - Note-name parsing works for sharps and flats
 
@@ -677,7 +677,7 @@ The following values MUST be reproduced exactly by your implementation:
 - C-G-D-A inversion cycle: root (48,55,62,69), 1st (50,57,67,72),
   2nd (55,60,69,74), 3rd (57,62,72,79)
 - Universal L1 pattern: [12,12,12,36]
-- 6 crossroads chords, each ~13.9% betweenness
+- 6 saddle chords, each ~13.9% betweenness
 }
 ```
 

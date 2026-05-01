@@ -81,8 +81,8 @@ Display + Error impls. Follow `ChordError` pattern from `mt/src/chord/mod.rs`.
 | `test_voiced_chord_not_ascending` | `VoicedChord::new([55, 48, 62, 69])` | Err(NotAscending) |
 | `test_voiced_to_pc_chord` | `VoicedChord::new([48,55,62,69]).to_pc_chord()` | PcChord [0,2,7,9] |
 | `test_voiced_interval_structure` | `VoicedChord::new([48,55,62,69]).interval_structure()` | IntervalStructure(7,7,7) |
-| `test_crossroads_chord` | `PcChord::new([0,2,6,8]).interval_structure()` | Some(IntervalStructure(6,8,6)) |
-| `test_crossroads_is_legal` | `PcChord::new([0,2,6,8]).is_legal()` | true |
+| `test_saddle_chord` | `PcChord::new([0,2,6,8]).interval_structure()` | Some(IntervalStructure(6,8,6)) |
+| `test_saddle_is_legal` | `PcChord::new([0,2,6,8]).is_legal()` | true |
 
 ### Existing modules to read for patterns
 

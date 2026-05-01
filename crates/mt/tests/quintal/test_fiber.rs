@@ -23,7 +23,7 @@ fn test_chord_scale_steps_sum_12() {
 }
 
 #[test]
-fn test_chord_scale_crossroads() {
+fn test_chord_scale_saddle() {
     // C-F#-D-Ab = [0,2,6,8] voiced as (48, 54, 62, 68)
     let chord = VoicedChord::new([48, 54, 62, 68]).unwrap();
     let cs = chord_scale(&chord);
@@ -123,7 +123,7 @@ fn test_only_root_in_base_cgda() {
 }
 
 #[test]
-fn test_crossroads_two_in_base() {
+fn test_saddle_two_in_base() {
     let root = VoicedChord::new([48, 54, 62, 68]).unwrap();
     let cycle = inversion_cycle(&root);
     let in_base: Vec<usize> = cycle
@@ -136,7 +136,7 @@ fn test_crossroads_two_in_base() {
 }
 
 #[test]
-fn test_crossroads_intervals() {
+fn test_saddle_intervals() {
     let root = VoicedChord::new([48, 54, 62, 68]).unwrap();
     let cycle = inversion_cycle(&root);
     assert_eq!(cycle[0].interval_structure(), IntervalStructure(6, 8, 6));

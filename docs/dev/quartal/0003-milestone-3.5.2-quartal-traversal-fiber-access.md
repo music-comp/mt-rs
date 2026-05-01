@@ -94,7 +94,7 @@ pub use crate::quintal::{
     enumerate_all, is_adjacent,
     distance, all_distances_from, eccentricity, diameter, center,
     geodesics, count_geodesics, passing_chords,
-    betweenness_centrality, crossroads_chords,
+    betweenness_centrality, saddle_chords,
 };
 ```
 
@@ -187,5 +187,5 @@ pub use crate::quintal::{
 - **14 QuartalOrbits**, bijection with 14 quintal Orbits
 - Orbit sizes and degrees are **preserved** under relabeling
 - Quartal [P4,P4,P4] (Q555): size **12**, degree **8** (= quintal Q777)
-- Quartal [A4,d4,A4] (Q646): size **6**, degree **8** (= quintal Q686 crossroads)
+- Quartal [A4,d4,A4] (Q646): size **6**, degree **8** (= quintal Q686 saddle)
 - Re-exported `BaseSpace` produces **228 chords** with identical degree distribution

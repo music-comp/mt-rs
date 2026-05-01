@@ -124,7 +124,7 @@ Reverse of t1. For each voice:
 - `project` maps all 4 inversions to the **same PcChord**
 - Only root position has interval structure in [6,8] for this chord
 
-**Crossroads chord C-F#-D-Ab = voiced as (48, 54, 62, 68) inversion cycle:**
+**Saddle chord C-F#-D-Ab = voiced as (48, 54, 62, 68) inversion cycle:**
 
 | Inversion | Intervals | In [6,8]? |
 |-----------|-----------|-----------|
@@ -189,7 +189,7 @@ pub fn verify_fiber_classes(space: &BaseSpace) -> BTreeMap<Orbit, FiberClass>
 - Fiber class of [d5,A5,d5] orbit (Q686): **ClassB**
 - Fiber class of [d5,P5,d5] orbit (Q676): **ClassB**
 - Fiber class of [d5,A5,A5] orbit (Q688): **ClassB**
-- Crossroads chord has exactly **2** inversions in [6,8] (indices 0 and 2)
+- Saddle chord has exactly **2** inversions in [6,8] (indices 0 and 2)
 - Class A orbits: 10 (Q777, Q767, Q787, Q878, Q868, Q776, Q877, Q867, Q876, Q786) — wait, need to actually count: there are 11 Class A + 3 Class B = 14 total. Let me recount from the paper:
   - **Class B (3 orbits):** Q676 [d5,P5,d5], Q686 [d5,A5,d5], Q688 [d5,A5,A5]
   - **Class A (11 orbits):** all remaining
@@ -257,7 +257,7 @@ pub fn verify_all_orbits_self_dual(space: &BaseSpace) -> bool
 - Universal L1 Law: **[12, 12, 12, 36]** for all 228 chords, no exceptions
 - Total cycle cost: **72** semitones, always
 - Fiber classes: **3 ClassB orbits** (Q676, Q686, Q688), **11 ClassA orbits**
-- Crossroads Q686 orbit: **2 inversions in [6,8]**, the only degree-8 orbit with this property
+- Saddle Q686 orbit: **2 inversions in [6,8]**, the only degree-8 orbit with this property
 - All **14 orbits are self-dual** under interval reversal
 - Quartal/quintal duality = **orientation reversal on the Z4 fiber**
 

@@ -16,7 +16,7 @@ This phase implements shortest-path distance, geodesic enumeration, and betweenn
 |------|---------|--------|
 | `distance.rs` | BFS distance, eccentricity, diameter, center | 200 |
 | `geodesics.rs` | Geodesic enumeration, passing chords | 250 |
-| `centrality.rs` | Brandes' betweenness centrality, crossroads | 200 |
+| `centrality.rs` | Brandes' betweenness centrality, saddle | 200 |
 
 ### New test files (`mt/tests/quintal/`)
 
@@ -119,7 +119,7 @@ Algorithm — modified BFS tracking all parents:
 
 ```rust
 pub fn betweenness_centrality(space: &BaseSpace) -> HashMap<PcChord, f64>
-pub fn crossroads_chords(space: &BaseSpace) -> Vec<PcChord>
+pub fn saddle_chords(space: &BaseSpace) -> Vec<PcChord>
 ```
 
 **`betweenness_centrality(space)`:** Brandes' algorithm — O(VE) rather than O(V^3).
@@ -135,15 +135,15 @@ Algorithm (Brandes 2001):
    e. For each `v != s`: `centrality[v] += delta[v]`
 3. Normalize: divide all values by `(n-1)*(n-2)/2` for undirected graph (n=228)
 
-**`crossroads_chords(space)`:** Top 6 chords by betweenness centrality. All should be [d5,A5,d5] orbit members.
+**`saddle_chords(space)`:** Top 6 chords by betweenness centrality. All should be [d5,A5,d5] orbit members.
 
 ### Verification values (Milestone 2.3)
 
 - Top 6 chords by centrality are all **[d5,A5,d5] orbit** members (the `Q686` orbit)
-- Each crossroads chord has approximately **13.9%** betweenness centrality
+- Each saddle chord has approximately **13.9%** betweenness centrality
 - Centrality values sum correctly after normalization
 - Centrality is T/I-invariant: all members of an orbit have the same centrality
-- The 6 crossroads chords: `{0,2,6,8}` and its 5 transpositions
+- The 6 saddle chords: `{0,2,6,8}` and its 5 transpositions
 
 ## Key Verification Values (Phase 2 Summary)
 
@@ -151,7 +151,7 @@ Algorithm (Brandes 2001):
 - Eccentricity range: **7–8**
 - Center size: **54 chords**
 - C-G-D-A to antipodal: distance **7**, **298** geodesics
-- Crossroads: **6** chords, all Q686 orbit, each **~13.9%** betweenness
+- Saddle: **6** chords, all Q686 orbit, each **~13.9%** betweenness
 - Total chord count remains **228** (no new chords added)
 
 ## Build Order

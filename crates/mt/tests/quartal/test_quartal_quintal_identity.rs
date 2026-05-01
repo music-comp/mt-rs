@@ -5,7 +5,7 @@ use theory::quartal::{
     QuartalOrbit,
 };
 use theory::quintal::{
-    self, classify_orbit, crossroads_chords, enumerate_all, inversion_cycle, BaseSpace, Orbit,
+    self, classify_orbit, enumerate_all, inversion_cycle, saddle_chords, BaseSpace, Orbit,
     VoicedChord,
 };
 
@@ -47,7 +47,7 @@ fn test_all_orbits_same_chords() {
 fn test_fibers_same_chords() {
     let test_chords: [[u8; 4]; 3] = [
         [48, 55, 62, 69], // C-G-D-A (Q777)
-        [48, 54, 62, 68], // crossroads (Q686)
+        [48, 54, 62, 68], // saddle (Q686)
         [48, 55, 62, 68], // Q776
     ];
     for pitches in &test_chords {
@@ -67,13 +67,13 @@ fn test_fibers_same_chords() {
     }
 }
 
-/// Crossroads chords have degree 8 and orbit Q686 (quintal) = Q646 (quartal).
+/// Saddle chords have degree 8 and orbit Q686 (quintal) = Q646 (quartal).
 #[test]
-fn test_crossroads_dual_perspective() {
+fn test_saddle_dual_perspective() {
     let space = BaseSpace::new();
-    let crossroads = crossroads_chords(&space);
-    assert_eq!(crossroads.len(), 6);
-    for chord in &crossroads {
+    let saddle = saddle_chords(&space);
+    assert_eq!(saddle.len(), 6);
+    for chord in &saddle {
         // Degree 8 from quintal
         assert_eq!(space.degree(chord), Some(8));
         // Orbit is Q686 quintal = Q646 quartal

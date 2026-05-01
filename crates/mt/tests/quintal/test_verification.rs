@@ -15,7 +15,7 @@ fn test_inversions_in_base_cgda() {
 }
 
 #[test]
-fn test_inversions_in_base_crossroads() {
+fn test_inversions_in_base_saddle() {
     // Q686: two inversions land in [6,8], at indices 0 and 2.
     let chord = VoicedChord::new([48, 54, 62, 68]).unwrap();
     assert_eq!(inversions_in_base(&chord), vec![0, 2]);
@@ -30,7 +30,7 @@ fn test_l1_distances_cgda() {
 }
 
 #[test]
-fn test_l1_distances_crossroads() {
+fn test_l1_distances_saddle() {
     let chord = VoicedChord::new([48, 54, 62, 68]).unwrap();
     assert_eq!(inversion_l1_distances(&chord), [12, 12, 12, 36]);
 }

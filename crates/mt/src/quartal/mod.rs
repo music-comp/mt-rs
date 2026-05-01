@@ -30,8 +30,10 @@ pub use voicing::{quartal_inversion_cycle, quartal_l1_distances, t_quartal, t_qu
 
 // Re-export shared infrastructure from quintal — the base space, fiber
 // classes, and graph-theoretic tools are perspective-independent.
+#[allow(deprecated)]
+pub use crate::quintal::crossroads_chords;
 pub use crate::quintal::{all_distances_from, center, diameter, distance, eccentricity};
-pub use crate::quintal::{betweenness_centrality, crossroads_chords};
+pub use crate::quintal::{betweenness_centrality, saddle_chords};
 pub use crate::quintal::{count_geodesics, geodesics, passing_chords};
 pub use crate::quintal::{enumerate_all, is_adjacent};
 pub use crate::quintal::{BaseSpace, FiberClass, PcChord};

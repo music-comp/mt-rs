@@ -73,18 +73,18 @@ Need a function to construct a VoicedChord from a PcChord in a default register.
 | Test | Description | Expected |
 |------|-------------|----------|
 | `test_inversions_in_base_cgda` | CGDA root position | [0] (only root in [6,8]) |
-| `test_inversions_in_base_crossroads` | crossroads chord | [0, 2] (root and 2nd) |
+| `test_inversions_in_base_saddle` | saddle chord | [0, 2] (root and 2nd) |
 | `test_l1_distances_cgda` | L1 pattern for CGDA | [12, 12, 12, 36] |
 | `test_l1_distances_all_sum_72` | total cycle cost | 72 for all tested |
 | `test_universal_l1_law` | verify for all 228 | Ok(()) |
 | `test_fiber_class_q777` | Q777 orbit | ClassA |
-| `test_fiber_class_q686` | Q686 orbit (crossroads) | ClassB |
+| `test_fiber_class_q686` | Q686 orbit (saddle) | ClassB |
 | `test_fiber_class_q676` | Q676 orbit | ClassB |
 | `test_fiber_class_q688` | Q688 orbit | ClassB |
 | `test_verify_fiber_classes_count` | 3 ClassB orbits, 11 ClassA | true |
 | `test_l1_symmetric` | l1(a,b) == l1(b,a) | true |
 | `test_l1_triangle_inequality` | sampled triples | true |
-| `test_crossroads_two_inversions` | exactly 2 inversions in [6,8] | true |
+| `test_saddle_two_inversions` | exactly 2 inversions in [6,8] | true |
 
 ### Existing modules to read for patterns
 
@@ -162,10 +162,10 @@ The following values MUST be reproduced exactly:
 - Total cycle cost = **72** for every chord
 - L1 between root and 1st inversion of C-G-D-A: **12**
 - Fiber class of Q777: **ClassA**
-- Fiber class of Q686 (crossroads): **ClassB**
+- Fiber class of Q686 (saddle): **ClassB**
 - Fiber class of Q676: **ClassB**
 - Fiber class of Q688: **ClassB**
 - **3 ClassB orbits**, **11 ClassA orbits**
-- Crossroads chord has exactly **2** inversions in [6,8] (indices 0 and 2)
+- Saddle chord has exactly **2** inversions in [6,8] (indices 0 and 2)
 - L1 distance is symmetric
 - L1 satisfies triangle inequality

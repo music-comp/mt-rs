@@ -97,8 +97,8 @@ Uses absolute differences of MIDI pitches, NOT mod 12.
 | `test_inversion_cycle_intervals` | intervals match paper table | (7,7,7), (7,10,5), (5,9,5), (5,10,7) |
 | `test_project_all_inversions_same` | all 4 inversions project to same PcChord | true |
 | `test_only_root_in_base` | only root position has IS in [6,8] for CGDA | true |
-| `test_crossroads_two_in_base` | crossroads chord has 2 inversions in [6,8] | indices 0 and 2 |
-| `test_crossroads_inversion_intervals` | crossroads: (6,8,6), (6,10,6), (6,8,6), (6,10,6) | true |
+| `test_saddle_two_in_base` | saddle chord has 2 inversions in [6,8] | indices 0 and 2 |
+| `test_saddle_inversion_intervals` | saddle: (6,8,6), (6,10,6), (6,8,6), (6,10,6) | true |
 | `test_l1_distance_symmetric` | l1(a,b) == l1(b,a) | true |
 | `test_l1_root_to_1st_cgda` | l1 between root and 1st of CGDA | 12 |
 | `test_t1_fourth_l1_cost` | total cycle: 12+12+12+36=72 | true |
@@ -204,5 +204,5 @@ The following values MUST be reproduced exactly:
 - `t1^4` = T12 for all tested chords
 - `project` maps all 4 inversions to the **same PcChord**
 - Only root position has IS in [6,8] for C-G-D-A
-- Crossroads chord (48,54,62,68) cycle: root (6,8,6) yes, 1st (6,10,6) no, 2nd (6,8,6) yes, 3rd (6,10,6) no
+- Saddle chord (48,54,62,68) cycle: root (6,8,6) yes, 1st (6,10,6) no, 2nd (6,8,6) yes, 3rd (6,10,6) no
 - L1 between root and 1st inversion of C-G-D-A: **12**

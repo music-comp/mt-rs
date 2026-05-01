@@ -62,7 +62,7 @@ fn test_t1_reversal_cgda() {
 }
 
 #[test]
-fn test_t1_reversal_crossroads() {
+fn test_t1_reversal_saddle() {
     let chord = VoicedChord::new([48, 54, 62, 68]).unwrap();
     assert!(t1_reversal_equivalence(&chord));
 }

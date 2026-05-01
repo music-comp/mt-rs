@@ -73,7 +73,7 @@ Methods:
 | `test_total_degree_sum` | Sum of all degrees | even (= 2 * edge count) |
 | `test_is_connected` | `BaseSpace::new().is_connected()` | true |
 | `test_cgda_degree` | Degree of [0,2,7,9] | 8 (orbit [7,7,7]) |
-| `test_crossroads_degree` | Degree of [0,2,6,8] | 8 (orbit [6,8,6]) |
+| `test_saddle_degree` | Degree of [0,2,6,8] | 8 (orbit [6,8,6]) |
 
 ### Existing modules to read for patterns
 
@@ -164,5 +164,5 @@ The following values MUST be reproduced exactly by your implementation:
 - Graph is **fully connected** (BFS from any vertex reaches all 228)
 - Every adjacency is **symmetric**: `is_adjacent(a,b) == is_adjacent(b,a)`
 - Degree of [0,2,7,9] (C-G-D-A, orbit Q777) == **8**
-- Degree of [0,2,6,8] (crossroads, orbit Q686) == **8**
+- Degree of [0,2,6,8] (saddle, orbit Q686) == **8**
 - `is_adjacent([0,2,7,9], [0,2,6,9])` == **true** (G->F#, one voice moves by 1)

@@ -117,7 +117,7 @@ pub fn quartal_neighbors(
 | `test_all_228_dual_intervals` | for every chord: quintal IS (i1,i2,i3) and quartal IS (12-i3,12-i2,12-i1) describe the same chord | true |
 | `test_all_orbits_same_chords` | each quintal orbit and corresponding quartal orbit contain the same chords | true |
 | `test_all_fibers_same_chords` | quartal and quintal cycles visit the same 4 voiced chords for every chord | true |
-| `test_crossroads_dual_perspective` | 6 crossroads chords have degree 8, max betweenness, 2 inversions in [6,8] from BOTH perspectives | true |
+| `test_saddle_dual_perspective` | 6 saddle chords have degree 8, max betweenness, 2 inversions in [6,8] from BOTH perspectives | true |
 | `test_distance_identical` | distance via quartal path == distance via quintal path for sampled pairs | true |
 | `test_quartal_root_vs_quintal_root` | pure_quartal_stack(0) has quartal root 0, quintal root 3 | true |
 
@@ -190,6 +190,6 @@ pub fn quartal_neighbors(
 - `from_stacked_fourths_voiced(57, &[5,5,5])` = **[57, 62, 67, 72]** (A3-D4-G4-C5)
 - Every `pure_quartal_stack(n)` for n in 0..12 is **in the BaseSpace** (all 12 are legal)
 - **All 228 chords** satisfy both [6,8] quintal and [4,6] quartal constraints
-- **6 crossroads chords** identified identically from both perspectives
+- **6 saddle chords** identified identically from both perspectives
 - Quartal root 0 -> quintal root **3** (offset by 3*5 mod 12 = 3)
 - Distance between any two chords is **identical** via quartal or quintal paths

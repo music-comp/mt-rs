@@ -181,10 +181,10 @@ mod base_space_tests {
     }
 
     #[test]
-    fn test_crossroads_degree() {
+    fn test_saddle_degree() {
         let space = BaseSpace::new();
-        let crossroads = PcChord::new([0, 2, 6, 8]).unwrap();
-        assert_eq!(space.degree(&crossroads), Some(8));
+        let saddle = PcChord::new([0, 2, 6, 8]).unwrap();
+        assert_eq!(space.degree(&saddle), Some(8));
     }
 
     #[test]

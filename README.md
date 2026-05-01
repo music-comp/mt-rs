@@ -140,7 +140,7 @@ The `quintal` and `quartal` modules implement the voice-leading geometry from *"
 - **228-chord base space B** — all four-note pitch-class sets with intervals in {d5, P5, A5} (quintal) / {d4, P4, A4} (quartal), with full adjacency graph (600 edges, degree distribution {4:90, 5:48, 6:60, 8:30})
 - **14 T/I orbits** — classification under the 24-element T/I group, with dual labeling (quintal Q777 = quartal Q555, etc.) and structural analogies to major/minor/augmented/diminished
 - **Metric space** — BFS shortest-path distance (diameter 8), eccentricity (range 7-8), 54-chord center, geodesic enumeration (up to 298 shortest paths), passing chords
-- **Betweenness centrality** — Brandes' algorithm identifies 6 crossroads chords as the most structurally important
+- **Betweenness centrality** — Brandes' algorithm identifies 6 saddle chords as the most structurally important
 - **Tymoczko inversion operators** — chord-scale construction, t1/t-1 interscalar transposition, inversion cycles in both quintal and quartal traversal directions
 - **Universal L1 Law** — consecutive inversions always cost [12, 12, 12, 36] semitones, verified across all 228 chords in both directions
 - **Fiber classification** — 11 Class A orbits (1 inversion in [6,8]) and 3 Class B orbits (2 inversions in [6,8])
@@ -232,7 +232,7 @@ let inverted = major_triad.invert(0);       // I_0
 use music_comp_mt::quintal::{
     BaseSpace, PcChord, VoicedChord, Orbit,
     enumerate_all, classify_orbit, distance, diameter, center,
-    crossroads_chords, count_geodesics,
+    saddle_chords, count_geodesics,
     chord_scale, inversion_cycle, l1_distance, t1,
     verify_universal_l1_law, verify_all_orbits_self_dual,
 };
@@ -248,11 +248,12 @@ let cgda = PcChord::new([0, 2, 7, 9]).unwrap();  // C-G-D-A
 assert_eq!(classify_orbit(&cgda), Some(Orbit::Q777));   // "major analogue"
 
 // Geodesic distances
-let crossroads = PcChord::new([0, 2, 6, 8]).unwrap();
-assert_eq!(distance(&space, &cgda, &crossroads), Some(2));
+let saddle = PcChord::new([0, 2, 6, 8]).unwrap();
+assert_eq!(distance(&space, &cgda, &saddle), Some(2));
 
-// 6 crossroads chords with highest betweenness centrality
-assert_eq!(crossroads_chords(&space).len(), 6);
+// 6 saddle chords with highest betweenness centrality
+// (legacy `crossroads_chords` is still available as a deprecated alias)
+assert_eq!(saddle_chords(&space).len(), 6);
 
 // Tymoczko inversion cycle: C3-G3-D4-A4
 let root = VoicedChord::new([48, 55, 62, 69]).unwrap();

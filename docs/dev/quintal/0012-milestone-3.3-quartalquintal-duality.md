@@ -68,7 +68,7 @@ Check `orbit_self_duality` for all 14 orbits. All must be self-dual.
 | `test_reverse_asymmetric` | reverse of (7,7,6) | (6,7,7) |
 | `test_reverse_is_involution` | reverse(reverse(is)) == is | true |
 | `test_t1_reversal_cgda` | t-1 cycle is reverse of t1 cycle | true |
-| `test_t1_reversal_crossroads` | t-1 reversal for crossroads | true |
+| `test_t1_reversal_saddle` | t-1 reversal for saddle | true |
 | `test_t1_reversal_all_orbits` | t1 reversal for a representative of each orbit | true |
 | `test_orbit_self_duality_q777` | Q777 is self-dual | true |
 | `test_orbit_self_duality_q776` | Q776 is self-dual ((7,7,6) and (6,7,7) same T/I orbit) | true |

@@ -101,7 +101,7 @@ pub fn center(space: &BaseSpace) -> Vec<PcChord>
 
 **Diameter:** diam(B) = max{ecc(v) : v in B} = max{d(v,w) : v,w in B}. The paper proves this is exactly 8.
 
-**Center:** The set of chords with minimum eccentricity. The paper shows 54 chords have eccentricity 7 (the minimum), including all 12 pure quintal stacks [P5,P5,P5], all 12 [P5,A5,P5] chords, and all 6 [d5,A5,d5] crossroads chords.
+**Center:** The set of chords with minimum eccentricity. The paper shows 54 chords have eccentricity 7 (the minimum), including all 12 pure quintal stacks [P5,P5,P5], all 12 [P5,A5,P5] chords, and all 6 [d5,A5,d5] saddle chords.
 
 **Distance table from C-G-D-A (paper section 6):**
 
