@@ -246,15 +246,54 @@ mod geodesics_tests {
     }
 
     /// §6.3 — σ counts on the per_chord vector match the slow per-pair
-    /// `count_geodesics` for an arbitrary subset.
+    /// `count_geodesics` for an arbitrary subset. Also pins the
+    /// "source excluded from per_chord" invariant.
     #[test]
     fn distribution_geodesic_counts_match_pairwise() {
         let space = BaseSpace::new();
         let source = PcChord::new([0, 2, 7, 9]).unwrap();
         let dist = geodesic_distribution(&space, &source).unwrap();
+        assert_eq!(
+            dist.per_chord.len(),
+            227,
+            "per_chord should exclude the source"
+        );
+        assert!(
+            dist.per_chord.iter().all(|e| e.distance >= 1),
+            "no per_chord entry should have distance 0"
+        );
         for entry in dist.per_chord.iter().take(20) {
             let pairwise = count_geodesics(&space, &source, &entry.chord) as u64;
             assert_eq!(pairwise, entry.geodesic_count, "chord {:?}", entry.chord);
+        }
+    }
+
+    /// §3a — the corrected paper claim: max-σ at d=7 is exactly two chords,
+    /// both in Q867, σ = 298. (The previously-claimed identity
+    /// "A♭–E♭–B♭–F" was wrong on orbit AND identity; this test pins the
+    /// real answer under regression protection.)
+    #[test]
+    fn cgda_max_sigma_at_d_7_lives_in_q867() {
+        let space = BaseSpace::new();
+        let source = PcChord::new([0, 2, 7, 9]).unwrap();
+        let dist = geodesic_distribution(&space, &source).unwrap();
+        let d7 = dist
+            .buckets
+            .iter()
+            .find(|b| b.distance == 7)
+            .expect("d=7 bucket exists");
+        assert_eq!(d7.max_geodesics, 298);
+        assert_eq!(
+            d7.max_chords.len(),
+            2,
+            "expected exactly two max-σ chords at d=7"
+        );
+        for (_, orbit) in &d7.max_chords {
+            assert_eq!(
+                *orbit,
+                Orbit::Q867,
+                "max-σ chords at d=7 should both be in Q867"
+            );
         }
     }
 

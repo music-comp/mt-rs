@@ -1,5 +1,6 @@
 mod test_base_space;
 mod test_centrality;
+mod test_display;
 mod test_distance;
 mod test_duality;
 mod test_fiber;

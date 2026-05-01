@@ -3,8 +3,9 @@ use music_comp_mt::chord::Chord;
 use music_comp_mt::note::Notes;
 use music_comp_mt::quintal::{
     all_modes, geodesic_distribution, modes_by_opening_interval, modes_in_cluster, orbit_modes,
-    step_vocabulary_cluster, verify_fiber_mode_connection, verify_multiset_uniqueness, BaseSpace,
-    GeodesicDistribution, Orbit, PcChord, StepVocabularyCluster,
+    render_chord_dashed, step_vocabulary_cluster, verify_fiber_mode_connection,
+    verify_multiset_uniqueness, BaseSpace, GeodesicDistribution, Orbit, PcChord,
+    StepVocabularyCluster,
 };
 use music_comp_mt::scale::{Direction, Scale};
 use std::fmt;
@@ -702,8 +703,9 @@ fn resolve_source_chord(
         )?,
         (None, None) => DEFAULT_SOURCE_PCS,
         (Some(_), Some(_)) => {
-            // clap's `conflicts_with` rejects this at parse time; this branch
-            // exists only to keep the match exhaustive.
+            // Unreachable in practice: clap's `conflicts_with` rejects this
+            // combination at parse time. Branch retained for match
+            // exhaustiveness; exempt from the coverage gate.
             return Err(CliError::Oth(
                 "--from and --from-pcs are mutually exclusive".into(),
             ));
@@ -711,17 +713,6 @@ fn resolve_source_chord(
     };
     PcChord::from_unsorted(&pcs)
         .map_err(|e| CliError::Oth(format!("invalid source chord {:?}: {e:?}", pcs)))
-}
-
-/// Render a `PcChord` as en-dash-separated note names ordered by pcs ascending,
-/// e.g. `"C–D–F#–G#"`.
-fn render_chord_dashed(chord: &PcChord) -> String {
-    chord
-        .pcs
-        .iter()
-        .map(|&pc| pc_to_note_name(pc))
-        .collect::<Vec<_>>()
-        .join("–")
 }
 
 /// Markdown formatter — extends the §6 paper table with one extra column for
@@ -957,5 +948,202 @@ mod tests {
     fn test_cli_error_display() {
         let err = CliError::Oth("test error".into());
         assert_eq!(format!("{}", err), "test error");
+    }
+
+    // ─── note_name_to_pc ────────────────────────────────────────────────
+
+    #[test]
+    fn test_note_name_to_pc_ascii_naturals() {
+        assert_eq!(note_name_to_pc("C"), Some(0));
+        assert_eq!(note_name_to_pc("D"), Some(2));
+        assert_eq!(note_name_to_pc("E"), Some(4));
+        assert_eq!(note_name_to_pc("F"), Some(5));
+        assert_eq!(note_name_to_pc("G"), Some(7));
+        assert_eq!(note_name_to_pc("A"), Some(9));
+        assert_eq!(note_name_to_pc("B"), Some(11));
+    }
+
+    #[test]
+    fn test_note_name_to_pc_ascii_accidentals() {
+        assert_eq!(note_name_to_pc("C#"), Some(1));
+        assert_eq!(note_name_to_pc("D#"), Some(3));
+        assert_eq!(note_name_to_pc("F#"), Some(6));
+        assert_eq!(note_name_to_pc("Db"), Some(1));
+        assert_eq!(note_name_to_pc("Eb"), Some(3));
+        assert_eq!(note_name_to_pc("Bb"), Some(10));
+        assert_eq!(note_name_to_pc("Ab"), Some(8));
+    }
+
+    #[test]
+    fn test_note_name_to_pc_unicode_accidentals() {
+        assert_eq!(note_name_to_pc("C♯"), Some(1));
+        assert_eq!(note_name_to_pc("F♯"), Some(6));
+        assert_eq!(note_name_to_pc("B♭"), Some(10));
+        assert_eq!(note_name_to_pc("E♭"), Some(3));
+    }
+
+    #[test]
+    fn test_note_name_to_pc_whitespace_tolerant() {
+        assert_eq!(note_name_to_pc(" C "), Some(0));
+        assert_eq!(note_name_to_pc("  Bb"), Some(10));
+        assert_eq!(note_name_to_pc("F#  "), Some(6));
+    }
+
+    #[test]
+    fn test_note_name_to_pc_wraparound_edges() {
+        // Cb = B-natural (= 11) via rem_euclid wraparound
+        assert_eq!(note_name_to_pc("Cb"), Some(11));
+        // B# = C-natural (= 0)
+        assert_eq!(note_name_to_pc("B#"), Some(0));
+    }
+
+    #[test]
+    fn test_note_name_to_pc_rejects() {
+        assert_eq!(note_name_to_pc(""), None);
+        assert_eq!(note_name_to_pc("c"), None);
+        assert_eq!(note_name_to_pc("h"), None);
+        assert_eq!(note_name_to_pc("H"), None);
+        assert_eq!(note_name_to_pc("C##"), None);
+        assert_eq!(note_name_to_pc("Cbb"), None);
+        assert_eq!(note_name_to_pc("C#x"), None);
+        assert_eq!(note_name_to_pc("CC"), None);
+    }
+
+    // ─── geodesic-distribution handler ──────────────────────────────────
+
+    /// Smoke test: default source produces a header that names C-G-D-A.
+    #[test]
+    fn test_run_oth_geodesic_distribution_default_source() {
+        let cli = Cli::parse_from(["mt", "oth", "geodesic-distribution"]);
+        let output = run(cli).unwrap();
+        let first = output.lines().find(|l| !l.is_empty()).unwrap();
+        assert!(
+            first.starts_with("Geodesic distribution from C–G–D–A"),
+            "first line: {first}"
+        );
+    }
+
+    /// `--from "C,G,D,A"` produces the same MD output as the default.
+    #[test]
+    fn test_run_oth_geodesic_distribution_from_notes_matches_default() {
+        let default_cli = Cli::parse_from(["mt", "oth", "geodesic-distribution"]);
+        let default_out = run(default_cli).unwrap();
+        let from_cli = Cli::parse_from(["mt", "oth", "geodesic-distribution", "--from", "C,G,D,A"]);
+        let from_out = run(from_cli).unwrap();
+        assert_eq!(default_out, from_out);
+    }
+
+    /// `--from-pcs "0,2,7,9"` produces the same MD output as the default.
+    #[test]
+    fn test_run_oth_geodesic_distribution_from_pcs_matches_default() {
+        let default_cli = Cli::parse_from(["mt", "oth", "geodesic-distribution"]);
+        let default_out = run(default_cli).unwrap();
+        let pcs_cli = Cli::parse_from([
+            "mt",
+            "oth",
+            "geodesic-distribution",
+            "--from-pcs",
+            "0,2,7,9",
+        ]);
+        let pcs_out = run(pcs_cli).unwrap();
+        assert_eq!(default_out, pcs_out);
+    }
+
+    /// Transposition isometry via the CLI surface: `--from "Db,Ab,Eb,Bb"`
+    /// (T₁ of C-G-D-A) produces buckets matching the default's by
+    /// (distance, chords_at_d, max_geodesics) triples. Exercises the
+    /// flat-accidental parse path *and* the §6.4 isometry guarantee.
+    #[test]
+    fn test_run_oth_geodesic_distribution_transposition_isometry() {
+        // Use JSON so we can parse, then compare structurally rather than
+        // string-matching translated chord names.
+        let default_cli =
+            Cli::parse_from(["mt", "oth", "geodesic-distribution", "--format", "json"]);
+        let transposed_cli = Cli::parse_from([
+            "mt",
+            "oth",
+            "geodesic-distribution",
+            "--from",
+            "Db,Ab,Eb,Bb",
+            "--format",
+            "json",
+        ]);
+        let default_dist: GeodesicDistribution =
+            serde_json::from_str(&run(default_cli).unwrap()).unwrap();
+        let transposed_dist: GeodesicDistribution =
+            serde_json::from_str(&run(transposed_cli).unwrap()).unwrap();
+        let default_triples: Vec<_> = default_dist
+            .buckets
+            .iter()
+            .map(|b| (b.distance, b.chords_at_d, b.max_geodesics))
+            .collect();
+        let transposed_triples: Vec<_> = transposed_dist
+            .buckets
+            .iter()
+            .map(|b| (b.distance, b.chords_at_d, b.max_geodesics))
+            .collect();
+        assert_eq!(default_triples, transposed_triples);
+    }
+
+    /// 3-token `--from` is a parse error mentioning "expected 4".
+    #[test]
+    fn test_run_oth_geodesic_distribution_three_tokens_error() {
+        let cli = Cli::parse_from(["mt", "oth", "geodesic-distribution", "--from", "C,G,D"]);
+        let err = run(cli).unwrap_err();
+        let msg = format!("{err}");
+        assert!(msg.contains("expected 4"), "msg: {msg}");
+    }
+
+    /// Invalid note token returns a `CliError::Oth` mentioning the failure.
+    #[test]
+    fn test_run_oth_geodesic_distribution_invalid_note_error() {
+        let cli = Cli::parse_from(["mt", "oth", "geodesic-distribution", "--from", "X,Y,Z,W"]);
+        let err = run(cli).unwrap_err();
+        let msg = format!("{err}");
+        assert!(msg.contains("invalid note name"), "msg: {msg}");
+    }
+
+    /// Out-of-space source returns the documented Oth error message.
+    #[test]
+    fn test_run_oth_geodesic_distribution_out_of_space_source_error() {
+        let cli = Cli::parse_from([
+            "mt",
+            "oth",
+            "geodesic-distribution",
+            "--from-pcs",
+            "0,1,2,3",
+        ]);
+        let err = run(cli).unwrap_err();
+        let msg = format!("{err}");
+        assert_eq!(msg, "source chord is not in the base space");
+    }
+
+    /// Invalid pitch-class token via `--from-pcs` returns a `CliError::Oth`
+    /// mentioning "invalid pitch class". Covers the `parse_four` error path
+    /// from the pcs branch of `resolve_source_chord`.
+    #[test]
+    fn test_run_oth_geodesic_distribution_invalid_pc_error() {
+        // 15 is out of the 0..=11 pitch-class range.
+        let cli = Cli::parse_from([
+            "mt",
+            "oth",
+            "geodesic-distribution",
+            "--from-pcs",
+            "0,2,15,7",
+        ]);
+        let err = run(cli).unwrap_err();
+        let msg = format!("{err}");
+        assert!(msg.contains("invalid pitch class"), "msg: {msg}");
+    }
+
+    /// JSON output round-trips through `GeodesicDistribution` via serde.
+    #[test]
+    fn test_run_oth_geodesic_distribution_json_roundtrips() {
+        let cli = Cli::parse_from(["mt", "oth", "geodesic-distribution", "--format", "json"]);
+        let output = run(cli).unwrap();
+        let parsed: GeodesicDistribution = serde_json::from_str(&output).unwrap();
+        assert_eq!(parsed.reachable_chords, 227);
+        assert_eq!(parsed.eccentricity, 7);
+        assert_eq!(parsed.per_chord.len(), 227);
     }
 }
