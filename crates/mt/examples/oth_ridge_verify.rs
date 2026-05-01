@@ -377,7 +377,7 @@ fn main() {
     section("length-2 ordered walks by (endpoint-orbit-pair, connector orbit)");
     let mut walk_rows: Vec<((Orbit, Orbit, Orbit), usize)> =
         walk_catalog.iter().map(|(k, v)| (*k, *v)).collect();
-    walk_rows.sort_by(|a, b| b.1.cmp(&a.1));
+    walk_rows.sort_by_key(|row| std::cmp::Reverse(row.1));
     for ((oa, ob, om), count) in &walk_rows {
         println!("  {{{:?}, {:?}}} via {:?}  count = {}", oa, ob, om, count);
     }
