@@ -97,23 +97,14 @@ fn render_chord_dashed_saddle_chords_all_render_in_stack_form() {
     }
 }
 
-/// Q787 breadth check: a non-quintal-stack, non-saddle orbit member.
-/// `[0, 2, 5, 9]` is in Q787 (verified via `classify_orbit`); the chord's
-/// `[6,8]`-legal walk starts at 5 (F): 5→0(=7)→2(=2 — wait verify) →9.
-/// Just assert the pcset preservation invariant and orbit membership;
-/// the exact string would tie us to internal walk choice.
+/// Q787 breadth check: pcs `[0, 2, 5, 9]` is in Q787 and admits a single
+/// `[6, 8]`-legal walk — `2 → 9 → 5 → 0` with intervals `(7, 8, 7)`,
+/// rendering as `"D–A–F–C"`. Pin the exact output for regression.
 #[test]
-fn render_chord_dashed_q787_preserves_pcset() {
+fn render_chord_dashed_q787_walks_d_a_f_c() {
     let q787 = PcChord::new([0, 2, 5, 9]).unwrap();
     assert_eq!(classify_orbit(&q787), Some(Orbit::Q787));
-    let rendered = render_chord_dashed(&q787);
-    let pcset = render_pcset_dashed(&q787);
-    assert_eq!(rendered.matches('–').count(), 3);
-    let mut walk_notes: Vec<&str> = rendered.split('–').collect();
-    let mut pcset_notes: Vec<&str> = pcset.split('–').collect();
-    walk_notes.sort();
-    pcset_notes.sort();
-    assert_eq!(walk_notes, pcset_notes);
+    assert_eq!(render_chord_dashed(&q787), "D–A–F–C");
 }
 
 /// Every chord in the base space renders without panic and preserves its
