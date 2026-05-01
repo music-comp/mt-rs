@@ -30,6 +30,48 @@ fn render_chord_dashed_saddle_picks_smallest_start() {
     assert_eq!(render_chord_dashed(&saddle), "C–F#–D–G#");
 }
 
+/// Inverted-recipe Q867 case: pcs `[1, 4, 5, 11]` is one of the two
+/// corrected d=7 max-σ chords from C-G-D-A. Q867's orbit representative
+/// is `(8, 6, 7)`, but THIS chord's `[6,8]`-legal walk is the reversal
+/// `(7, 6, 8)` starting at pc 4 (E). The renderer uses the chord's own
+/// walk, not the orbit's representative — so it correctly handles
+/// inverted orbit members.
+#[test]
+fn render_chord_dashed_q867_inverted_recipe() {
+    let inverted = PcChord::new([1, 4, 5, 11]).unwrap();
+    assert_eq!(classify_orbit(&inverted), Some(Orbit::Q867));
+    assert_eq!(render_chord_dashed(&inverted), "E–B–F–C#");
+}
+
+/// The two renderers exist precisely because they produce *different*
+/// strings for the same chord — pin that design split. (For C-G-D-A
+/// they coincide as `"C–G–D–A"` vs `"C–D–G–A"`.) Sanity guard against
+/// any future "simplification" that accidentally collapses them.
+#[test]
+fn render_chord_dashed_differs_from_render_pcset_dashed() {
+    let cgda = PcChord::new([0, 2, 7, 9]).unwrap();
+    let stack = render_chord_dashed(&cgda);
+    let pcset = render_pcset_dashed(&cgda);
+    assert_eq!(stack, "C–G–D–A");
+    assert_eq!(pcset, "C–D–G–A");
+    assert_ne!(
+        stack, pcset,
+        "the two renderers must produce different strings"
+    );
+}
+
+/// Non-`[6,8]`-legal chord: `[0, 1, 2, 3]` has no legal stacking. Per
+/// §2a-bis the renderer falls back to ascending-pc order, equivalent to
+/// `render_pcset_dashed`. Pins the documented total-function behaviour.
+#[test]
+fn render_chord_dashed_falls_back_for_non_legal_chord() {
+    let bogus = PcChord::new([0, 1, 2, 3]).unwrap();
+    let stack = render_chord_dashed(&bogus);
+    let pcset = render_pcset_dashed(&bogus);
+    assert_eq!(stack, pcset);
+    assert_eq!(stack, "C–C#–D–D#");
+}
+
 /// `saddle_chords` member: pull a saddle representative from the library
 /// and verify it renders to one of the two valid root-form stacks. Loops
 /// the assertion over all six members so a deterministic-tiebreak

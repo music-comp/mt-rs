@@ -18,7 +18,7 @@ pub use base_space::{enumerate_all, is_adjacent, BaseSpace};
 #[allow(deprecated)]
 pub use centrality::crossroads_chords;
 pub use centrality::{betweenness_centrality, saddle_chords};
-pub use display::{render_chord_dashed, render_pcset_dashed};
+pub use display::{pc_to_note_name, render_chord_dashed, render_pcset_dashed};
 pub use distance::{all_distances_from, center, diameter, distance, eccentricity};
 pub use duality::{
     orbit_self_duality, quartal_reading, quintal_reading, reverse_interval_structure,

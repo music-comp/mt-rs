@@ -3,7 +3,7 @@ use music_comp_mt::chord::Chord;
 use music_comp_mt::note::Notes;
 use music_comp_mt::quintal::{
     all_modes, geodesic_distribution, modes_by_opening_interval, modes_in_cluster, orbit_modes,
-    render_chord_dashed, step_vocabulary_cluster, verify_fiber_mode_connection,
+    pc_to_note_name, render_chord_dashed, step_vocabulary_cluster, verify_fiber_mode_connection,
     verify_multiset_uniqueness, BaseSpace, GeodesicDistribution, Orbit, PcChord,
     StepVocabularyCluster,
 };
@@ -240,25 +240,6 @@ fn run_chord(action: Option<ChordAction>, args: Vec<String>) -> Result<String, C
 }
 
 // ─── OTH subcommands ────────────────────────────────────────────────────
-
-/// Map a PC to its default sharp-spelling note name.
-fn pc_to_note_name(pc: u8) -> &'static str {
-    match pc % 12 {
-        0 => "C",
-        1 => "C#",
-        2 => "D",
-        3 => "D#",
-        4 => "E",
-        5 => "F",
-        6 => "F#",
-        7 => "G",
-        8 => "G#",
-        9 => "A",
-        10 => "A#",
-        11 => "B",
-        _ => unreachable!(),
-    }
-}
 
 /// Parse an orbit string like "Q777" into an Orbit.
 fn parse_orbit(s: &str) -> Result<Orbit, CliError> {
