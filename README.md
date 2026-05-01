@@ -146,6 +146,7 @@ The `quintal` and `quartal` modules implement the voice-leading geometry from *"
 - **Fiber classification** — 11 Class A orbits (1 inversion in [6,8]) and 3 Class B orbits (2 inversions in [6,8])
 - **Quartal/quintal duality** — proven as orientation reversal on the Z4 fiber; all 14 orbits are self-dual; exhaustive computational verification that both perspectives produce identical results
 - **Quartal-native API** — interval complement bijection (P5 <-> P4), quartal chord constructors (`from_stacked_fourths`, `pure_quartal_stack`), quartal orbit labels, shared base space re-exports
+- **Chord rendering** — paired helpers for the two natural string forms of a `PcChord`: `render_chord_dashed` returns root chord form ordered by the chord's `[6, 8]` stack walk (`"C–G–D–A"` for C-G-D-A), `render_pcset_dashed` returns ascending-pc form (`"C–D–G–A"` for the same chord) — pick the one that matches the identity you want
 - **OTH mode analysis** — Open Tone Harmony (quartal/quintal music system) step sequences, cyclic rotations (52 distinct modes across 14 orbits), step-vocabulary clusters (4 provisional categories), parent-scale identification (pentatonic, diatonic, whole-tone, octatonic, etc.), and fiber-mode connection verification
 
 ## Feature Flags
@@ -233,6 +234,7 @@ use music_comp_mt::quintal::{
     BaseSpace, PcChord, VoicedChord, Orbit,
     enumerate_all, classify_orbit, distance, diameter, center,
     saddle_chords, count_geodesics, geodesic_distribution,
+    render_chord_dashed, render_pcset_dashed,
     chord_scale, inversion_cycle, l1_distance, t1,
     verify_universal_l1_law, verify_all_orbits_self_dual,
 };
@@ -255,12 +257,19 @@ assert_eq!(distance(&space, &cgda, &saddle), Some(2));
 // (legacy `crossroads_chords` is still available as a deprecated alias)
 assert_eq!(saddle_chords(&space).len(), 6);
 
-// Single-source geodesic-distribution profile (one BFS pass)
+// Single-source geodesic-distribution profile (one BFS pass).
+// `per_chord` excludes the source itself — one row per *other* chord.
+// For the include-source view, use `distances_and_geodesic_counts`.
 let dist = geodesic_distribution(&space, &cgda).unwrap();
 assert_eq!(dist.reachable_chords, 227);                  // |B| − 1
 assert_eq!(dist.eccentricity, 7);
+assert_eq!(dist.per_chord.len(), 227);                   // source excluded
 let bucket_counts: Vec<usize> = dist.buckets.iter().map(|b| b.chords_at_d).collect();
 assert_eq!(bucket_counts, vec![8, 18, 36, 45, 66, 44, 10]);  // §6 paper table
+
+// Two paired chord-rendering helpers — pick by identity you want.
+assert_eq!(render_chord_dashed(&cgda), "C–G–D–A");        // root chord (stack) form
+assert_eq!(render_pcset_dashed(&cgda), "C–D–G–A");        // pcset (ascending) form
 
 // Tymoczko inversion cycle: C3-G3-D4-A4
 let root = VoicedChord::new([48, 55, 62, 69]).unwrap();
