@@ -6,15 +6,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 For Rust code quality, load these resources in priority order:
 
-1. **`assets/ai/ai-rust/skills/claude/SKILL.md`** - Advanced Rust programming skill (**use this**)
-2. **`assets/ai/ai-rust/guides/*.md`** - Comprehensive Rust guidelines referenced by the skill
+1. **`assets/ai/rust/SKILL.md`** - Advanced Rust programming skill (**use this**)
+2. **`assets/ai/rust/guides/*`** - Comprehensive Rust guidelines referenced by the skill
 3. **`assets/ai/CLAUDE-CODE-COVERAGE.md`** - Comprehensive test coverage guide
 
-**Important:** `assets/ai/ai-rust` may be a symlink; if so, look in `assets/ai/ai-rust/` (note the trailing slash). The actual directory may be at `~/lab/oxur/ai-rust`, `~/lab/oxur/ai-rust-skill`, etc. If it does not exist on the file system in any form, ask permission to clone it:
-
-```bash
-git clone https://github.com/oxur/ai-rust assets/ai/ai-rust
-```
+**Important:** `assets/ai/rust` may be a symlink; if so, look in `assets/ai/rust/` (note the trailing slash). The actual directory may be at `~/lab/billosys/ai-engineering/knowledge/rust` or similar. If it does not exist on the file system in any form, stop and discuss with the user.
 
 ## Build & Test Commands
 
