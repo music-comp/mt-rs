@@ -1,9 +1,10 @@
-use clap::{Parser, Subcommand};
+use clap::{Parser, Subcommand, ValueEnum};
 use music_comp_mt::chord::Chord;
 use music_comp_mt::note::Notes;
 use music_comp_mt::quintal::{
-    all_modes, modes_by_opening_interval, modes_in_cluster, orbit_modes, step_vocabulary_cluster,
-    verify_fiber_mode_connection, verify_multiset_uniqueness, Orbit, StepVocabularyCluster,
+    all_modes, geodesic_distribution, modes_by_opening_interval, modes_in_cluster, orbit_modes,
+    step_vocabulary_cluster, verify_fiber_mode_connection, verify_multiset_uniqueness, BaseSpace,
+    GeodesicDistribution, Orbit, PcChord, StepVocabularyCluster,
 };
 use music_comp_mt::scale::{Direction, Scale};
 use std::fmt;
@@ -127,6 +128,27 @@ pub enum OthAction {
     Verify,
     /// Full JSON export of all mode data
     Export,
+    /// §6 geodesic-distribution profile from a source chord
+    GeodesicDistribution {
+        /// Source chord as note names, e.g. "C,G,D,A". Conflicts with `--from-pcs`.
+        #[arg(long, conflicts_with = "from_pcs")]
+        from: Option<String>,
+        /// Source chord as pitch classes, e.g. "0,2,7,9".
+        #[arg(long = "from-pcs")]
+        from_pcs: Option<String>,
+        /// Output format.
+        #[arg(long, default_value = "md")]
+        format: GeodesicFormat,
+    },
+}
+
+/// Output format for the geodesic-distribution subcommand.
+#[derive(Copy, Clone, Debug, PartialEq, Eq, ValueEnum)]
+pub enum GeodesicFormat {
+    /// Markdown table — paste-into-paper consumption.
+    Md,
+    /// Pretty-printed JSON — machine-readable / piping.
+    Json,
 }
 
 /// CLI error type.
@@ -247,6 +269,37 @@ fn parse_orbit(s: &str) -> Result<Orbit, CliError> {
     Err(CliError::Oth(format!("unknown orbit: {}", s)))
 }
 
+/// Parse a single note name into its pitch class. Accepts ASCII (`b`, `#`)
+/// and Unicode (`♭`, `♯`) accidentals; rejects double accidentals and
+/// anything outside `[A-G][b#♭♯]?`.
+fn note_name_to_pc(s: &str) -> Option<u8> {
+    let trimmed = s.trim();
+    let mut chars = trimmed.chars();
+    let letter = chars.next()?;
+    let acc = chars.next();
+    if chars.next().is_some() {
+        // More than two characters → reject (no double accidentals).
+        return None;
+    }
+    let natural: u8 = match letter {
+        'C' => 0,
+        'D' => 2,
+        'E' => 4,
+        'F' => 5,
+        'G' => 7,
+        'A' => 9,
+        'B' => 11,
+        _ => return None,
+    };
+    let offset: i8 = match acc {
+        None => 0,
+        Some('#' | '♯') => 1,
+        Some('b' | '♭') => -1,
+        _ => return None,
+    };
+    Some(((natural as i8 + offset).rem_euclid(12)) as u8)
+}
+
 fn run_oth(action: OthAction) -> Result<String, CliError> {
     match action {
         OthAction::Modes { orbit, opening } => run_oth_modes(orbit, opening),
@@ -254,6 +307,11 @@ fn run_oth(action: OthAction) -> Result<String, CliError> {
         OthAction::ParentScales { orbit } => run_oth_parent_scales(orbit),
         OthAction::Verify => run_oth_verify(),
         OthAction::Export => run_oth_export(),
+        OthAction::GeodesicDistribution {
+            from,
+            from_pcs,
+            format,
+        } => run_oth_geodesic_distribution(from, from_pcs, format),
     }
 }
 
@@ -601,6 +659,123 @@ fn run_oth_verify() -> Result<String, CliError> {
         Err(e) => output.push_str(&format!("  fiber-mode connection: FAIL — {}\n", e)),
     }
     Ok(output)
+}
+
+// ─── geodesic-distribution ──────────────────────────────────────────────────
+
+/// Default source chord: C–G–D–A (pcs `[0, 2, 7, 9]`), per the spec.
+const DEFAULT_SOURCE_PCS: [u8; 4] = [0, 2, 7, 9];
+
+/// Comma-split a string and parse each token through `parse_token`. Returns
+/// an error if the count is not 4 or any token fails.
+fn parse_four<F>(input: &str, parse_token: F, label: &str) -> Result<[u8; 4], CliError>
+where
+    F: Fn(&str) -> Option<u8>,
+{
+    let tokens: Vec<&str> = input.split(',').map(str::trim).collect();
+    if tokens.len() != 4 {
+        return Err(CliError::Oth(format!(
+            "expected 4 comma-separated {label}s, got {}: {:?}",
+            tokens.len(),
+            tokens
+        )));
+    }
+    let mut out = [0u8; 4];
+    for (i, tok) in tokens.iter().enumerate() {
+        out[i] =
+            parse_token(tok).ok_or_else(|| CliError::Oth(format!("invalid {label} {:?}", tok)))?;
+    }
+    Ok(out)
+}
+
+/// Resolve `--from` / `--from-pcs` / default into a `PcChord`.
+fn resolve_source_chord(
+    from: Option<String>,
+    from_pcs: Option<String>,
+) -> Result<PcChord, CliError> {
+    let pcs: [u8; 4] = match (from, from_pcs) {
+        (Some(notes), None) => parse_four(&notes, note_name_to_pc, "note name")?,
+        (None, Some(pcs)) => parse_four(
+            &pcs,
+            |t| t.parse::<u8>().ok().filter(|n| *n <= 11),
+            "pitch class",
+        )?,
+        (None, None) => DEFAULT_SOURCE_PCS,
+        (Some(_), Some(_)) => {
+            // clap's `conflicts_with` rejects this at parse time; this branch
+            // exists only to keep the match exhaustive.
+            return Err(CliError::Oth(
+                "--from and --from-pcs are mutually exclusive".into(),
+            ));
+        }
+    };
+    PcChord::from_unsorted(&pcs)
+        .map_err(|e| CliError::Oth(format!("invalid source chord {:?}: {e:?}", pcs)))
+}
+
+/// Render a `PcChord` as en-dash-separated note names ordered by pcs ascending,
+/// e.g. `"C–D–F#–G#"`.
+fn render_chord_dashed(chord: &PcChord) -> String {
+    chord
+        .pcs
+        .iter()
+        .map(|&pc| pc_to_note_name(pc))
+        .collect::<Vec<_>>()
+        .join("–")
+}
+
+/// Markdown formatter — extends the §6 paper table with one extra column for
+/// the max-σ chord identity at each distance.
+fn format_distribution_md(dist: &GeodesicDistribution) -> String {
+    let mut out = String::new();
+    out.push_str(&format!(
+        "Geodesic distribution from {} ({:?})\n",
+        render_chord_dashed(&dist.source),
+        dist.source_orbit
+    ));
+    out.push_str(&format!(
+        "eccentricity = {}, reachable_chords = {}\n\n",
+        dist.eccentricity, dist.reachable_chords
+    ));
+    out.push_str("| Distance | Chords at d | Avg geodesics | Max geodesics | Max-σ chord(s) |\n");
+    out.push_str("| -------- | :---------: | :-----------: | :-----------: | -------------- |\n");
+    for bucket in &dist.buckets {
+        let max_chords = bucket
+            .max_chords
+            .iter()
+            .map(|(c, o)| format!("{} ({:?})", render_chord_dashed(c), o))
+            .collect::<Vec<_>>()
+            .join(", ");
+        out.push_str(&format!(
+            "| {} | {} | {:.1} | {} | {} |\n",
+            bucket.distance,
+            bucket.chords_at_d,
+            bucket.avg_geodesics,
+            bucket.max_geodesics,
+            max_chords,
+        ));
+    }
+    out
+}
+
+fn run_oth_geodesic_distribution(
+    from: Option<String>,
+    from_pcs: Option<String>,
+    format: GeodesicFormat,
+) -> Result<String, CliError> {
+    let source = resolve_source_chord(from, from_pcs)?;
+    let space = BaseSpace::new();
+    let dist = geodesic_distribution(&space, &source)
+        .ok_or_else(|| CliError::Oth("source chord is not in the base space".into()))?;
+    match format {
+        GeodesicFormat::Md => Ok(format_distribution_md(&dist)),
+        GeodesicFormat::Json => serde_json::to_string_pretty(&dist)
+            .map(|mut s| {
+                s.push('\n');
+                s
+            })
+            .map_err(|e| CliError::Oth(format!("json serialization failed: {e}"))),
+    }
 }
 
 #[cfg(test)]

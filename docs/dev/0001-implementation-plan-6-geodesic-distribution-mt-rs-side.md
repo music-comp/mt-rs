@@ -29,7 +29,7 @@ single-pass aggregate over all targets from one source.
   (`crates/mt/src/quintal/orbit.rs`).
 - `saddle_chords(space)` — for the Saddle cross-check
   (`crates/mt/src/quintal/centrality.rs`). The function was previously named
-  `saddle_chords`; that name still exists as a `#[deprecated]` alias for
+  `crossroads_chords`; that name still exists as a `#[deprecated]` alias for
   backward compatibility, but new code MUST use `saddle_chords`. Do not
   introduce any new "Crossroads" usage in prose, doc comments, or test names.
 

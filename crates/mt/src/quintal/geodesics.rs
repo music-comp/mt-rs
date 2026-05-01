@@ -1,12 +1,15 @@
 //! Geodesic (shortest-path) enumeration and counting on the base space graph.
 //!
 //! Provides functions to enumerate all shortest paths between two chords,
-//! count them without materializing, and find all metrically intermediate
-//! ("passing") chords.
+//! count them without materializing, find all metrically intermediate
+//! ("passing") chords, and compute the full geodesic-distribution profile
+//! from a single source.
 
-use std::collections::VecDeque;
+use std::cmp::Reverse;
+use std::collections::{BTreeMap, HashMap, VecDeque};
 
 use super::base_space::BaseSpace;
+use super::orbit::{classify_orbit, Orbit};
 use super::PcChord;
 
 /// BFS from `source` recording distances, parent lists, and shortest-path counts.
@@ -215,4 +218,216 @@ pub fn passing_chords(space: &BaseSpace, a: &PcChord, b: &PcChord) -> Vec<PcChor
         }
     }
     result
+}
+
+// ───────────────────────────── Distribution API ─────────────────────────────
+
+/// The (distances, geodesic counts) pair returned by a single BFS pass.
+///
+/// Both maps are keyed by reachable [`PcChord`]s and have the same length —
+/// the source itself is included with `distance = 0` and `geodesic_count = 1`,
+/// matching the σ(source | source) = 1 base case used throughout the spec.
+#[non_exhaustive]
+#[derive(Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub struct DistAndGeodesicCounts {
+    /// Shortest-path distance from the source to each reachable chord.
+    pub distances: HashMap<PcChord, u8>,
+    /// σ(target | source) — the count of distinct shortest paths from the
+    /// source to each reachable chord.
+    pub geodesic_counts: HashMap<PcChord, u64>,
+}
+
+/// One row of the per-target geodesic profile.
+#[non_exhaustive]
+#[derive(Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub struct GeodesicProfileEntry {
+    /// The target chord this row is about.
+    pub chord: PcChord,
+    /// The orbit `chord` belongs to (always classifiable for chords in `B`).
+    pub orbit: Orbit,
+    /// Shortest-path distance from the source.
+    pub distance: u8,
+    /// σ(target | source) — the count of distinct shortest paths.
+    pub geodesic_count: u64,
+}
+
+/// One row of the aggregate distribution table (one per distance bucket).
+///
+/// `max_chords` pairs each tying chord with its orbit so the two-vec
+/// "must stay the same length" smell is replaced by a single vector of
+/// `(chord, orbit)` tuples.
+#[non_exhaustive]
+#[derive(Debug, Clone, PartialEq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub struct GeodesicBucket {
+    /// The distance this bucket represents.
+    pub distance: u8,
+    /// How many chords lie at exactly this distance.
+    pub chords_at_d: usize,
+    /// Mean geodesic count across the bucket's chords.
+    pub avg_geodesics: f64,
+    /// Largest geodesic count in the bucket.
+    pub max_geodesics: u64,
+    /// Every chord that ties for `max_geodesics`, paired with its orbit.
+    /// Sorted by `pcs` ascending for determinism.
+    pub max_chords: Vec<(PcChord, Orbit)>,
+}
+
+/// Full result: aggregate buckets + per-chord detail + sanity totals.
+#[non_exhaustive]
+#[derive(Debug, Clone, PartialEq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub struct GeodesicDistribution {
+    /// The source chord this profile was generated from.
+    pub source: PcChord,
+    /// The orbit the source belongs to.
+    pub source_orbit: Orbit,
+    /// The eccentricity of the source — the largest distance to any
+    /// reachable chord.
+    pub eccentricity: u8,
+    /// Total reachable chords excluding the source itself. On the connected
+    /// quintal base space this is always |B| − 1 = 227.
+    pub reachable_chords: usize,
+    /// Buckets ordered by `distance` ascending. The graph is connected and
+    /// every distance `1..=eccentricity` is populated for the sources we
+    /// care about, but the API does not guarantee dense indexing — read
+    /// `bucket.distance` rather than indexing by `d - 1`.
+    pub buckets: Vec<GeodesicBucket>,
+    /// Per-target detail, sorted by
+    /// (distance ascending, geodesic_count descending, pcs ascending).
+    pub per_chord: Vec<GeodesicProfileEntry>,
+}
+
+/// Single-pass BFS exposing both distance and σ counts for every reachable
+/// chord. Returns `None` if `source` is not a member of `space`.
+///
+/// The source itself is included in both maps with distance 0 and σ = 1.
+///
+/// # Examples
+///
+/// ```
+/// use music_comp_mt::quintal::{distances_and_geodesic_counts, BaseSpace, PcChord};
+///
+/// let space = BaseSpace::new();
+/// let cgda = PcChord::new([0, 2, 7, 9]).unwrap();
+/// let result = distances_and_geodesic_counts(&space, &cgda).unwrap();
+/// assert_eq!(result.distances.len(), 228);
+/// assert_eq!(result.distances[&cgda], 0);
+/// assert_eq!(result.geodesic_counts[&cgda], 1);
+/// ```
+#[must_use]
+pub fn distances_and_geodesic_counts(
+    space: &BaseSpace,
+    source: &PcChord,
+) -> Option<DistAndGeodesicCounts> {
+    let si = space.chord_index(source)?;
+    let (dist, _parents, sigma) = bfs_with_parents(space, si);
+    let mut distances = HashMap::with_capacity(space.len());
+    let mut geodesic_counts = HashMap::with_capacity(space.len());
+    for (i, chord) in space.chords().iter().enumerate() {
+        if let Some(d) = dist[i] {
+            distances.insert(*chord, d);
+            geodesic_counts.insert(*chord, sigma[i] as u64);
+        }
+    }
+    Some(DistAndGeodesicCounts {
+        distances,
+        geodesic_counts,
+    })
+}
+
+/// Compute the full §6 geodesic-distribution profile from `source` over the
+/// base space.
+///
+/// Aggregates the single-pass BFS result of [`distances_and_geodesic_counts`]
+/// into per-distance buckets (count, average σ, max σ, and the chord
+/// identities tying for max σ) plus a per-target detail vector. Returns
+/// `None` if `source` is not a member of `space`.
+///
+/// One BFS per call — O(|V| + |E|) on the quintal base space, sub-millisecond
+/// for |B| = 228.
+///
+/// # Examples
+///
+/// ```
+/// use music_comp_mt::quintal::{geodesic_distribution, BaseSpace, PcChord};
+///
+/// let space = BaseSpace::new();
+/// let cgda = PcChord::new([0, 2, 7, 9]).unwrap();
+/// let dist = geodesic_distribution(&space, &cgda).unwrap();
+/// assert_eq!(dist.reachable_chords, 227);
+/// ```
+#[must_use]
+pub fn geodesic_distribution(space: &BaseSpace, source: &PcChord) -> Option<GeodesicDistribution> {
+    let DistAndGeodesicCounts {
+        distances,
+        geodesic_counts,
+    } = distances_and_geodesic_counts(space, source)?;
+
+    // Bucket targets by distance, excluding the source (distance 0).
+    let mut by_distance: BTreeMap<u8, Vec<PcChord>> = BTreeMap::new();
+    for (chord, &d) in &distances {
+        if d == 0 {
+            continue;
+        }
+        by_distance.entry(d).or_default().push(*chord);
+    }
+
+    let buckets: Vec<GeodesicBucket> = by_distance
+        .iter()
+        .map(|(&distance, members)| {
+            let chords_at_d = members.len();
+            let sum_geodesics: u64 = members.iter().map(|c| geodesic_counts[c]).sum();
+            let avg_geodesics = sum_geodesics as f64 / chords_at_d as f64;
+            let max_geodesics = members
+                .iter()
+                .map(|c| geodesic_counts[c])
+                .max()
+                .expect("bucket is non-empty by construction");
+
+            let mut max_chords: Vec<(PcChord, Orbit)> = members
+                .iter()
+                .filter(|c| geodesic_counts[*c] == max_geodesics)
+                .map(|c| {
+                    let orbit =
+                        classify_orbit(c).expect("BaseSpace chords are always classifiable");
+                    (*c, orbit)
+                })
+                .collect();
+            max_chords.sort_by_key(|(c, _)| c.pcs);
+
+            GeodesicBucket {
+                distance,
+                chords_at_d,
+                avg_geodesics,
+                max_geodesics,
+                max_chords,
+            }
+        })
+        .collect();
+
+    let eccentricity = buckets.last().map(|b| b.distance).unwrap_or(0);
+    let reachable_chords: usize = buckets.iter().map(|b| b.chords_at_d).sum();
+
+    let mut per_chord: Vec<GeodesicProfileEntry> = distances
+        .iter()
+        .map(|(chord, &distance)| GeodesicProfileEntry {
+            chord: *chord,
+            orbit: classify_orbit(chord).expect("BaseSpace chords are always classifiable"),
+            distance,
+            geodesic_count: geodesic_counts[chord],
+        })
+        .collect();
+    per_chord.sort_by_key(|e| (e.distance, Reverse(e.geodesic_count), e.chord.pcs));
+
+    Some(GeodesicDistribution {
+        source: *source,
+        source_orbit: classify_orbit(source).expect("BaseSpace chords are always classifiable"),
+        eccentricity,
+        reachable_chords,
+        buckets,
+        per_chord,
+    })
 }

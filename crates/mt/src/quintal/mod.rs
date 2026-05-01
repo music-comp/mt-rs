@@ -24,7 +24,11 @@ pub use duality::{
 };
 pub use error::QuintalError;
 pub use fiber::{chord_scale, inversion_cycle, l1_distance, project, t1, t_minus1, ChordScale};
-pub use geodesics::{count_geodesics, geodesics, passing_chords};
+pub use geodesics::{
+    count_geodesics, distances_and_geodesic_counts, geodesic_distribution, geodesics,
+    passing_chords, DistAndGeodesicCounts, GeodesicBucket, GeodesicDistribution,
+    GeodesicProfileEntry,
+};
 pub use group::{invert, invert_transpose, orbit, transpose};
 pub use modes::{
     all_modes, all_parent_scales, modes_by_opening_interval, modes_in_cluster, orbit_modes,
