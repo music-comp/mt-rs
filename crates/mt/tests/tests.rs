@@ -31,6 +31,8 @@ mod note {
 
 mod analysis;
 
+mod harmonize;
+
 mod harmony;
 
 mod neo_riemannian;

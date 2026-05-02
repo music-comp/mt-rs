@@ -23,6 +23,7 @@ serde = ["dep:serde"]
 strum = "0.28"
 strum_macros = "0.28"
 regex = "1"
+thiserror = "2"
 serde = { version = "1", features = ["derive"], optional = true }
 
 [dev-dependencies]

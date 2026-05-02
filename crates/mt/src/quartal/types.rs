@@ -76,4 +76,9 @@ impl QuartalVoicedChord {
     pub fn inner(&self) -> &VoicedChord {
         &self.0
     }
+
+    /// Returns a reference to the inner [`VoicedChord`].
+    pub fn as_voiced(&self) -> &VoicedChord {
+        &self.0
+    }
 }
