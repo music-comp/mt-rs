@@ -4,6 +4,7 @@ mod test_display;
 mod test_distance;
 mod test_duality;
 mod test_fiber;
+mod test_fiber_orbits;
 mod test_geodesics;
 mod test_modes;
 mod test_orbit;
