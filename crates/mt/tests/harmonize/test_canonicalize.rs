@@ -79,3 +79,17 @@ fn test_position_preserved_in_error() {
         Err(HarmonizeError::InvalidPitchClass(13))
     ));
 }
+
+#[test]
+fn test_position_field_carries_correct_index() {
+    let opts = HarmonizeOptions { top_voice_offset: -12, ..Default::default() };
+    let result = canonicalize_melody(
+        &MelodyInput::Pitches(vec![60, 5, 60]),
+        &opts,
+    );
+    eprintln!("position_field_check: {:?}", result);
+    assert!(matches!(
+        result,
+        Err(HarmonizeError::TargetMidiOutOfRange { position: 1, .. })
+    ));
+}

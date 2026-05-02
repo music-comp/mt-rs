@@ -68,9 +68,10 @@ pub fn shift_to_top(
 ) -> Result<VoicedChord, HarmonizeError> {
     let delta = target_midi as i32 - chord.pitches[3] as i32;
     debug_assert!(delta % 12 == 0, "shift_to_top: PC mismatch");
+    // Only bottom can underflow: top_after = target_midi (u8 ≤ 127) by
+    // construction, and bottom < top for ascending chords.
     let bottom_after = chord.pitches[0] as i32 + delta;
-    let top_after = chord.pitches[3] as i32 + delta;
-    if !(0..=127).contains(&bottom_after) || !(0..=127).contains(&top_after) {
+    if bottom_after < 0 {
         return Err(HarmonizeError::TargetMidiOutOfRange {
             position,
             target_midi,
@@ -122,48 +123,16 @@ mod tests {
     }
 
     #[test]
-    fn test_shift_overflow() {
-        // Chord with top at 69; shift up so top would be > 127
+    fn test_overflow_unreachable_for_u8_target() {
+        // For any ascending VoicedChord and any target_midi: u8 (≤ 127),
+        // top_after = target_midi ≤ 127, and bottom_after < top_after
+        // (because pitches are strictly ascending). So bottom_after ≤ 127.
+        // Overflow is structurally impossible — verified here at the upper
+        // boundary. Underflow handling is verified by `test_shift_underflow`.
         let c = VoicedChord::new([48, 55, 62, 69]).unwrap();
-        // target = 69 + 60 = 129 > 127... but target_midi is u8, max 127
-        // Instead: chord at [100, 107, 114, 121], target = 121 + 12 = 133 > 127
-        // But target_midi is u8... let me pick a feasible case:
-        // Chord [100, 107, 114, 121], shift to 121 is identity (no overflow).
-        // Shift to target 121 → delta 0. That's fine.
-        // Actually: the target itself must be ≤ 127 (it's u8). So overflow
-        // means the BOTTOM goes > 127 after shift.
-        // Chord [110, 117, 121, 124], target 124+12... can't, u8 max is 127.
-        // Actually overflow case: chord top is 60, target is 120.
-        // delta = +60. bottom = 48 + 60 = 108. Top = 60 + 60 = 120. Both ≤ 127. OK.
-        // For a real overflow: chord [60, 67, 74, 81], target 81+48=129? No, u8.
-        // The only way overflow triggers is if bottom + delta > 127.
-        // Chord [80, 87, 94, 101], target = 125 (PC 5, same as 101%12=5? 101%12=5. 125%12=5. yes!)
-        // delta = 125-101 = 24. bottom = 80+24 = 104. top = 101+24 = 125. Both ≤ 127. Still fine.
-        // Chord [90, 97, 104, 111], target = 123. 111%12=3, 123%12=3.
-        // delta = 12. bottom = 90+12=102, top = 111+12=123. Fine.
-        // Actually: for overflow we need bottom_after > 127.
-        // Chord [110, 115, 120, 125], target 125+12=137? Can't — u8 max 127.
-        // Hmm. Since target_midi is u8 (max 127), and top_after = target_midi (the whole point),
-        // top_after is always ≤ 127. So overflow from top_after is impossible.
-        // Bottom overflow: need chord where pitches[0] + delta > 127.
-        // delta = target_midi - pitches[3]. For bottom_after > 127:
-        //   pitches[0] + (target_midi - pitches[3]) > 127
-        // This requires pitches[0] > 127 - target_midi + pitches[3].
-        // With target=127 and a chord where pitches[3] is very small relative to pitches[0]...
-        // But pitches are ascending, so pitches[0] < pitches[3] always.
-        // Therefore bottom_after < top_after = target_midi ≤ 127.
-        //
-        // Conclusion: top_after > 127 is the only overflow case, and that requires
-        // target_midi > 127, which can't happen since target_midi is u8.
-        // So overflow via this function is actually impossible for valid target_midi!
-        // The only failure mode is underflow (bottom < 0).
-        //
-        // Let's just verify the only-underflow claim:
-        let c = VoicedChord::new([48, 55, 62, 69]).unwrap();
-        let result = shift_to_top(&c, 69, 0); // identity, fine
-        eprintln!("overflow_check: for ascending chords with u8 target, overflow is impossible");
-        eprintln!("  identity result: {:?}", result);
-        assert!(result.is_ok());
+        // c.pitches[3] = 69, PC 9. Highest PC-9 MIDI ≤ 127 is 117.
+        // delta = +48; bottom = 96, top = 117. Both in [0, 127].
+        assert!(shift_to_top(&c, 117, 0).is_ok());
     }
 
     #[test]

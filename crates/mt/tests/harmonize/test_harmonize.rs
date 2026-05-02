@@ -6,7 +6,7 @@ use theory::harmonize::{
 };
 
 #[test]
-fn test_canonicalize_melody_pitches_with_default_offset() {
+fn test_harmonize_with_pitches_default_offset() {
     let result = harmonize_melody(
         MelodyInput::Pitches(vec![72, 76, 79]),
         HarmonizeOptions { k: 1, ..Default::default() },
@@ -18,7 +18,7 @@ fn test_canonicalize_melody_pitches_with_default_offset() {
 }
 
 #[test]
-fn test_canonicalize_melody_pcs_with_default_offset() {
+fn test_harmonize_with_pcs_default_offset() {
     let result = harmonize_melody(
         MelodyInput::PitchClasses(vec![0, 4, 7]),
         HarmonizeOptions { k: 1, ..Default::default() },
