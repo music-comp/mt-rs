@@ -17,8 +17,8 @@
 //! [`crate::quintal::quintal_root`] / [`crate::quartal::quartal_root`] for
 //! canonical voicing construction.
 
-pub mod canonicalize;
-pub mod candidates;
+pub(crate) mod canonicalize;
+pub(crate) mod candidates;
 mod viterbi;
 
 use crate::quintal::VoicedChord;
@@ -26,6 +26,7 @@ use crate::quintal::VoicedChord;
 /// Input melody: either pitch classes (caller-supplied octave-free) or
 /// MIDI pitches (caller-supplied with octaves).
 #[derive(Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[non_exhaustive]
 pub enum MelodyInput {
     /// Each element is a pitch class in `0..=11`.
@@ -36,6 +37,7 @@ pub enum MelodyInput {
 
 /// Which voicing perspective(s) to draw candidates from.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[non_exhaustive]
 pub enum DualityScope {
     QuintalOnly,
@@ -45,7 +47,22 @@ pub enum DualityScope {
 }
 
 /// Configuration for [`harmonize_melody`].
+///
+/// Use struct-update syntax to override only the fields you need:
+///
+/// ```
+/// use music_comp_mt::harmonize::{HarmonizeOptions, DualityScope};
+///
+/// let opts = HarmonizeOptions {
+///     k: 5,
+///     duality: DualityScope::QuintalOnly,
+///     ..Default::default()
+/// };
+/// assert_eq!(opts.k, 5);
+/// assert_eq!(opts.top_voice_offset, -12); // unchanged default
+/// ```
 #[derive(Debug, Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct HarmonizeOptions {
     /// Semitone offset from each melody pitch to that chord's top voice.
     /// Negative pulls the harmony below the melody. Default: -12 (one octave).
@@ -86,6 +103,7 @@ pub struct Harmonization {
 
 /// Errors returned by [`harmonize_melody`].
 #[derive(Debug, thiserror::Error)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[non_exhaustive]
 pub enum HarmonizeError {
     /// The input melody was empty. At least one note is required.

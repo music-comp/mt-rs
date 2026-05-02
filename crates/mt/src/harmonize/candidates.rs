@@ -9,7 +9,7 @@ use super::{DualityScope, HarmonizeError};
 /// finds the inversion whose top voice has that PC and shifts it to the
 /// exact target MIDI pitch. Candidates come from quintal and/or quartal
 /// cycles depending on `duality`.
-pub fn candidates_for_top(
+pub(crate) fn candidates_for_top(
     target_top_midi: u8,
     duality: DualityScope,
     space: &BaseSpace,
@@ -61,7 +61,7 @@ pub fn candidates_for_top(
 /// Precondition: `target_midi % 12 == chord.pitches[3] % 12` (same PC).
 /// Returns `Err(TargetMidiOutOfRange)` if the shift would push any voice
 /// outside MIDI range [0, 127].
-pub fn shift_to_top(
+pub(crate) fn shift_to_top(
     chord: &VoicedChord,
     target_midi: u8,
     position: usize,
@@ -144,5 +144,50 @@ mod tests {
         assert!(result.pitches[1] < result.pitches[2]);
         assert!(result.pitches[2] < result.pitches[3]);
         assert_eq!(result.pitches[3], 69);
+    }
+
+    #[test]
+    fn test_quintal_only_76_candidates() {
+        let space = BaseSpace::new();
+        let candidates = candidates_for_top(60, DualityScope::QuintalOnly, &space, 0).unwrap();
+        assert_eq!(candidates.len(), 76);
+        for c in &candidates {
+            assert_eq!(c.pitches[3], 60);
+        }
+    }
+
+    #[test]
+    fn test_quartal_only_76_candidates() {
+        let space = BaseSpace::new();
+        let candidates = candidates_for_top(60, DualityScope::QuartalOnly, &space, 0).unwrap();
+        assert_eq!(candidates.len(), 76);
+        for c in &candidates {
+            assert_eq!(c.pitches[3], 60);
+        }
+    }
+
+    #[test]
+    fn test_both_152_distinct() {
+        use std::collections::BTreeSet;
+        let space = BaseSpace::new();
+        let candidates = candidates_for_top(60, DualityScope::Both, &space, 0).unwrap();
+        assert_eq!(candidates.len(), 152);
+        let unique: BTreeSet<_> = candidates.iter().map(|c| c.pitches).collect();
+        assert_eq!(unique.len(), 152);
+    }
+
+    #[test]
+    fn test_specific_chord_cgda() {
+        use std::collections::BTreeSet;
+        let space = BaseSpace::new();
+        let candidates = candidates_for_top(60, DualityScope::QuintalOnly, &space, 0).unwrap();
+        let cgda = candidates
+            .iter()
+            .find(|c| {
+                let pcs: BTreeSet<u8> = c.pitches.iter().map(|&p| p % 12).collect();
+                pcs == [0, 2, 7, 9].iter().copied().collect()
+            })
+            .expect("CGDA must be in quintal candidates for top=60");
+        assert_eq!(cgda.pitches[3], 60);
     }
 }
