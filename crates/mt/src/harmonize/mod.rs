@@ -88,26 +88,32 @@ pub struct Harmonization {
 #[derive(Debug, thiserror::Error)]
 #[non_exhaustive]
 pub enum HarmonizeError {
+    /// The input melody was empty. At least one note is required.
     #[error("melody must contain at least one note")]
     EmptyMelody,
 
+    /// A pitch class in [`MelodyInput::PitchClasses`] was outside `0..=11`.
     #[error("melody pitch class {0} is outside the valid range 0..=11")]
     InvalidPitchClass(u8),
 
+    /// The computed target MIDI pitch (melody note + `top_voice_offset`) fell
+    /// outside the playable range `0..=127`. The `target_midi` field contains
+    /// the actual computed value (which may be negative or above 127).
     #[error(
         "target MIDI pitch {target_midi} at position {position} is out of \
          the playable range after applying top_voice_offset"
     )]
-    TargetMidiOutOfRange { position: usize, target_midi: u8 },
+    TargetMidiOutOfRange { position: usize, target_midi: i16 },
 
+    /// No candidate chord exists for the target pitch class at the given
+    /// position. This should be unreachable for any legal pitch class in
+    /// `0..=11` — every PC is contained in at least 76 of the 228 base-space
+    /// chords.
     #[error(
         "no candidate chord found for melody position {position} \
          (top pitch {top_midi})"
     )]
     NoCandidatesForPosition { position: usize, top_midi: u8 },
-
-    #[error("requested K={requested} but only {available} distinct progressions exist")]
-    InsufficientProgressions { requested: usize, available: usize },
 }
 
 /// Harmonize a melody with the top-K voice-led OTH chord progressions.
@@ -161,4 +167,40 @@ pub fn harmonize_melody(
     }
 
     Ok(viterbi::top_k_viterbi(&layers, options.k))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_error_display_messages() {
+        let cases: Vec<(HarmonizeError, &str)> = vec![
+            (
+                HarmonizeError::EmptyMelody,
+                "melody must contain at least one note",
+            ),
+            (
+                HarmonizeError::InvalidPitchClass(13),
+                "melody pitch class 13 is outside the valid range 0..=11",
+            ),
+            (
+                HarmonizeError::TargetMidiOutOfRange {
+                    position: 2,
+                    target_midi: -7,
+                },
+                "target MIDI pitch -7 at position 2 is out of the playable range after applying top_voice_offset",
+            ),
+            (
+                HarmonizeError::NoCandidatesForPosition {
+                    position: 0,
+                    top_midi: 60,
+                },
+                "no candidate chord found for melody position 0 (top pitch 60)",
+            ),
+        ];
+        for (err, expected) in cases {
+            assert_eq!(err.to_string(), expected, "Display mismatch for {:?}", err);
+        }
+    }
 }

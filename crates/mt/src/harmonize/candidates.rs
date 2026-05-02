@@ -74,7 +74,7 @@ pub fn shift_to_top(
     if bottom_after < 0 {
         return Err(HarmonizeError::TargetMidiOutOfRange {
             position,
-            target_midi,
+            target_midi: target_midi as i16,
         });
     }
     let shifted = chord.pitches.map(|p| (p as i32 + delta) as u8);

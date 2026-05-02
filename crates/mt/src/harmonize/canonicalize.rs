@@ -21,7 +21,7 @@ pub fn canonicalize_melody(
                     if !(0..=127).contains(&midi) {
                         return Err(HarmonizeError::TargetMidiOutOfRange {
                             position,
-                            target_midi: midi.clamp(0, 255) as u8,
+                            target_midi: midi,
                         });
                     }
                     Ok(midi as u8)
@@ -40,7 +40,7 @@ pub fn canonicalize_melody(
                     if !(0..=127).contains(&target) {
                         return Err(HarmonizeError::TargetMidiOutOfRange {
                             position,
-                            target_midi: target.clamp(0, 255) as u8,
+                            target_midi: target,
                         });
                     }
                     Ok(target as u8)
