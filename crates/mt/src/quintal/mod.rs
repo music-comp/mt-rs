@@ -2,6 +2,7 @@
 
 mod base_space;
 mod centrality;
+mod constructors;
 mod display;
 mod distance;
 mod duality;
@@ -15,6 +16,7 @@ mod types;
 mod verification;
 
 pub use base_space::{enumerate_all, is_adjacent, BaseSpace};
+pub use constructors::quintal_root;
 #[allow(deprecated)]
 pub use centrality::crossroads_chords;
 pub use centrality::{betweenness_centrality, saddle_chords};
@@ -44,3 +46,4 @@ pub use verification::{
     fiber_class, inversion_l1_distances, inversions_in_base, verify_fiber_classes,
     verify_universal_l1_law,
 };
+pub use crate::voice_leading::min_voiced_chord_l1;

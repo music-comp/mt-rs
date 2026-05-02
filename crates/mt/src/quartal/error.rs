@@ -16,6 +16,8 @@ pub enum QuartalError {
     DuplicatePitchClasses,
     /// A pitch class value was outside the valid range 0..=11.
     PitchClassOutOfRange(u8),
+    /// The pitch-class chord has no legal quartal stacking.
+    NoLegalStacking,
 }
 
 impl fmt::Display for QuartalError {
@@ -36,6 +38,9 @@ impl fmt::Display for QuartalError {
             QuartalError::PitchClassOutOfRange(pc) => {
                 write!(f, "pitch class out of range: {} (must be 0..=11)", pc)
             }
+            QuartalError::NoLegalStacking => {
+                write!(f, "pitch-class chord has no legal quartal stacking")
+            }
         }
     }
 }
@@ -49,6 +54,7 @@ impl From<QuintalError> for QuartalError {
             QuintalError::DuplicatePitchClasses => QuartalError::DuplicatePitchClasses,
             QuintalError::WrongCardinality(_) => QuartalError::WrongIntervalCount(0),
             QuintalError::NotAscending => QuartalError::NotAscending,
+            QuintalError::NoLegalStacking => QuartalError::NoLegalStacking,
         }
     }
 }

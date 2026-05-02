@@ -124,6 +124,43 @@ pub fn pure_quartal_stack(root_pc: u8) -> PcChord {
         .expect("pure_quartal_stack requires root_pc in 0..=11")
 }
 
+/// Build the canonical quartal-root [`QuartalVoicedChord`] for a [`PcChord`].
+///
+/// The quartal root is derived from the quintal stacking: the quartal bottom
+/// PC is the quintal top PC, and the intervals are the reverse-complement
+/// of the quintal intervals: `(12 - i3, 12 - i2, 12 - i1)`.
+///
+/// # Errors
+///
+/// Returns [`QuartalError::NoLegalStacking`] if the PcChord has no legal
+/// quintal stacking (from which the quartal stacking is derived).
+///
+/// # Examples
+///
+/// ```
+/// use music_comp_mt::quartal::{quartal_root, PcChord};
+///
+/// let chord = PcChord::new([0, 2, 7, 9]).unwrap();
+/// let voiced = quartal_root(&chord, 4).unwrap();
+/// assert_eq!(voiced.pitches(), [57, 62, 67, 72]);
+/// ```
+pub fn quartal_root(
+    pc_chord: &PcChord,
+    base_octave: u8,
+) -> Result<QuartalVoicedChord, QuartalError> {
+    let (ordered, is) = pc_chord
+        .legal_quintal_stacking()
+        .ok_or(QuartalError::NoLegalStacking)?;
+
+    let quartal_bottom_pc = ordered[3];
+    let qi1 = (12 - is.2) % 12;
+    let qi2 = (12 - is.1) % 12;
+    let qi3 = (12 - is.0) % 12;
+
+    let root_midi = 12u16 * base_octave as u16 + quartal_bottom_pc as u16;
+    from_stacked_fourths_voiced(root_midi as u8, &[qi1, qi2, qi3])
+}
+
 /// Return the neighbors of a chord in the base space, paired with their
 /// quartal interval structures.
 ///

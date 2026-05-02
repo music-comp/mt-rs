@@ -1,3 +1,7 @@
+mod min_l1;
+
+pub use min_l1::min_voiced_chord_l1;
+
 use crate::note::Note;
 
 /// A single voice movement from one note to another.

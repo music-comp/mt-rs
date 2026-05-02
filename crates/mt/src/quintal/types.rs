@@ -117,6 +117,27 @@ impl PcChord {
         self.interval_structure().is_some()
     }
 
+    /// Returns the first legal quintal stacking: the ordered pitch classes
+    /// and their interval structure. Returns `None` if no legal stacking exists.
+    pub(crate) fn legal_quintal_stacking(&self) -> Option<([u8; 4], IntervalStructure)> {
+        for perm in &PERMUTATIONS_4 {
+            let ordered = [
+                self.pcs[perm[0]],
+                self.pcs[perm[1]],
+                self.pcs[perm[2]],
+                self.pcs[perm[3]],
+            ];
+            let a = (ordered[1] as u16 + 12 - ordered[0] as u16) % 12;
+            let b = (ordered[2] as u16 + 12 - ordered[1] as u16) % 12;
+            let c = (ordered[3] as u16 + 12 - ordered[2] as u16) % 12;
+            let is = IntervalStructure(a as u8, b as u8, c as u8);
+            if is.is_legal() {
+                return Some((ordered, is));
+            }
+        }
+        None
+    }
+
     /// Returns the four pitch classes as an array.
     pub fn pcs(&self) -> [u8; 4] {
         self.pcs

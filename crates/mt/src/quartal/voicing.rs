@@ -2,9 +2,16 @@
 //!
 //! In the quartal perspective, the "forward" inversion step is `t_minus1`
 //! from the quintal world (dropping the top note by an octave), and the
-//! "reverse" step is `t1`. The quartal inversion cycle therefore traverses
-//! the same four voiced chords as the quintal cycle but in the opposite
-//! direction.
+//! "reverse" step is `t1`. Starting from the *same* VoicedChord, the
+//! quartal inversion cycle traverses the same four voiced chords as the
+//! quintal cycle but in the opposite direction (because t_quartal is
+//! the inverse of t1).
+//!
+//! Note: the quintal-rooted and quartal-rooted cycles of a given PcChord
+//! are *disjoint* — they share no voiced chords. Together they account
+//! for all 8 distinct voicings of that PcChord modulo octave. See
+//! [`crate::quartal::quartal_root`] for constructing the quartal-rooted
+//! cycle.
 
 use crate::quintal;
 
@@ -30,8 +37,12 @@ pub fn t_quartal_reverse(chord: &QuartalVoicedChord) -> QuartalVoicedChord {
 ///
 /// Returns `[chord, t_q(chord), t_q^2(chord), t_q^3(chord)]`.
 ///
-/// These are the same 4 voiced chords as the quintal cycle but in reverse
-/// order: quartal `[inv0, inv1, inv2, inv3]` = quintal `[inv0, inv3, inv2, inv1]`.
+/// When starting from the same VoicedChord, the quartal cycle visits the
+/// same 4 chords as the quintal cycle but in reverse order. However, when
+/// comparing the quintal-rooted cycle and the quartal-rooted cycle of the
+/// same PcChord (via [`quintal_root`](crate::quintal::quintal_root) vs
+/// [`quartal_root`](crate::quartal::quartal_root)), the two cycles are
+/// disjoint — 8 distinct voicings total.
 pub fn quartal_inversion_cycle(chord: &QuartalVoicedChord) -> [QuartalVoicedChord; 4] {
     let inv0 = *chord;
     let inv1 = t_quartal(&inv0);

@@ -12,6 +12,8 @@ pub enum QuintalError {
     WrongCardinality(usize),
     /// MIDI pitches were not in strictly ascending order.
     NotAscending,
+    /// The pitch-class chord has no legal quintal stacking.
+    NoLegalStacking,
 }
 
 impl fmt::Display for QuintalError {
@@ -28,6 +30,9 @@ impl fmt::Display for QuintalError {
             }
             QuintalError::NotAscending => {
                 write!(f, "pitches must be in strictly ascending order")
+            }
+            QuintalError::NoLegalStacking => {
+                write!(f, "pitch-class chord has no legal quintal stacking")
             }
         }
     }
