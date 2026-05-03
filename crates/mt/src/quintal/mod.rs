@@ -3,6 +3,7 @@
 mod base_space;
 mod centrality;
 mod constructors;
+pub mod functional;
 mod display;
 mod distance;
 mod duality;
@@ -17,6 +18,7 @@ mod verification;
 
 pub use base_space::{enumerate_all, is_adjacent, BaseSpace};
 pub use constructors::quintal_root;
+pub use functional::{FunctionalRegion, Pathway};
 #[allow(deprecated)]
 pub use centrality::crossroads_chords;
 pub use centrality::{betweenness_centrality, saddle_chords};

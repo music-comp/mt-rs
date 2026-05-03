@@ -74,7 +74,10 @@
 
 pub(crate) mod canonicalize;
 pub(crate) mod candidates;
+pub mod functional;
 mod viterbi;
+
+pub use functional::{classify_trajectory, match_functional_pathways, MatchedPathway, Trajectory};
 
 use crate::quintal::VoicedChord;
 
