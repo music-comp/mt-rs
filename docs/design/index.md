@@ -6,6 +6,7 @@ This index is automatically generated. Do not edit manually.
 
 | Number | Title | State | Updated |
 |--------|-------|-------|----------|
+| 0008 | oth4 — T0 Implementation Spec | Active | 2026-05-03 |
 | 0007 | Melody Harmonization Feature | Active | 2026-05-01 |
 | 0006 | Tooling Spec: §6 Geodesic Distribution Verification | Final | 2026-05-01 |
 | 0005 | Quintal Fiber Bundle Implementation: Project Plan | Final | 2026-05-01 |
@@ -18,6 +19,7 @@ This index is automatically generated. Do not edit manually.
 
 ### Active
 
+- [0008 - oth4 — T0 Implementation Spec](05-active/0008-oth4-t0-implementation-spec.md)
 - [0007 - Melody Harmonization Feature — Implementation Plan (Phases 0, 0.5, 1)](05-active/0007-melody-harmonization-feature-implementation-plan-phases-0-0.5-1.md)
 
 ### Final
