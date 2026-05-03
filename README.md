@@ -148,6 +148,7 @@ The `quintal` and `quartal` modules implement the voice-leading geometry from *"
 - **Quartal-native API** — interval complement bijection (P5 <-> P4), quartal chord constructors (`from_stacked_fourths`, `pure_quartal_stack`), quartal orbit labels, shared base space re-exports
 - **Chord rendering** — paired helpers for the two natural string forms of a `PcChord`: `render_chord_dashed` returns root chord form ordered by the chord's `[6, 8]` stack walk (`"C–G–D–A"` for C-G-D-A), `render_pcset_dashed` returns ascending-pc form (`"C–D–G–A"` for the same chord) — pick the one that matches the identity you want
 - **OTH mode analysis** — Open Tone Harmony (quartal/quintal music system) step sequences, cyclic rotations (52 distinct modes across 14 orbits), step-vocabulary clusters (4 provisional categories), parent-scale identification (pentatonic, diatonic, whole-tone, octatonic, etc.), and fiber-mode connection verification
+- **Melody harmonization** — top-K voice-led OTH chord progressions ranked by least total semitone movement, drawing from quintal and/or quartal voicings of the full 228-chord space
 
 ## Feature Flags
 
@@ -157,7 +158,7 @@ The `quintal` and `quartal` modules implement the voice-leading geometry from *"
 | `serde` | Derives `Serialize`/`Deserialize` on all public types |
 
 ```toml
-music-comp-mt = { version = "0.5", features = ["serde", "midi"] }
+music-comp-mt = { version = "0.6", features = ["serde", "midi"] }
 ```
 
 ## Examples
@@ -362,6 +363,30 @@ assert_eq!(pentatonic.unwrap().coverage_ratio(), (4, 5));  // 4 of 5 notes
 // Fiber-mode connection: mode rotation = projection of t₁ fiber action
 assert!(verify_fiber_mode_connection().is_ok());
 ```
+
+### Melody Harmonization
+
+The `harmonize` module finds optimal voice-led chord progressions for a given melody, drawing candidates from the full 228-chord OTH base space in both quintal and quartal voicings. Progressions are ranked by total semitone movement across all four voices.
+
+```rust
+use music_comp_mt::harmonize::{harmonize_melody, HarmonizeOptions, MelodyInput};
+
+// Harmonize a C–E–G melody with default options (K=10, both dualities).
+let results = harmonize_melody(
+    MelodyInput::PitchClasses(vec![0, 4, 7]),
+    HarmonizeOptions::default(),
+).unwrap();
+
+// Results sorted by ascending total voice-leading cost.
+println!("Best progression: {} semitones total movement", results[0].total_movement);
+for chord in &results[0].chords {
+    println!("  {:?}", chord.pitches);
+}
+```
+
+Run the full example: `cargo run -p music-comp-mt --example harmonize_melody`
+
+The `mt harmonize` CLI subcommand arrives in v0.6.x with the CLI integration bundle.
 
 ### Open Tone Harmony CLI Commands
 

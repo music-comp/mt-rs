@@ -242,7 +242,7 @@ Run via `cargo run -p music-comp-mt --example harmonize_melody`. Verify it produ
 
 **Bump version to `0.6.0`.** Per SemVer, adding new public types and a new module is a minor version bump. Update `crates/mt/Cargo.toml` from `0.5.2` to `0.6.0`. Verify version constraints in `crates/mt-cli/Cargo.toml`.
 
-**CHANGELOG.md update** (or equivalent) noting the harmonize feature, the new error type, and any other v0.6 changes. If no CHANGELOG exists, this is a good moment to start one.
+**No CHANGELOG.** This project does not maintain a `CHANGELOG.md` going forward. Release notes live in git history and tagged release notes; per Duncan's policy (2026-05-02), no manual changelog file is maintained. The legacy `CHANGELOG.md` at the project root is left untouched (or removed in a separate housekeeping pass — out of scope here).
 
 ### Acceptance criteria
 
@@ -529,7 +529,7 @@ No new crates. CLI and library work lands in `mt-rs/`. MCP integration lands in 
 | 2.2 | Error refinement | `i16` field, dropped variant, full Display audit | Error messages accurate; doc complete |
 | 2.3 | API stability | Visibility tightening, serde derives, version bump | `pub` surface stable; serde works |
 | 2.4 | Documentation | Module doc, per-type doc, intra-doc links | `cargo doc -D warnings` clean |
-| 2.5 | Examples + README | Runnable example, README sections, CHANGELOG | `cargo run --example` works; README complete |
+| 2.5 | Examples + README | Runnable example, README sections, version bump | `cargo run --example` works; README complete |
 | 2.6 | Property tests | Property suite, brute-force comparison, edge cases | All properties hold over 256+ cases |
 | 2.7 | Performance | Benchmarks, documented timings | Bench numbers match doc claims within 2× |
 | 2.8 | CLI | `mt harmonize` subcommand with three formats | CLI matches `mt oth *` conventions |
