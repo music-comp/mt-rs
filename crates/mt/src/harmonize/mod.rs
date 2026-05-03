@@ -1,21 +1,76 @@
-//! Voice-led OTH chord progressions for melodies.
+//! Melody harmonization with voice-led OTH chord progressions.
 //!
-//! Given a melody (a sequence of pitches or pitch classes), enumerate the
-//! top-K voice-led progressions whose top-voice line traces out that melody,
-//! drawing from the full fiber bundle E (all 4 inversions per PcChord) in
-//! both quintal and quartal voicings.
+//! Given a melody (a sequence of pitches or pitch classes), this module
+//! finds the top-K chord progressions whose top voices trace out that
+//! melody, ranked by least total semitone movement across all voice parts.
+//! Candidate chords are drawn from the full 228-chord Open Tone Harmony
+//! base space in both quintal and quartal voicings.
 //!
-//! # Architecture
+//! # Conceptual model
 //!
-//! 1. **Canonicalize** the melody to target top MIDI pitches (one per position).
-//! 2. **Enumerate candidates** for each position: all VoicedChords whose top
-//!    voice matches the target pitch class, shifted to the target octave.
-//! 3. **Top-K Viterbi** finds the K lowest-cost paths through the layered DAG
-//!    where edge weights are [`min_voiced_chord_l1`](crate::voice_leading::min_voiced_chord_l1).
+//! Each melody note pins the **top voice** of a four-note voiced chord.
+//! For every pitch class in the melody, all chords in
+//! [`crate::quintal::BaseSpace`] containing that pitch class contribute
+//! exactly one inversion with that PC on top — from both the quintal
+//! cycle (intervals in {6, 7, 8} semitones) and the quartal cycle
+//! (intervals in {4, 5, 6} semitones). This yields 76 candidates per
+//! pitch class per perspective, or 152 with both perspectives enabled.
 //!
-//! See [`crate::quintal::BaseSpace`] for the 228-chord candidate pool,
-//! [`crate::quintal::quintal_root`] / [`crate::quartal::quartal_root`] for
-//! canonical voicing construction.
+//! The algorithm then finds the K lowest-cost paths through the resulting
+//! layered graph, where edge cost is the assignment-optimal L1 voice-leading
+//! distance ([`crate::voice_leading::min_voiced_chord_l1`]).
+//!
+//! # Quick example
+//!
+//! ```
+//! use music_comp_mt::harmonize::{harmonize_melody, HarmonizeOptions, MelodyInput};
+//!
+//! // Harmonize C–E–G (as pitch classes) with default options.
+//! let results = harmonize_melody(
+//!     MelodyInput::PitchClasses(vec![0, 4, 7]),
+//!     HarmonizeOptions::default(),
+//! )?;
+//!
+//! // Default K=10: up to 10 progressions, sorted by ascending movement.
+//! assert!(results.len() <= 10);
+//! assert!(results[0].total_movement <= results.last().unwrap().total_movement);
+//!
+//! // Every chord's top voice matches the melody target.
+//! for chord in &results[0].chords {
+//!     assert!(chord.pitches[3] <= 127);
+//! }
+//! # Ok::<(), music_comp_mt::harmonize::HarmonizeError>(())
+//! ```
+//!
+//! # How it works
+//!
+//! Internally, [`harmonize_melody`] runs three stages:
+//!
+//! 1. **Canonicalize** — convert the input melody to target MIDI pitches
+//!    by applying [`HarmonizeOptions::top_voice_offset`] (and
+//!    [`HarmonizeOptions::melody_octave`] for pitch-class input).
+//! 2. **Enumerate candidates** — for each target, find all voiced chords
+//!    in the OTH base space whose top voice matches, drawn from quintal
+//!    and/or quartal inversion cycles per [`DualityScope`].
+//! 3. **Top-K Viterbi** — a k-best dynamic programming pass over the
+//!    layered candidate graph, minimizing total L1 voice-leading cost.
+//!
+//! # When to use this
+//!
+//! - **Composers** exploring voice-led harmonizations of a melodic line
+//!   within the OTH sound world.
+//! - **Music theorists** investigating minimal-movement paths through the
+//!   228-chord quintal/quartal space.
+//! - **ML and algorithmic composition** pipelines that need a ranked list
+//!   of harmonization candidates as training data or generation seeds.
+//!
+//! # See also
+//!
+//! - [`crate::quintal::BaseSpace`] — the 228-chord candidate pool.
+//! - [`crate::quintal::Orbit`] — the 14 T/I orbit classification.
+//! - [`crate::voice_leading::min_voiced_chord_l1`] — the edge-weight function.
+//! - [`crate::quintal::quintal_root`] / [`crate::quartal::quartal_root`] —
+//!   canonical voicing constructors used internally.
 
 pub(crate) mod canonicalize;
 pub(crate) mod candidates;
@@ -23,25 +78,40 @@ mod viterbi;
 
 use crate::quintal::VoicedChord;
 
-/// Input melody: either pitch classes (caller-supplied octave-free) or
-/// MIDI pitches (caller-supplied with octaves).
+/// Input melody: either pitch classes (octave-free) or absolute MIDI pitches.
+///
+/// Use [`MelodyInput::PitchClasses`] when you have scale degrees or pitch
+/// classes without a specific octave — the octave is supplied via
+/// [`HarmonizeOptions::melody_octave`]. Use [`MelodyInput::Pitches`] when
+/// you already have concrete MIDI pitch numbers.
 #[derive(Debug, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[non_exhaustive]
 pub enum MelodyInput {
-    /// Each element is a pitch class in `0..=11`.
+    /// Pitch classes in `0..=11` (C=0, C#=1, ..., B=11).
+    ///
+    /// The actual octave placement is determined by
+    /// [`HarmonizeOptions::melody_octave`].
     PitchClasses(Vec<u8>),
-    /// Each element is a MIDI pitch in `0..=127`.
+
+    /// Absolute MIDI pitches in `0..=127` (Middle C = 60, A4 = 69).
     Pitches(Vec<u8>),
 }
 
 /// Which voicing perspective(s) to draw candidates from.
+///
+/// The OTH base space admits two disjoint inversion cycles per chord:
+/// one quintal (intervals in {6, 7, 8}) and one quartal (intervals in
+/// {4, 5, 6}). This enum controls which cycles contribute candidates.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[non_exhaustive]
 pub enum DualityScope {
+    /// Draw candidates only from quintal inversion cycles (76 per position).
     QuintalOnly,
+    /// Draw candidates only from quartal inversion cycles (76 per position).
     QuartalOnly,
+    /// Draw from both quintal and quartal cycles (152 per position).
     #[default]
     Both,
 }
@@ -88,16 +158,24 @@ impl Default for HarmonizeOptions {
     }
 }
 
-/// One harmonization result: a sequence of voiced chords plus voice-leading
-/// statistics.
+/// One harmonization result: a chord progression with voice-leading statistics.
+///
+/// Each [`Harmonization`] represents a complete assignment of one
+/// [`VoicedChord`] per melody position,
+/// together with the per-step and total voice-leading costs.
 #[derive(Debug, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Harmonization {
-    /// One `VoicedChord` per melody position.
+    /// One [`VoicedChord`] per melody position.
+    /// `chords.len()` always equals the input melody length.
     pub chords: Vec<VoicedChord>,
-    /// Per-step minimal voice-leading L1 distances. Length = chords.len() - 1.
+
+    /// Per-step minimal voice-leading L1 distances.
+    /// `per_step_movements[i]` is the cost of moving from `chords[i]` to
+    /// `chords[i+1]`. Length is always `chords.len() - 1`.
     pub per_step_movements: Vec<u32>,
-    /// Sum of `per_step_movements`.
+
+    /// Total voice-leading cost: the sum of [`per_step_movements`](Self::per_step_movements).
     pub total_movement: u32,
 }
 
@@ -137,16 +215,21 @@ pub enum HarmonizeError {
 /// Harmonize a melody with the top-K voice-led OTH chord progressions.
 ///
 /// Each returned [`Harmonization`] has, for every melody position,
-/// a [`VoicedChord`] whose top voice (`pitches[3]`) equals the melody pitch
-/// at that position plus `options.top_voice_offset`. Progressions are
-/// ranked by ascending `total_movement`.
+/// a [`VoicedChord`] whose top voice
+/// (`pitches[3]`) equals the melody pitch at that position plus
+/// [`HarmonizeOptions::top_voice_offset`]. Progressions are ranked by
+/// ascending [`Harmonization::total_movement`].
 ///
 /// # Errors
 ///
-/// Returns [`HarmonizeError::EmptyMelody`] if `melody` contains no notes,
-/// [`HarmonizeError::InvalidPitchClass`] if a [`MelodyInput::PitchClasses`]
-/// entry is outside `0..=11`, or [`HarmonizeError::TargetMidiOutOfRange`]
-/// if the computed target pitch falls outside the MIDI range `0..=127`.
+/// - [`HarmonizeError::EmptyMelody`] — the input melody contains no notes.
+/// - [`HarmonizeError::InvalidPitchClass`] — a [`MelodyInput::PitchClasses`]
+///   entry is outside `0..=11`.
+/// - [`HarmonizeError::TargetMidiOutOfRange`] — the computed target MIDI pitch
+///   (melody note + `top_voice_offset`) fell outside `0..=127`.
+/// - [`HarmonizeError::NoCandidatesForPosition`] — no chord in the base space
+///   has the target pitch class on top after shifting. Structurally unreachable
+///   for any PC in `0..=11`.
 ///
 /// # Examples
 ///
@@ -158,6 +241,35 @@ pub enum HarmonizeError {
 ///     HarmonizeOptions::default(),
 /// )?;
 /// assert!(!result.is_empty());
+/// # Ok::<(), music_comp_mt::harmonize::HarmonizeError>(())
+/// ```
+///
+/// # OTH framing
+///
+/// The returned progressions draw exclusively from the 228-chord OTH base
+/// space. Each chord is a four-note quintal or quartal voicing; the
+/// progression minimizes total semitone movement across all four voices.
+///
+/// ```
+/// use music_comp_mt::harmonize::{
+///     harmonize_melody, DualityScope, HarmonizeOptions, MelodyInput,
+/// };
+///
+/// // Two-note melody: C then E (as MIDI, octave 5).
+/// let results = harmonize_melody(
+///     MelodyInput::Pitches(vec![72, 76]),
+///     HarmonizeOptions { k: 3, ..Default::default() },
+/// )?;
+///
+/// assert_eq!(results.len(), 3);
+/// // Each result has exactly 2 chords (one per melody note).
+/// for r in &results {
+///     assert_eq!(r.chords.len(), 2);
+///     assert_eq!(r.per_step_movements.len(), 1);
+///     assert_eq!(r.total_movement, r.per_step_movements[0]);
+/// }
+/// // Results are sorted by ascending movement.
+/// assert!(results[0].total_movement <= results[2].total_movement);
 /// # Ok::<(), music_comp_mt::harmonize::HarmonizeError>(())
 /// ```
 pub fn harmonize_melody(
