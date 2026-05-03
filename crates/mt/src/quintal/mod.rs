@@ -3,12 +3,12 @@
 mod base_space;
 mod centrality;
 mod constructors;
-pub mod functional;
 mod display;
 mod distance;
 mod duality;
 mod error;
 mod fiber;
+pub mod functional;
 mod geodesics;
 mod group;
 pub(crate) mod modes;
@@ -16,12 +16,12 @@ mod orbit;
 mod types;
 mod verification;
 
+pub use crate::voice_leading::min_voiced_chord_l1;
 pub use base_space::{enumerate_all, is_adjacent, BaseSpace};
-pub use constructors::quintal_root;
-pub use functional::{FunctionalRegion, Pathway};
 #[allow(deprecated)]
 pub use centrality::crossroads_chords;
 pub use centrality::{betweenness_centrality, saddle_chords};
+pub use constructors::quintal_root;
 pub use display::{pc_to_note_name, render_chord_dashed, render_pcset_dashed};
 pub use distance::{all_distances_from, center, diameter, distance, eccentricity};
 pub use duality::{
@@ -30,6 +30,7 @@ pub use duality::{
 };
 pub use error::QuintalError;
 pub use fiber::{chord_scale, inversion_cycle, l1_distance, project, t1, t_minus1, ChordScale};
+pub use functional::{FunctionalRegion, Pathway};
 pub use geodesics::{
     count_geodesics, distances_and_geodesic_counts, geodesic_distribution, geodesics,
     passing_chords, DistAndGeodesicCounts, GeodesicBucket, GeodesicDistribution,
@@ -48,4 +49,3 @@ pub use verification::{
     fiber_class, inversion_l1_distances, inversions_in_base, verify_fiber_classes,
     verify_universal_l1_law,
 };
-pub use crate::voice_leading::min_voiced_chord_l1;

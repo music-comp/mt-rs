@@ -72,8 +72,8 @@
 //! - [`crate::quintal::quintal_root`] / [`crate::quartal::quartal_root`] —
 //!   canonical voicing constructors used internally.
 
-pub(crate) mod canonicalize;
 pub(crate) mod candidates;
+pub(crate) mod canonicalize;
 pub mod functional;
 mod viterbi;
 

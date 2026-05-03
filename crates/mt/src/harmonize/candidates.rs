@@ -89,7 +89,10 @@ mod tests {
     fn test_shift_identity() {
         let c = VoicedChord::new([48, 55, 62, 69]).unwrap();
         let result = shift_to_top(&c, 69, 0).unwrap();
-        eprintln!("identity: input={:?}, target=69, output={:?}", c.pitches, result.pitches);
+        eprintln!(
+            "identity: input={:?}, target=69, output={:?}",
+            c.pitches, result.pitches
+        );
         assert_eq!(result.pitches, c.pitches);
     }
 
@@ -97,7 +100,10 @@ mod tests {
     fn test_shift_octave_up() {
         let c = VoicedChord::new([48, 55, 62, 69]).unwrap();
         let result = shift_to_top(&c, 81, 0).unwrap();
-        eprintln!("octave_up: input={:?}, target=81, output={:?}", c.pitches, result.pitches);
+        eprintln!(
+            "octave_up: input={:?}, target=81, output={:?}",
+            c.pitches, result.pitches
+        );
         assert_eq!(result.pitches, [60, 67, 74, 81]);
     }
 
@@ -105,7 +111,10 @@ mod tests {
     fn test_shift_octave_down() {
         let c = VoicedChord::new([48, 55, 62, 69]).unwrap();
         let result = shift_to_top(&c, 57, 0).unwrap();
-        eprintln!("octave_down: input={:?}, target=57, output={:?}", c.pitches, result.pitches);
+        eprintln!(
+            "octave_down: input={:?}, target=57, output={:?}",
+            c.pitches, result.pitches
+        );
         assert_eq!(result.pitches, [36, 43, 50, 57]);
     }
 
@@ -115,10 +124,16 @@ mod tests {
         let c = VoicedChord::new([48, 55, 62, 69]).unwrap();
         // target = 69 - 60 = 9 → delta = 9 - 69 = -60, bottom = 48 - 60 = -12
         let result = shift_to_top(&c, 9, 3);
-        eprintln!("underflow: input={:?}, target=9, result={:?}", c.pitches, result);
+        eprintln!(
+            "underflow: input={:?}, target=9, result={:?}",
+            c.pitches, result
+        );
         assert!(matches!(
             result,
-            Err(HarmonizeError::TargetMidiOutOfRange { position: 3, target_midi: 9 })
+            Err(HarmonizeError::TargetMidiOutOfRange {
+                position: 3,
+                target_midi: 9
+            })
         ));
     }
 
@@ -139,7 +154,10 @@ mod tests {
     fn test_shift_result_is_ascending() {
         let c = VoicedChord::new([36, 43, 50, 57]).unwrap();
         let result = shift_to_top(&c, 69, 0).unwrap();
-        eprintln!("ascending: input={:?}, target=69, output={:?}", c.pitches, result.pitches);
+        eprintln!(
+            "ascending: input={:?}, target=69, output={:?}",
+            c.pitches, result.pitches
+        );
         assert!(result.pitches[0] < result.pitches[1]);
         assert!(result.pitches[1] < result.pitches[2]);
         assert!(result.pitches[2] < result.pitches[3]);

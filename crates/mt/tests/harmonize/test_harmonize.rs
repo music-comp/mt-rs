@@ -9,7 +9,10 @@ use theory::harmonize::{
 fn test_harmonize_with_pitches_default_offset() {
     let result = harmonize_melody(
         MelodyInput::Pitches(vec![72, 76, 79]),
-        HarmonizeOptions { k: 1, ..Default::default() },
+        HarmonizeOptions {
+            k: 1,
+            ..Default::default()
+        },
     )
     .unwrap();
     assert_eq!(result[0].chords[0].pitches[3], 60);
@@ -21,7 +24,10 @@ fn test_harmonize_with_pitches_default_offset() {
 fn test_harmonize_with_pcs_default_offset() {
     let result = harmonize_melody(
         MelodyInput::PitchClasses(vec![0, 4, 7]),
-        HarmonizeOptions { k: 1, ..Default::default() },
+        HarmonizeOptions {
+            k: 1,
+            ..Default::default()
+        },
     )
     .unwrap();
     assert_eq!(result[0].chords[0].pitches[3], 60);
@@ -81,7 +87,10 @@ fn test_top_voice_pinned_for_short_melody() {
 fn test_total_movement_is_monotonic_in_returned_order() {
     let result = harmonize_melody(
         MelodyInput::PitchClasses(vec![0, 4, 7, 2]),
-        HarmonizeOptions { k: 10, ..Default::default() },
+        HarmonizeOptions {
+            k: 10,
+            ..Default::default()
+        },
     )
     .unwrap();
     for window in result.windows(2) {
@@ -93,7 +102,10 @@ fn test_total_movement_is_monotonic_in_returned_order() {
 fn test_repeated_notes_admit_zero_movement_step() {
     let result = harmonize_melody(
         MelodyInput::Pitches(vec![72, 72]),
-        HarmonizeOptions { k: 1, ..Default::default() },
+        HarmonizeOptions {
+            k: 1,
+            ..Default::default()
+        },
     )
     .unwrap();
     assert_eq!(result[0].total_movement, 0);
@@ -137,14 +149,19 @@ fn test_quartal_only_excludes_quintal_voicings() {
 
 #[test]
 fn test_empty_melody_errors() {
-    let result = harmonize_melody(MelodyInput::PitchClasses(vec![]), HarmonizeOptions::default());
+    let result = harmonize_melody(
+        MelodyInput::PitchClasses(vec![]),
+        HarmonizeOptions::default(),
+    );
     assert!(matches!(result, Err(HarmonizeError::EmptyMelody)));
 }
 
 #[test]
 fn test_invalid_pitch_class_errors() {
-    let result =
-        harmonize_melody(MelodyInput::PitchClasses(vec![13]), HarmonizeOptions::default());
+    let result = harmonize_melody(
+        MelodyInput::PitchClasses(vec![13]),
+        HarmonizeOptions::default(),
+    );
     assert!(matches!(result, Err(HarmonizeError::InvalidPitchClass(13))));
 }
 
@@ -161,7 +178,10 @@ fn test_default_options_match_documented_defaults() {
 fn test_empty_melody_with_k_zero_still_errors() {
     let result = harmonize_melody(
         MelodyInput::PitchClasses(vec![]),
-        HarmonizeOptions { k: 0, ..Default::default() },
+        HarmonizeOptions {
+            k: 0,
+            ..Default::default()
+        },
     );
     assert!(matches!(result, Err(HarmonizeError::EmptyMelody)));
 }
@@ -170,7 +190,10 @@ fn test_empty_melody_with_k_zero_still_errors() {
 fn test_k_zero_returns_empty() {
     let result = harmonize_melody(
         MelodyInput::PitchClasses(vec![0, 4, 7]),
-        HarmonizeOptions { k: 0, ..Default::default() },
+        HarmonizeOptions {
+            k: 0,
+            ..Default::default()
+        },
     )
     .unwrap();
     assert!(result.is_empty());
@@ -185,7 +208,10 @@ fn test_target_midi_underflow_errors() {
             ..Default::default()
         },
     );
-    assert!(matches!(result, Err(HarmonizeError::TargetMidiOutOfRange { .. })));
+    assert!(matches!(
+        result,
+        Err(HarmonizeError::TargetMidiOutOfRange { .. })
+    ));
 }
 
 #[test]
@@ -197,5 +223,8 @@ fn test_target_midi_overflow_errors() {
             ..Default::default()
         },
     );
-    assert!(matches!(result, Err(HarmonizeError::TargetMidiOutOfRange { .. })));
+    assert!(matches!(
+        result,
+        Err(HarmonizeError::TargetMidiOutOfRange { .. })
+    ));
 }

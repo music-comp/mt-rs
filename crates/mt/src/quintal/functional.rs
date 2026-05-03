@@ -154,10 +154,7 @@ mod tests {
     #[test]
     fn test_pathway_region_sequences() {
         use FunctionalRegion::*;
-        assert_eq!(
-            Pathway::Cadence.region_sequence(),
-            &[Saddle, Slope, Summit]
-        );
+        assert_eq!(Pathway::Cadence.region_sequence(), &[Saddle, Slope, Summit]);
         assert_eq!(
             Pathway::Departure.region_sequence(),
             &[Summit, Plateau, Slope, Saddle]

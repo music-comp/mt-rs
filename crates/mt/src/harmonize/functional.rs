@@ -161,7 +161,7 @@ mod tests {
         // Degrees: 4, 5, 6, 8
         // Q867=4, Q776=5, Q877=6, Q777=8
         // Need chords from each orbit. Use quintal_root at octave 4.
-        use crate::quintal::{quintal_root, BaseSpace, classify_orbit, Orbit};
+        use crate::quintal::{classify_orbit, quintal_root, BaseSpace, Orbit};
         let space = BaseSpace::new();
 
         let find_chord_in_orbit = |target_orbit: Orbit| -> [u8; 4] {
@@ -185,7 +185,7 @@ mod tests {
 
     #[test]
     fn test_trajectory_descent() {
-        use crate::quintal::{quintal_root, BaseSpace, classify_orbit, Orbit};
+        use crate::quintal::{classify_orbit, quintal_root, BaseSpace, Orbit};
         let space = BaseSpace::new();
 
         let find_chord_in_orbit = |target_orbit: Orbit| -> [u8; 4] {
@@ -208,7 +208,7 @@ mod tests {
 
     #[test]
     fn test_trajectory_traverse() {
-        use crate::quintal::{quintal_root, BaseSpace, classify_orbit, Orbit};
+        use crate::quintal::{classify_orbit, quintal_root, BaseSpace, Orbit};
         let space = BaseSpace::new();
 
         let mut degree_6_chords: Vec<[u8; 4]> = Vec::new();
@@ -227,7 +227,7 @@ mod tests {
 
     #[test]
     fn test_trajectory_mixed() {
-        use crate::quintal::{quintal_root, BaseSpace, classify_orbit, Orbit};
+        use crate::quintal::{classify_orbit, quintal_root, BaseSpace, Orbit};
         let space = BaseSpace::new();
 
         let find_chord_in_orbit = |target_orbit: Orbit| -> [u8; 4] {
@@ -250,7 +250,7 @@ mod tests {
 
     #[test]
     fn test_match_cadence() {
-        use crate::quintal::{quintal_root, BaseSpace, classify_orbit, Orbit};
+        use crate::quintal::{classify_orbit, quintal_root, BaseSpace, Orbit};
         let space = BaseSpace::new();
 
         let find_chord_in_orbit = |target_orbit: Orbit| -> [u8; 4] {
@@ -279,7 +279,7 @@ mod tests {
 
     #[test]
     fn test_match_no_pathway() {
-        use crate::quintal::{quintal_root, BaseSpace, classify_orbit, Orbit};
+        use crate::quintal::{classify_orbit, quintal_root, BaseSpace, Orbit};
         let space = BaseSpace::new();
 
         let find_chord_in_orbit = |target_orbit: Orbit| -> [u8; 4] {

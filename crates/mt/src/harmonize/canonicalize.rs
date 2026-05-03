@@ -64,8 +64,7 @@ mod tests {
     #[test]
     fn test_pcs_with_default_offset() {
         let opts = HarmonizeOptions::default();
-        let result =
-            canonicalize_melody(&MelodyInput::PitchClasses(vec![0, 4, 7]), &opts).unwrap();
+        let result = canonicalize_melody(&MelodyInput::PitchClasses(vec![0, 4, 7]), &opts).unwrap();
         assert_eq!(result, vec![60, 64, 67]);
     }
 

@@ -11,14 +11,16 @@ use std::fs;
 use std::path::PathBuf;
 
 use midly::num::{u15, u24, u28, u4, u7};
-use midly::{Format, Header, MetaMessage, MidiMessage, Smf, Timing, Track, TrackEvent, TrackEventKind};
+use midly::{
+    Format, Header, MetaMessage, MidiMessage, Smf, Timing, Track, TrackEvent, TrackEventKind,
+};
 
 use music_comp_mt::harmonize::{
-    classify_trajectory, harmonize_melody, match_functional_pathways, DualityScope,
-    HarmonizeOptions, Harmonization, MelodyInput,
+    classify_trajectory, harmonize_melody, match_functional_pathways, DualityScope, Harmonization,
+    HarmonizeOptions, MelodyInput,
 };
-use music_comp_mt::quintal::FunctionalRegion;
 use music_comp_mt::quartal::{quartal_inversion_cycle, quartal_root};
+use music_comp_mt::quintal::FunctionalRegion;
 use music_comp_mt::quintal::{
     classify_orbit, inversion_cycle, pc_to_note_name, quintal_root, VoicedChord,
 };
@@ -41,14 +43,20 @@ fn orbit_and_inversion(chord: &VoicedChord) -> (String, String) {
     // Check quintal cycle
     let q_root = quintal_root(&pc_chord, 4).expect("legal chord");
     let q_cycle = inversion_cycle(&q_root);
-    if let Some(idx) = q_cycle.iter().position(|vc| vc.pitches.map(|p| p % 12) == chord_pcs) {
+    if let Some(idx) = q_cycle
+        .iter()
+        .position(|vc| vc.pitches.map(|p| p % 12) == chord_pcs)
+    {
         return (orbit_label, format!("quintal inv {}", idx));
     }
 
     // Check quartal cycle
     let qv_root = quartal_root(&pc_chord, 4).expect("legal chord");
     let qv_cycle = quartal_inversion_cycle(&qv_root);
-    if let Some(idx) = qv_cycle.iter().position(|vc| vc.as_voiced().pitches.map(|p| p % 12) == chord_pcs) {
+    if let Some(idx) = qv_cycle
+        .iter()
+        .position(|vc| vc.as_voiced().pitches.map(|p| p % 12) == chord_pcs)
+    {
         return (orbit_label, format!("quartal inv {}", idx));
     }
 
@@ -122,7 +130,14 @@ fn print_harmonization_functional(results: &[Harmonization], label: &str) {
         } else {
             pathway_matches
                 .iter()
-                .map(|m| format!("{}@{}\u{2013}{}", m.pathway, m.start_position + 1, m.end_position + 1))
+                .map(|m| {
+                    format!(
+                        "{}@{}\u{2013}{}",
+                        m.pathway,
+                        m.start_position + 1,
+                        m.end_position + 1
+                    )
+                })
                 .collect::<Vec<_>>()
                 .join(", ")
         };
@@ -170,7 +185,7 @@ fn export_midi(
 
     // Time signature: melody_len / 8
     // Format: nn dd cc bb where nn=numerator, dd=log2(denominator), cc=clocks, bb=32nds
-    let time_sig_data = vec![melody_len as u8, 3, 24, 8]; // N/8
+    let time_sig_data = [melody_len as u8, 3, 24, 8]; // N/8
     conductor.push(TrackEvent {
         delta: u28::new(0),
         kind: TrackEventKind::Meta(MetaMessage::TimeSignature(
@@ -201,22 +216,18 @@ fn export_midi(
         delta: u28::new(0),
         kind: TrackEventKind::Midi {
             channel: u4::new(0),
-            message: MidiMessage::ProgramChange { program: u7::new(0) },
+            message: MidiMessage::ProgramChange {
+                program: u7::new(0),
+            },
         },
     });
 
     // Repeat melody for each progression (one measure per progression)
-    for prog_idx in 0..results.len() {
-        for (note_idx, &pitch) in melody.iter().enumerate() {
-            let delta = if prog_idx == 0 && note_idx == 0 {
-                0
-            } else {
-                0 // note-on immediately after previous note-off
-            };
-
-            // Note on
+    for _ in 0..results.len() {
+        for &pitch in melody.iter() {
+            // Note on (delta=0: immediately after previous note-off)
             treble.push(TrackEvent {
-                delta: u28::new(delta),
+                delta: u28::new(0),
                 kind: TrackEventKind::Midi {
                     channel: u4::new(0),
                     message: MidiMessage::NoteOn {
@@ -253,24 +264,18 @@ fn export_midi(
         delta: u28::new(0),
         kind: TrackEventKind::Midi {
             channel: u4::new(1),
-            message: MidiMessage::ProgramChange { program: u7::new(0) },
+            message: MidiMessage::ProgramChange {
+                program: u7::new(0),
+            },
         },
     });
 
     for result in results {
-        for (pos, chord) in result.chords.iter().enumerate() {
-            // All 4 chord notes on simultaneously
-            for (voice_idx, &pitch) in chord.pitches.iter().enumerate() {
-                let delta = if voice_idx == 0 && pos == 0 {
-                    0
-                } else if voice_idx == 0 {
-                    0 // first voice after previous chord's note-offs
-                } else {
-                    0 // simultaneous with other voices
-                };
-
+        for chord in result.chords.iter() {
+            // All 4 chord notes on simultaneously (delta=0 for all)
+            for &pitch in chord.pitches.iter() {
                 bass.push(TrackEvent {
-                    delta: u28::new(delta),
+                    delta: u28::new(0),
                     kind: TrackEventKind::Midi {
                         channel: u4::new(1),
                         message: MidiMessage::NoteOn {
@@ -283,11 +288,7 @@ fn export_midi(
 
             // All 4 notes off after one eighth note
             for (voice_idx, &pitch) in chord.pitches.iter().enumerate() {
-                let delta = if voice_idx == 0 {
-                    eighth_note
-                } else {
-                    0
-                };
+                let delta = if voice_idx == 0 { eighth_note } else { 0 };
 
                 bass.push(TrackEvent {
                     delta: u28::new(delta),
@@ -368,7 +369,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         results.sort_by(|a, b| {
             let a_matches = match_functional_pathways(a).len();
             let b_matches = match_functional_pathways(b).len();
-            b_matches.cmp(&a_matches).then(a.total_movement.cmp(&b.total_movement))
+            b_matches
+                .cmp(&a_matches)
+                .then(a.total_movement.cmp(&b.total_movement))
         });
     }
     print_fn(&results, "Both dualities (quintal + quartal), K=5");
@@ -386,7 +389,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         quintal_results.sort_by(|a, b| {
             let a_matches = match_functional_pathways(a).len();
             let b_matches = match_functional_pathways(b).len();
-            b_matches.cmp(&a_matches).then(a.total_movement.cmp(&b.total_movement))
+            b_matches
+                .cmp(&a_matches)
+                .then(a.total_movement.cmp(&b.total_movement))
         });
     }
     print_fn(&quintal_results, "Quintal only, K=3");
@@ -404,7 +409,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         quartal_results.sort_by(|a, b| {
             let a_matches = match_functional_pathways(a).len();
             let b_matches = match_functional_pathways(b).len();
-            b_matches.cmp(&a_matches).then(a.total_movement.cmp(&b.total_movement))
+            b_matches
+                .cmp(&a_matches)
+                .then(a.total_movement.cmp(&b.total_movement))
         });
     }
     print_fn(&quartal_results, "Quartal only, K=3");

@@ -47,7 +47,7 @@ fn voice_order_pcs(vc: &VoicedChord) -> [u8; 4] {
 fn orbit_fingerprint(voiced: &VoicedChord) -> BTreeSet<[u8; 4]> {
     inversion_cycle(voiced)
         .iter()
-        .map(|vc| voice_order_pcs(vc))
+        .map(voice_order_pcs)
         .collect()
 }
 

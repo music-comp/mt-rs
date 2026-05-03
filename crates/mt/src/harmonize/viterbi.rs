@@ -131,7 +131,10 @@ mod tests {
 
         let layers = vec![vec![a, b], vec![c]];
         let results = top_k_viterbi(&layers, 2);
-        eprintln!("two_layers results: {:?}", results.iter().map(|r| r.total_movement).collect::<Vec<_>>());
+        eprintln!(
+            "two_layers results: {:?}",
+            results.iter().map(|r| r.total_movement).collect::<Vec<_>>()
+        );
 
         assert_eq!(results.len(), 2);
         assert!(results[0].total_movement <= results[1].total_movement);
