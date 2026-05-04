@@ -1,0 +1,7 @@
+# Saddle-pivot modulation: C-key -> F#-key in 5 chords
+# From oth_modulation_via_saddle_pivot.md
+Q777
+Q786
+Q686
+Q786
+Q777

@@ -1,0 +1,11 @@
+# d5-wing closed cycle tour (n=0, returns to starting Summit)
+# From oth_d5_wing_tour.md
+Q777
+Q786
+Q686
+Q776
+Q676
+Q776
+Q767
+Q786
+Q777

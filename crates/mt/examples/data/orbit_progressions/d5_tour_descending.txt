@@ -1,0 +1,11 @@
+# d5-wing descending arch tour (n=-1, ends at neighbor Summit)
+# From oth_d5_wing_tour.md -- visits Saddle, Narrows, Valley d5
+Q777
+Q786
+Q686
+Q776
+Q676
+Q776
+Q767
+Q867
+Q777

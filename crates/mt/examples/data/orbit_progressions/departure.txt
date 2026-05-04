@@ -1,0 +1,7 @@
+# OTH Departure: Summit -> Plateau -> Slope -> Saddle
+# Plateau is Q877 (degree-6, A5-flavored hub) -- directly adjacent
+# to Summit at the chord-graph level.
+Q777
+Q877
+Q786
+Q686
