@@ -21,6 +21,10 @@ pub use constructors::{
     quartal_root,
 };
 pub use conversion::{pc_chord_quartal_intervals, to_quartal, to_quintal};
+pub use duality::{
+    orbit_self_duality, quartal_reading, quintal_reading, reverse_interval_structure,
+    t_quartal_reversal_equivalence, verify_all_orbits_self_dual,
+};
 pub use error::QuartalError;
 pub use interval::{
     quartal_to_quintal_interval, quartal_to_quintal_structure, quintal_to_quartal_interval,
