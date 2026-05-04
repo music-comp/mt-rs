@@ -6,7 +6,8 @@ This index is automatically generated. Do not edit manually.
 
 | Number | Title | State | Updated |
 |--------|-------|-------|----------|
-| 0009 | Quartal Implementation Spec (Phase T1) | Active | 2026-05-04 |
+| 0010 | Quartal Implementation Spec (Phase T2) | Active | 2026-05-04 |
+| 0009 | Quartal Implementation Spec (Phase T1) | Final | 2026-05-04 |
 | 0008 | Quartal Implementation Spec (Phase T0) | Final | 2026-05-04 |
 | 0007 | Melody Harmonization Feature | Final | 2026-05-04 |
 | 0006 | Tooling Spec: §6 Geodesic Distribution Verification | Final | 2026-05-01 |
@@ -20,10 +21,11 @@ This index is automatically generated. Do not edit manually.
 
 ### Active
 
-- [0009 - oth4 — T1 Implementation Spec](05-active/0009-oth4-t1-implementation-spec.md)
+- [0010 - oth4 — T2 Implementation Spec](05-active/0010-oth4-t2-implementation-spec.md)
 
 ### Final
 
+- [0009 - Quartal Implementation Spec (Phase T1)](06-final/0009-oth4-t1-implementation-spec.md)
 - [0008 - Quartal Implementation Spec (Phase T0)](06-final/0008-oth4-t0-implementation-spec.md)
 - [0007 - Melody Harmonization Feature](06-final/0007-melody-harmonization-feature-implementation-plan-phases-0-0.5-1.md)
 - [0006 - Tooling Spec: §6 Geodesic Distribution Verification](06-final/0006-tooling-spec-6-geodesic-distribution-verification.md)
