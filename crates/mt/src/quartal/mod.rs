@@ -7,11 +7,13 @@
 
 mod constructors;
 mod conversion;
+mod duality;
 mod error;
 mod interval;
 mod modes;
 mod orbit;
 mod types;
+mod verification;
 mod voicing;
 
 pub use constructors::{
