@@ -6,8 +6,9 @@ This index is automatically generated. Do not edit manually.
 
 | Number | Title | State | Updated |
 |--------|-------|-------|----------|
-| 0008 | oth4 — T0 Implementation Spec | Active | 2026-05-03 |
-| 0007 | Melody Harmonization Feature | Active | 2026-05-01 |
+| 0009 | Quartal Implementation Spec (Phase T1) | Active | 2026-05-04 |
+| 0008 | Quartal Implementation Spec (Phase T0) | Final | 2026-05-04 |
+| 0007 | Melody Harmonization Feature | Final | 2026-05-04 |
 | 0006 | Tooling Spec: §6 Geodesic Distribution Verification | Final | 2026-05-01 |
 | 0005 | Quintal Fiber Bundle Implementation: Project Plan | Final | 2026-05-01 |
 | 0004 | Tier 3 Advanced Music Theory — Design Spec | Final | 2026-04-02 |
@@ -19,11 +20,12 @@ This index is automatically generated. Do not edit manually.
 
 ### Active
 
-- [0008 - oth4 — T0 Implementation Spec](05-active/0008-oth4-t0-implementation-spec.md)
-- [0007 - Melody Harmonization Feature — Implementation Plan (Phases 0, 0.5, 1)](05-active/0007-melody-harmonization-feature-implementation-plan-phases-0-0.5-1.md)
+- [0009 - oth4 — T1 Implementation Spec](05-active/0009-oth4-t1-implementation-spec.md)
 
 ### Final
 
+- [0008 - Quartal Implementation Spec (Phase T0)](06-final/0008-oth4-t0-implementation-spec.md)
+- [0007 - Melody Harmonization Feature](06-final/0007-melody-harmonization-feature-implementation-plan-phases-0-0.5-1.md)
 - [0006 - Tooling Spec: §6 Geodesic Distribution Verification](06-final/0006-tooling-spec-6-geodesic-distribution-verification.md)
 - [0005 - Quintal Fiber Bundle Implementation: Project Plan](06-final/0005-quintal-fiber-bundle-implementation-project-plan.md)
 - [0004 - Tier 3 Advanced Music Theory — Design Spec](06-final/0004-tier-3-advanced-music-theory-design-spec.md)
