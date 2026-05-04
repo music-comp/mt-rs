@@ -47,6 +47,59 @@ impl fmt::Display for Note {
     }
 }
 
+/// Parse a pitch string like "C4", "F#3", "Bb-1" into a MIDI pitch number (0–127).
+///
+/// Accepts ASCII accidentals (`#`, `b`) and Unicode (`♯`, `♭`).
+/// Octave convention: C-1 = 0, C0 = 12, C4 = 60 (Middle C).
+///
+/// # Errors
+///
+/// Returns [`NoteError::InvalidPitch`] if the string is malformed or the
+/// resulting pitch is outside MIDI range 0–127.
+///
+/// # Examples
+///
+/// ```
+/// use music_comp_mt::note::parse_midi_pitch;
+///
+/// assert_eq!(parse_midi_pitch("C4").unwrap(), 60);
+/// assert_eq!(parse_midi_pitch("A4").unwrap(), 69);
+/// assert_eq!(parse_midi_pitch("F#3").unwrap(), 54);
+/// assert_eq!(parse_midi_pitch("Bb3").unwrap(), 58);
+/// ```
+pub fn parse_midi_pitch(s: &str) -> Result<u8, NoteError> {
+    let s = s.trim();
+    if s.is_empty() {
+        return Err(NoteError::InvalidPitch);
+    }
+
+    // Find where the octave number starts: scan from the end for digits and optional leading '-'
+    let mut octave_start = s.len();
+    for (i, ch) in s.char_indices().rev() {
+        if ch.is_ascii_digit() || (ch == '-' && i > 0) {
+            octave_start = i;
+        } else {
+            break;
+        }
+    }
+
+    if octave_start == 0 || octave_start == s.len() {
+        return Err(NoteError::InvalidPitch);
+    }
+
+    let pitch_part = &s[..octave_start];
+    let octave_part = &s[octave_start..];
+
+    let pitch = Pitch::try_parse(pitch_part).ok_or(NoteError::InvalidPitch)?;
+    let octave: i16 = octave_part.parse().map_err(|_| NoteError::InvalidPitch)?;
+
+    let midi = (octave + 1) as i32 * 12 + pitch.as_u8() as i32;
+    if !(0..=127).contains(&midi) {
+        return Err(NoteError::InvalidPitch);
+    }
+    Ok(midi as u8)
+}
+
 /// A type that can produce a sequence of notes.
 pub trait Notes {
     /// Get the sequence of notes.
@@ -78,10 +131,57 @@ pub trait Notes {
 
 #[cfg(test)]
 mod tests {
-    #[cfg(feature = "midi")]
     use super::*;
     #[cfg(feature = "midi")]
     use crate::note::PitchSymbol::*;
+
+    #[test]
+    fn test_parse_midi_pitch_basic() {
+        assert_eq!(parse_midi_pitch("C4").unwrap(), 60);
+        assert_eq!(parse_midi_pitch("A4").unwrap(), 69);
+        assert_eq!(parse_midi_pitch("C0").unwrap(), 12);
+        assert_eq!(parse_midi_pitch("C-1").unwrap(), 0);
+        assert_eq!(parse_midi_pitch("C9").unwrap(), 120);
+        assert_eq!(parse_midi_pitch("G9").unwrap(), 127);
+    }
+
+    #[test]
+    fn test_parse_midi_pitch_sharps() {
+        assert_eq!(parse_midi_pitch("C#3").unwrap(), 49);
+        assert_eq!(parse_midi_pitch("F#4").unwrap(), 66);
+        assert_eq!(parse_midi_pitch("F#3").unwrap(), 54);
+    }
+
+    #[test]
+    fn test_parse_midi_pitch_flats_ascii() {
+        assert_eq!(parse_midi_pitch("Db3").unwrap(), 49);
+        assert_eq!(parse_midi_pitch("Bb3").unwrap(), 58);
+    }
+
+    #[test]
+    fn test_parse_midi_pitch_flats_unicode() {
+        assert_eq!(parse_midi_pitch("B\u{266d}3").unwrap(), 58);
+        assert_eq!(parse_midi_pitch("D\u{266d}3").unwrap(), 49);
+    }
+
+    #[test]
+    fn test_parse_midi_pitch_sharps_unicode() {
+        assert_eq!(parse_midi_pitch("C\u{266f}4").unwrap(), 61);
+    }
+
+    #[test]
+    fn test_parse_midi_pitch_out_of_range() {
+        assert!(parse_midi_pitch("C10").is_err());
+        assert!(parse_midi_pitch("G#9").is_err());
+    }
+
+    #[test]
+    fn test_parse_midi_pitch_malformed() {
+        assert!(parse_midi_pitch("").is_err());
+        assert!(parse_midi_pitch("X3").is_err());
+        assert!(parse_midi_pitch("C").is_err());
+        assert!(parse_midi_pitch("3C").is_err());
+    }
 
     #[test]
     #[cfg(feature = "midi")]

@@ -7,6 +7,7 @@
 
 use std::collections::BTreeMap;
 use std::fmt;
+use std::str::FromStr;
 
 use super::group;
 use super::{IntervalStructure, PcChord};
@@ -189,4 +190,72 @@ pub fn classify_all(chords: &[PcChord]) -> BTreeMap<Orbit, Vec<PcChord>> {
         }
     }
     map
+}
+
+impl FromStr for Orbit {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s.trim().to_uppercase().as_str() {
+            "Q777" => Ok(Orbit::Q777),
+            "Q767" => Ok(Orbit::Q767),
+            "Q787" => Ok(Orbit::Q787),
+            "Q676" => Ok(Orbit::Q676),
+            "Q686" => Ok(Orbit::Q686),
+            "Q878" => Ok(Orbit::Q878),
+            "Q868" => Ok(Orbit::Q868),
+            "Q776" => Ok(Orbit::Q776),
+            "Q877" => Ok(Orbit::Q877),
+            "Q867" => Ok(Orbit::Q867),
+            "Q876" => Ok(Orbit::Q876),
+            "Q788" => Ok(Orbit::Q788),
+            "Q786" => Ok(Orbit::Q786),
+            "Q688" => Ok(Orbit::Q688),
+            other => Err(format!("unknown orbit: {:?}", other)),
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_from_str_all_14_orbits() {
+        let cases = [
+            ("Q777", Orbit::Q777),
+            ("Q767", Orbit::Q767),
+            ("Q787", Orbit::Q787),
+            ("Q676", Orbit::Q676),
+            ("Q686", Orbit::Q686),
+            ("Q878", Orbit::Q878),
+            ("Q868", Orbit::Q868),
+            ("Q776", Orbit::Q776),
+            ("Q877", Orbit::Q877),
+            ("Q867", Orbit::Q867),
+            ("Q876", Orbit::Q876),
+            ("Q788", Orbit::Q788),
+            ("Q786", Orbit::Q786),
+            ("Q688", Orbit::Q688),
+        ];
+        for (s, expected) in cases {
+            assert_eq!(s.parse::<Orbit>().unwrap(), expected);
+        }
+    }
+
+    #[test]
+    fn test_from_str_case_insensitive() {
+        assert_eq!("q777".parse::<Orbit>().unwrap(), Orbit::Q777);
+        assert_eq!("q686".parse::<Orbit>().unwrap(), Orbit::Q686);
+        assert_eq!("  Q786  ".parse::<Orbit>().unwrap(), Orbit::Q786);
+    }
+
+    #[test]
+    fn test_from_str_invalid() {
+        assert!("".parse::<Orbit>().is_err());
+        assert!("Q999".parse::<Orbit>().is_err());
+        assert!("foo".parse::<Orbit>().is_err());
+        assert!("Q77".parse::<Orbit>().is_err());
+        assert!("Q7777".parse::<Orbit>().is_err());
+    }
 }
