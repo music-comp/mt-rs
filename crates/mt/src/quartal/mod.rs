@@ -5,8 +5,10 @@
 //! quintal reads bottom-to-top as fifths. Both perspectives describe the
 //! same mathematical structure.
 
+mod centrality;
 mod constructors;
 mod conversion;
+mod display;
 mod duality;
 mod error;
 mod interval;
