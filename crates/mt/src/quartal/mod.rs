@@ -23,6 +23,9 @@ pub use constructors::{
     quartal_root,
 };
 pub use conversion::{pc_chord_quartal_intervals, to_quartal, to_quintal};
+pub use display::{
+    pc_to_note_name, render_pcset_dashed, render_quartal_chord_dashed, render_quartal_is,
+};
 pub use duality::{
     orbit_self_duality, quartal_reading, quintal_reading, reverse_interval_structure,
     t_quartal_reversal_equivalence, verify_all_orbits_self_dual,
