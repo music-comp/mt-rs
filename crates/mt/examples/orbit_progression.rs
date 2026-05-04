@@ -15,12 +15,14 @@ use std::fs;
 use std::path::PathBuf;
 
 use midly::num::{u15, u24, u28, u4, u7};
-use midly::{Format, Header, MetaMessage, MidiMessage, Smf, Timing, Track, TrackEvent, TrackEventKind};
+use midly::{
+    Format, Header, MetaMessage, MidiMessage, Smf, Timing, Track, TrackEvent, TrackEventKind,
+};
 
 use music_comp_mt::note::parse_midi_pitch;
 use music_comp_mt::quintal::{
-    classify_orbit, inversion_cycle, pc_to_note_name, quintal_root, t1, BaseSpace, Orbit,
-    PcChord, VoicedChord,
+    classify_orbit, inversion_cycle, pc_to_note_name, quintal_root, t1, BaseSpace, Orbit, PcChord,
+    VoicedChord,
 };
 use music_comp_mt::voice_leading::min_voiced_chord_l1;
 
@@ -31,8 +33,7 @@ fn midi_to_name(midi: u8) -> String {
 }
 
 fn parse_input_file(path: &str) -> Result<Vec<(Orbit, usize)>, String> {
-    let content = fs::read_to_string(path)
-        .map_err(|e| format!("cannot read {}: {}", path, e))?;
+    let content = fs::read_to_string(path).map_err(|e| format!("cannot read {}: {}", path, e))?;
     let mut orbits = Vec::new();
     for (line_num, line) in content.lines().enumerate() {
         let trimmed = line.trim();
@@ -72,8 +73,7 @@ fn place_first_chord(
     // (i.e., quintal_root(pc, n).pitches[0] % 12 == root_pc)
     let mut matching_chords: Vec<&PcChord> = Vec::new();
     for pc_chord in &orbit_chords {
-        let root = quintal_root(pc_chord, 4)
-            .expect("all BaseSpace chords have legal stackings");
+        let root = quintal_root(pc_chord, 4).expect("all BaseSpace chords have legal stackings");
         if root.pitches[0] % 12 == root_pc {
             matching_chords.push(pc_chord);
         }
@@ -102,17 +102,20 @@ fn place_first_chord(
         // from a different PC, so we build root and find the inversion with
         // root_pc as bottom voice
         let pc_chord = *has_pc.iter().min_by_key(|pc| pc.pcs).unwrap();
-        let root = quintal_root(pc_chord, root_octave)
-            .expect("all BaseSpace chords have legal stackings");
+        let root =
+            quintal_root(pc_chord, root_octave).expect("all BaseSpace chords have legal stackings");
         let cycle = inversion_cycle(&root);
         // Find the inversion whose bottom voice has root_pc
         let chosen = cycle
             .iter()
             .find(|inv| inv.pitches[0] % 12 == root_pc)
-            .ok_or_else(|| format!(
-                "orbit {:?} has no inversion with bottom-voice {}",
-                orbit, pc_to_note_name(root_pc)
-            ))?;
+            .ok_or_else(|| {
+                format!(
+                    "orbit {:?} has no inversion with bottom-voice {}",
+                    orbit,
+                    pc_to_note_name(root_pc)
+                )
+            })?;
         let delta = root_pitch as i32 - chosen.pitches[0] as i32;
         let shifted = chosen.pitches.map(|p| (p as i32 + delta) as u8);
         if shifted.iter().any(|&p| p > 127) {
@@ -129,8 +132,8 @@ fn place_first_chord(
     let pc_chord = matching_chords[0];
 
     // Build the quintal root at the requested octave (always root position)
-    let root = quintal_root(pc_chord, root_octave)
-        .expect("all BaseSpace chords have legal stackings");
+    let root =
+        quintal_root(pc_chord, root_octave).expect("all BaseSpace chords have legal stackings");
 
     // Verify all pitches are in MIDI range
     if root.pitches.iter().any(|&p| p > 127) {
@@ -215,7 +218,9 @@ fn export_midi(
         delta: u28::new(0),
         kind: TrackEventKind::Midi {
             channel: u4::new(0),
-            message: MidiMessage::ProgramChange { program: u7::new(0) },
+            message: MidiMessage::ProgramChange {
+                program: u7::new(0),
+            },
         },
     });
 
@@ -305,7 +310,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .iter()
         .position(|a| a == "--inversion")
         .map(|i| {
-            let v: usize = args[i + 1].parse().expect("--inversion must be 0, 1, 2, or 3");
+            let v: usize = args[i + 1]
+                .parse()
+                .expect("--inversion must be 0, 1, 2, or 3");
             if v > 3 {
                 eprintln!("--inversion must be 0, 1, 2, or 3 (got {})", v);
                 std::process::exit(1);
@@ -319,7 +326,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         "half" => 2,
         "quarter" => 1,
         other => {
-            eprintln!("unknown --duration: {:?} (expected: whole, half, quarter)", other);
+            eprintln!(
+                "unknown --duration: {:?} (expected: whole, half, quarter)",
+                other
+            );
             std::process::exit(1);
         }
     };

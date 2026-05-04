@@ -17,12 +17,14 @@ use std::fs;
 use std::path::PathBuf;
 
 use midly::num::{u15, u24, u28, u4, u7};
-use midly::{Format, Header, MetaMessage, MidiMessage, Smf, Timing, Track, TrackEvent, TrackEventKind};
+use midly::{
+    Format, Header, MetaMessage, MidiMessage, Smf, Timing, Track, TrackEvent, TrackEventKind,
+};
 
 use music_comp_mt::note::parse_midi_pitch;
 use music_comp_mt::quintal::{
-    classify_orbit, distance, geodesics, inversion_cycle, pc_to_note_name, quintal_root,
-    BaseSpace, Orbit, PcChord, VoicedChord,
+    classify_orbit, distance, geodesics, inversion_cycle, pc_to_note_name, quintal_root, BaseSpace,
+    Orbit, PcChord, VoicedChord,
 };
 use music_comp_mt::voice_leading::min_voiced_chord_l1;
 
@@ -241,7 +243,9 @@ fn export_midi(
         delta: u28::new(0),
         kind: TrackEventKind::Midi {
             channel: u4::new(0),
-            message: MidiMessage::ProgramChange { program: u7::new(0) },
+            message: MidiMessage::ProgramChange {
+                program: u7::new(0),
+            },
         },
     });
 
@@ -322,7 +326,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         "half" => 2,
         "quarter" => 1,
         other => {
-            eprintln!("unknown --duration: {:?} (expected: whole, half, quarter)", other);
+            eprintln!(
+                "unknown --duration: {:?} (expected: whole, half, quarter)",
+                other
+            );
             std::process::exit(1);
         }
     };
@@ -341,7 +348,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let space = BaseSpace::new();
 
     // Resolve endpoints
-    let (start_pc, start_vc) = resolve_endpoint(start_orbit, start_pitch, allow_inversions, &space)?;
+    let (start_pc, start_vc) =
+        resolve_endpoint(start_orbit, start_pitch, allow_inversions, &space)?;
     let (end_pc, end_vc) = resolve_endpoint(end_orbit, end_pitch, allow_inversions, &space)?;
 
     // Find geodesics
@@ -351,8 +359,18 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let start_names: Vec<String> = start_vc.pitches.iter().map(|&p| midi_to_name(p)).collect();
     let end_names: Vec<String> = end_vc.pitches.iter().map(|&p| midi_to_name(p)).collect();
 
-    println!("Start: {} ({}, PCs {:?})", start_names.join("\u{2013}"), start_orbit, start_pc.pcs);
-    println!("End:   {} ({}, PCs {:?})", end_names.join("\u{2013}"), end_orbit, end_pc.pcs);
+    println!(
+        "Start: {} ({}, PCs {:?})",
+        start_names.join("\u{2013}"),
+        start_orbit,
+        start_pc.pcs
+    );
+    println!(
+        "End:   {} ({}, PCs {:?})",
+        end_names.join("\u{2013}"),
+        end_orbit,
+        end_pc.pcs
+    );
     println!(
         "Chord-graph distance: {} edge{}",
         dist.unwrap_or(0),
@@ -379,7 +397,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             print_geodesic(
                 voicings,
                 *total,
-                &format!("Geodesic {} (total voice movement: {} semitones):", i + 1, total),
+                &format!(
+                    "Geodesic {} (total voice movement: {} semitones):",
+                    i + 1,
+                    total
+                ),
             );
         }
     } else {
@@ -387,7 +409,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         print_geodesic(
             best_voicings,
             *best_cost,
-            &format!("Best geodesic (total voice movement: {} semitones):", best_cost),
+            &format!(
+                "Best geodesic (total voice movement: {} semitones):",
+                best_cost
+            ),
         );
     }
 
