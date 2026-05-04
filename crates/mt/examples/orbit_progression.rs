@@ -2,11 +2,12 @@
 //!
 //! Given an input file with one OTH orbit per line, generates a chord
 //! progression by greedily picking minimum-L1 voice-led representatives
-//! through the sequence, anchored at a user-specified starting pitch.
+//! through the sequence, anchored at a user-specified root pitch.
 //!
 //! Run with:
 //!   cargo run -p music-comp-mt --example orbit_progression -- --input <file>
-//!   cargo run -p music-comp-mt --example orbit_progression -- --input <file> --starting-pitch C3
+//!   cargo run -p music-comp-mt --example orbit_progression -- --input <file> --root-pitch C3
+//!   cargo run -p music-comp-mt --example orbit_progression -- --input <file> --root-pitch C3 --inversion 2
 //!   cargo run -p music-comp-mt --example orbit_progression -- --input <file> --export-midi out.mid
 
 use std::env;
@@ -18,8 +19,8 @@ use midly::{Format, Header, MetaMessage, MidiMessage, Smf, Timing, Track, TrackE
 
 use music_comp_mt::note::parse_midi_pitch;
 use music_comp_mt::quintal::{
-    classify_orbit, inversion_cycle, pc_to_note_name, quintal_root, BaseSpace, Orbit, PcChord,
-    VoicedChord,
+    classify_orbit, inversion_cycle, pc_to_note_name, quintal_root, t1, BaseSpace, Orbit,
+    PcChord, VoicedChord,
 };
 use music_comp_mt::voice_leading::min_voiced_chord_l1;
 
@@ -60,58 +61,85 @@ fn chords_in_orbit(orbit: Orbit, space: &BaseSpace) -> Vec<PcChord> {
 
 fn place_first_chord(
     orbit: Orbit,
-    p_start: u8,
+    root_pitch: u8,
     space: &BaseSpace,
 ) -> Result<VoicedChord, String> {
-    let target_pc = p_start % 12;
+    let root_pc = root_pitch % 12;
+    let root_octave = root_pitch / 12;
     let orbit_chords = chords_in_orbit(orbit, space);
 
-    let mut candidates: Vec<(VoicedChord, PcChord, usize)> = Vec::new();
-
+    // Find all PcChords in the orbit whose quintal root starts at root_pc
+    // (i.e., quintal_root(pc, n).pitches[0] % 12 == root_pc)
+    let mut matching_chords: Vec<&PcChord> = Vec::new();
     for pc_chord in &orbit_chords {
         let root = quintal_root(pc_chord, 4)
             .expect("all BaseSpace chords have legal stackings");
-        let cycle = inversion_cycle(&root);
-        for (inv_idx, inv) in cycle.iter().enumerate() {
-            if inv.pitches[0] % 12 == target_pc {
-                candidates.push((*inv, *pc_chord, inv_idx));
-            }
+        if root.pitches[0] % 12 == root_pc {
+            matching_chords.push(pc_chord);
         }
     }
 
-    if candidates.is_empty() {
-        let valid_pcs: std::collections::BTreeSet<u8> = orbit_chords
+    if matching_chords.is_empty() {
+        // Fall back: find chords that at least contain root_pc somewhere
+        let has_pc: Vec<&PcChord> = orbit_chords
             .iter()
-            .flat_map(|pc| {
-                let root = quintal_root(pc, 4).unwrap();
-                let cycle = inversion_cycle(&root);
-                cycle.iter().map(|inv| inv.pitches[0] % 12).collect::<Vec<_>>()
-            })
+            .filter(|pc| pc.pcs.contains(&root_pc))
             .collect();
-        let names: Vec<&str> = valid_pcs.iter().map(|&pc| pc_to_note_name(pc)).collect();
-        return Err(format!(
-            "orbit {:?} has no chord with bottom-voice {}; valid bottom-voice PCs: {}",
-            orbit,
-            pc_to_note_name(target_pc),
-            names.join(", ")
-        ));
+        if has_pc.is_empty() {
+            let valid_pcs: std::collections::BTreeSet<u8> = orbit_chords
+                .iter()
+                .flat_map(|pc| pc.pcs.iter().copied())
+                .collect();
+            let names: Vec<&str> = valid_pcs.iter().map(|&pc| pc_to_note_name(pc)).collect();
+            return Err(format!(
+                "orbit {:?} has no chord containing PC {}; valid PCs: {}",
+                orbit,
+                pc_to_note_name(root_pc),
+                names.join(", ")
+            ));
+        }
+        // Use the lex-smallest chord containing root_pc; root position starts
+        // from a different PC, so we build root and find the inversion with
+        // root_pc as bottom voice
+        let pc_chord = *has_pc.iter().min_by_key(|pc| pc.pcs).unwrap();
+        let root = quintal_root(pc_chord, root_octave)
+            .expect("all BaseSpace chords have legal stackings");
+        let cycle = inversion_cycle(&root);
+        // Find the inversion whose bottom voice has root_pc
+        let chosen = cycle
+            .iter()
+            .find(|inv| inv.pitches[0] % 12 == root_pc)
+            .ok_or_else(|| format!(
+                "orbit {:?} has no inversion with bottom-voice {}",
+                orbit, pc_to_note_name(root_pc)
+            ))?;
+        let delta = root_pitch as i32 - chosen.pitches[0] as i32;
+        let shifted = chosen.pitches.map(|p| (p as i32 + delta) as u8);
+        if shifted.iter().any(|&p| p > 127) {
+            return Err(format!(
+                "root pitch {} places chord out of MIDI range",
+                midi_to_name(root_pitch)
+            ));
+        }
+        return Ok(VoicedChord { pitches: shifted });
     }
 
-    // Sort candidates deterministically: prefer root position (inv 0), then smallest
-    // PcChord (lex), then smallest inv index
-    candidates.sort_by(|a, b| a.2.cmp(&b.2).then(a.1.pcs.cmp(&b.1.pcs)));
-    let (chosen, _, _) = candidates[0];
+    // Pick the lexicographically smallest PcChord whose quintal root starts at root_pc
+    matching_chords.sort_by_key(|pc| pc.pcs);
+    let pc_chord = matching_chords[0];
 
-    // Octave-align so bottom voice = p_start exactly
-    let delta = p_start as i32 - chosen.pitches[0] as i32;
-    let shifted = chosen.pitches.map(|p| (p as i32 + delta) as u8);
-    if shifted.iter().any(|&p| p > 127) {
+    // Build the quintal root at the requested octave (always root position)
+    let root = quintal_root(pc_chord, root_octave)
+        .expect("all BaseSpace chords have legal stackings");
+
+    // Verify all pitches are in MIDI range
+    if root.pitches.iter().any(|&p| p > 127) {
         return Err(format!(
-            "starting pitch {} places chord out of MIDI range",
-            midi_to_name(p_start)
+            "root pitch {} places chord out of MIDI range",
+            midi_to_name(root_pitch),
         ));
     }
-    Ok(VoicedChord { pitches: shifted })
+    Ok(root)
 }
 
 fn pick_next_chord(
@@ -131,24 +159,23 @@ fn pick_next_chord(
                 Ok(r) => r,
                 Err(_) => continue,
             };
-            for inv in inversion_cycle(&root) {
-                if inv.pitches.iter().any(|&p| p > 127) {
-                    continue;
+            // Only consider root position (inversion 0) for voice-leading
+            if root.pitches.iter().any(|&p| p > 127) {
+                continue;
+            }
+            let cost = min_voiced_chord_l1(prev, &root);
+            let dominated = match &best {
+                Some((best_cost, best_vc, best_pcs)) => {
+                    cost < *best_cost
+                        || (cost == *best_cost && root.pitches[0] < best_vc.pitches[0])
+                        || (cost == *best_cost
+                            && root.pitches[0] == best_vc.pitches[0]
+                            && pc_chord.pcs < *best_pcs)
                 }
-                let cost = min_voiced_chord_l1(prev, &inv);
-                let dominated = match &best {
-                    Some((best_cost, best_vc, best_pcs)) => {
-                        cost < *best_cost
-                            || (cost == *best_cost && inv.pitches[0] < best_vc.pitches[0])
-                            || (cost == *best_cost
-                                && inv.pitches[0] == best_vc.pitches[0]
-                                && pc_chord.pcs < *best_pcs)
-                    }
-                    None => true,
-                };
-                if dominated {
-                    best = Some((cost, inv, pc_chord.pcs));
-                }
+                None => true,
+            };
+            if dominated {
+                best = Some((cost, root, pc_chord.pcs));
             }
         }
     }
@@ -251,9 +278,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .map(|i| args[i + 1].clone())
         .ok_or("--input <path> is required")?;
 
-    let starting_pitch_str = args
+    let root_pitch_str = args
         .iter()
-        .position(|a| a == "--starting-pitch")
+        .position(|a| a == "--root-pitch")
         .map(|i| args[i + 1].as_str())
         .unwrap_or("C3");
 
@@ -274,6 +301,19 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .map(|i| args[i + 1].parse().expect("--bpm must be an integer"))
         .unwrap_or(120);
 
+    let inversion: usize = args
+        .iter()
+        .position(|a| a == "--inversion")
+        .map(|i| {
+            let v: usize = args[i + 1].parse().expect("--inversion must be 0, 1, 2, or 3");
+            if v > 3 {
+                eprintln!("--inversion must be 0, 1, 2, or 3 (got {})", v);
+                std::process::exit(1);
+            }
+            v
+        })
+        .unwrap_or(0);
+
     let duration_beats: u32 = match duration_str {
         "whole" => 4,
         "half" => 2,
@@ -284,8 +324,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     };
 
-    let p_start = parse_midi_pitch(starting_pitch_str)
-        .map_err(|_| format!("invalid --starting-pitch: {:?}", starting_pitch_str))?;
+    let root_midi = parse_midi_pitch(root_pitch_str)
+        .map_err(|_| format!("invalid --root-pitch: {:?}", root_pitch_str))?;
 
     let orbit_sequence = parse_input_file(&input_path)?;
     let space = BaseSpace::new();
@@ -293,12 +333,21 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Build the progression
     let mut progression: Vec<VoicedChord> = Vec::with_capacity(orbit_sequence.len());
 
-    let first = place_first_chord(orbit_sequence[0].0, p_start, &space)?;
+    let first = place_first_chord(orbit_sequence[0].0, root_midi, &space)?;
     progression.push(first);
 
     for i in 1..orbit_sequence.len() {
         let next = pick_next_chord(&progression[i - 1], orbit_sequence[i].0, &space)?;
         progression.push(next);
+    }
+
+    // Apply inversion transform: t1 applied N times to each chord
+    if inversion > 0 {
+        for chord in progression.iter_mut() {
+            for _ in 0..inversion {
+                *chord = t1(chord);
+            }
+        }
     }
 
     // Print the progression
