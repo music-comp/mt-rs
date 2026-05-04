@@ -18,6 +18,7 @@ mod types;
 mod verification;
 mod voicing;
 
+pub use centrality::{quartal_orbits_by_betweenness, quartal_saddle_chords};
 pub use constructors::{
     from_stacked_fourths, from_stacked_fourths_voiced, pure_quartal_stack, quartal_neighbors,
     quartal_root,
