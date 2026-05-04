@@ -1,9 +1,9 @@
 extern crate music_comp_mt as theory;
 
 use theory::quartal::{
-    base_space, orbit_self_duality, quartal_reading, quintal_reading,
-    reverse_interval_structure, t_quartal_reversal_equivalence, to_quartal,
-    verify_all_orbits_self_dual, QuartalIntervalStructure,
+    base_space, orbit_self_duality, quartal_reading, quintal_reading, reverse_interval_structure,
+    t_quartal_reversal_equivalence, to_quartal, verify_all_orbits_self_dual,
+    QuartalIntervalStructure,
 };
 use theory::quintal::{IntervalStructure, Orbit, VoicedChord};
 

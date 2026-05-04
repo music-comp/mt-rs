@@ -19,8 +19,14 @@ fn test_quartal_fiber_classes_count() {
     let space = base_space();
     let classes = verify_quartal_fiber_classes(&space);
     assert_eq!(classes.len(), 14);
-    let class_a = classes.values().filter(|&&fc| fc == FiberClass::ClassA).count();
-    let class_b = classes.values().filter(|&&fc| fc == FiberClass::ClassB).count();
+    let class_a = classes
+        .values()
+        .filter(|&&fc| fc == FiberClass::ClassA)
+        .count();
+    let class_b = classes
+        .values()
+        .filter(|&&fc| fc == FiberClass::ClassB)
+        .count();
     assert_eq!(class_a, 11);
     assert_eq!(class_b, 3);
     let class_b_orbits: Vec<Orbit> = classes
