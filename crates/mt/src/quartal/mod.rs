@@ -33,6 +33,7 @@ pub use interval::{
 pub use modes::quartal_orbit_modes;
 pub use orbit::QuartalOrbit;
 pub use types::{QuartalIntervalStructure, QuartalVoicedChord};
+pub use verification::{verify_quartal_fiber_classes, verify_quartal_universal_l1_law};
 pub use voicing::{quartal_inversion_cycle, quartal_l1_distances, t_quartal, t_quartal_reverse};
 
 /// Create a new [`BaseSpace`] — the shared 228-chord base space.
