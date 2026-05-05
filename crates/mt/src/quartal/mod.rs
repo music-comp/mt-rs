@@ -11,6 +11,7 @@ mod conversion;
 mod display;
 mod duality;
 mod error;
+mod functional;
 mod interval;
 mod modes;
 mod orbit;
