@@ -17,11 +17,11 @@ For Rust code quality, load these resources in priority order:
 ```bash
 cargo build                          # build library + CLI
 cargo build --features midi          # build with midi_pitch() support
-cargo test                           # run all tests (530+)
+cargo test                           # run all tests (846+ default, 851+ midi)
 cargo test --features midi           # include midi_pitch tests
 cargo test chord::test_chord         # run a specific test module
 cargo test --test tests              # run only integration tests
-cargo clippy                         # lint (4 module_inception warnings are expected)
+cargo clippy --all-targets           # lint (zero warnings expected; gate any new work on "0 new warnings")
 
 cargo run -- scale C Ionian          # CLI: generate scale
 cargo run -- chord C# "Dominant Eleventh"  # CLI: generate chord
@@ -58,4 +58,14 @@ Each theory type has a `from_regex()` constructor that parses natural-language m
 
 ### Test Organization
 
-Integration tests live in `crates/mt/tests/` organized by module (`tests/chord/`, `tests/scale/`, `tests/note/`, `tests/interval/`, `tests/quintal/`). The entry point is `tests/tests.rs` which declares submodules.
+Integration tests live in `crates/mt/tests/` organized by module (`tests/chord/`, `tests/scale/`, `tests/note/`, `tests/interval/`, `tests/quintal/`, `tests/quartal/`). The entry point is `tests/tests.rs` which declares submodules.
+
+### Module Organization Conventions
+
+When adding a quartal-side analytical module that mirrors a quintal-side counterpart (e.g., `quartal/duality.rs` mirrors `quintal/duality.rs`), follow the **topical-submodule re-export convention** established during the OTH4 programme:
+
+- **Perspective-specific views** (rendering, centrality narration, functional-grammar narration, etc.) live in their topical submodule and are re-exported via that submodule's `pub use` block in `quartal/mod.rs`. Example: `quartal::display::render_quartal_chord_dashed`, `quartal::centrality::quartal_saddle_chords`.
+- **Perspective-invariant infrastructure** (`BaseSpace`, the bare `betweenness_centrality` function, `enumerate_all`, etc.) continues to live in the bottom-of-file `pub use crate::quintal::*` block in `quartal/mod.rs`.
+- **Perspective-invariant *helpers* used by perspective-specific views** (like `pc_to_note_name`, `render_pcset_dashed`, `FunctionalRegion`, `Pathway`) go through the topical submodule that uses them.
+
+The convention keeps a quartal-minded reader's mental model crisp: "where do I look for X?" maps to a single submodule for any X-shaped query. New analytical work on the quartal side should follow this pattern; perspective-independent infrastructure additions can continue to land at the bottom of `quartal/mod.rs`.
