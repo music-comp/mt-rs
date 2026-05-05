@@ -33,6 +33,7 @@ pub use duality::{
     t_quartal_reversal_equivalence, verify_all_orbits_self_dual,
 };
 pub use error::QuartalError;
+pub use functional::{quartal_orbits_in, quartal_pathway_stops, FunctionalRegion, Pathway};
 pub use interval::{
     quartal_to_quintal_interval, quartal_to_quintal_structure, quintal_to_quartal_interval,
     quintal_to_quartal_structure,
