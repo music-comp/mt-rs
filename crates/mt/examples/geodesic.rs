@@ -132,9 +132,9 @@ fn render_geodesic(
     voicings.push(*start_vc);
 
     // Render intermediate positions (1..len-1)
-    for i in 1..path.len() - 1 {
+    let last_idx = path.len() - 1;
+    for pc_chord in &path[1..last_idx] {
         let prev = voicings.last().unwrap();
-        let pc_chord = &path[i];
         let low_octave = (prev.pitches[0] / 12).saturating_sub(1);
         let high_octave = (prev.pitches[3] / 12) + 1;
 
