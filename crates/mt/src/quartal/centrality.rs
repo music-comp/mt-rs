@@ -58,8 +58,8 @@ pub fn quartal_saddle_chords(space: &BaseSpace) -> Vec<(PcChord, QuartalInterval
 /// All 14 quartal orbits ranked by maximum betweenness centrality of any
 /// member chord (descending).
 ///
-/// Ties are broken by the natural ordering of [`QuartalOrbit`] (the
-/// declaration order in [`super::orbit`]).
+/// Ties are broken by the natural ordering of [`QuartalOrbit`] (its
+/// variant declaration order).
 ///
 /// # Algorithm
 ///
