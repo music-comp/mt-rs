@@ -37,7 +37,11 @@ fn test_pcs_to_str_all_base_space_chords() {
     for chord in space.chords() {
         let s = pcs_to_str(&chord.pcs);
         let parts: Vec<&str> = s.split('-').collect();
-        assert_eq!(parts.len(), 4, "pcs_to_str should produce 4 dash-separated fields");
+        assert_eq!(
+            parts.len(),
+            4,
+            "pcs_to_str should produce 4 dash-separated fields"
+        );
         for part in &parts {
             let val: u8 = part.parse().expect("each field should be a valid u8");
             assert!(val < 12, "pitch class {} out of range", val);
@@ -70,9 +74,17 @@ fn test_all_14_orbits_represented() {
             seen.insert(orbit);
         }
     }
-    assert_eq!(seen.len(), 14, "all 14 orbits should appear in the base space");
+    assert_eq!(
+        seen.len(),
+        14,
+        "all 14 orbits should appear in the base space"
+    );
     for orbit in Orbit::all() {
-        assert!(seen.contains(orbit), "orbit {:?} missing from base space", orbit);
+        assert!(
+            seen.contains(orbit),
+            "orbit {:?} missing from base space",
+            orbit
+        );
     }
 }
 
@@ -92,7 +104,10 @@ fn test_single_source_row_count() {
     let source = &space.chords()[0];
     let distances = all_distances_from(&space, source);
     let non_self_count = distances.keys().filter(|t| *t != source).count();
-    assert_eq!(non_self_count, 227, "each source should reach 227 other chords");
+    assert_eq!(
+        non_self_count, 227,
+        "each source should reach 227 other chords"
+    );
 }
 
 #[test]
@@ -122,7 +137,11 @@ fn test_all_non_self_distances_positive() {
     let distances = all_distances_from(&space, source);
     for (target, &d) in &distances {
         if target != source {
-            assert!(d > 0, "non-self distance must be > 0, got 0 for {:?}", target.pcs);
+            assert!(
+                d > 0,
+                "non-self distance must be > 0, got 0 for {:?}",
+                target.pcs
+            );
         }
     }
 }
@@ -177,7 +196,16 @@ fn test_distance_matrix_symmetry_sampled() {
 fn test_csv_header() {
     let header = "source_pcs,source_orbit,target_pcs,target_orbit,distance";
     let fields: Vec<&str> = header.split(',').collect();
-    assert_eq!(fields, vec!["source_pcs", "source_orbit", "target_pcs", "target_orbit", "distance"]);
+    assert_eq!(
+        fields,
+        vec![
+            "source_pcs",
+            "source_orbit",
+            "target_pcs",
+            "target_orbit",
+            "distance"
+        ]
+    );
 }
 
 #[test]
@@ -286,7 +314,10 @@ fn test_known_distance_cgda_to_adjacent() {
     let cgda = PcChord::new([0, 2, 7, 9]).unwrap();
     let adjacent = PcChord::new([0, 2, 6, 9]).unwrap();
     let distances = all_distances_from(&space, &cgda);
-    assert_eq!(distances[&adjacent], 1, "C-G-D-A to [0,2,6,9] should be distance 1");
+    assert_eq!(
+        distances[&adjacent], 1,
+        "C-G-D-A to [0,2,6,9] should be distance 1"
+    );
 }
 
 #[test]
@@ -357,7 +388,7 @@ fn test_distance_distribution_nonzero_counts() {
     let total: usize = by_distance.values().sum();
     assert_eq!(total, 227, "should have exactly 227 non-self entries");
     for (&d, &count) in &by_distance {
-        assert!(d >= 1 && d <= 8, "distance {} out of expected range", d);
+        assert!((1..=8).contains(&d), "distance {} out of expected range", d);
         assert!(count > 0, "distance {} bucket should be non-empty", d);
     }
 }
