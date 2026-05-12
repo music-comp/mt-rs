@@ -3,6 +3,7 @@ mod test_centrality;
 mod test_constructors;
 mod test_display;
 mod test_distance;
+mod test_distance_matrix;
 mod test_duality;
 mod test_fiber;
 mod test_fiber_orbits;
