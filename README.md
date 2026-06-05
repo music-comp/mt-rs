@@ -22,7 +22,7 @@ Note that this project started as a fork of Ozan Kaşıkçı's [excellent librar
 
 ```toml
 [dependencies]
-music-comp-mt = "0.4"
+music-comp-mt = "0.6"
 ```
 
 ```rust
